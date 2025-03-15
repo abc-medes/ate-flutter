@@ -1,0 +1,69 @@
+# Flutter related files
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/pubspec.lock
+**/.pub-cache/
+**/.dart_tool/
+**/.idea/
+**/.vscode/
+
+# MacOS
+.DS_Store
+
+# Android
+android/.gradle/
+android/app/key.jks
+android/key.properties
+android/local.properties
+android/.cxx/
+android/app/debug.keystore
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Runner.xcworkspace/
+ios/Runner/Runner.xcworkspace/
+ios/Runner.xcodeproj/project.xcworkspace/
+ios/Runner.xcodeproj/xcuserdata/
+
+# Linux
+linux/flutter/generated_plugin_registrant.cc
+linux/CMakeLists.txt.user
+
+# Windows
+windows/flutter/generated_plugin_registrant.cc
+windows/CMakeLists.txt.user
+
+# Web
+web/.dart_tool/
+web/flutter/
+
+# Firebase
+firebase_options.dart
+*.firebase
+
+# JetBrains (IDEA, PhpStorm)
+.idea/workspace.xml
+.idea/libraries/
+
+# VS Code settings
+.vscode/
+
+# Test coverage reports
+coverage/
+
+# Generated translations
+intl_translation/
+
+# Temporary files
+*.swp
+*.swo
+*.swn
+
+# Log files
+*.log

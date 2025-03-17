@@ -37,6 +37,11 @@ dependencies:
   http: ^1.3.0
   provider: ^6.1.2
   go_router: ^14.8.1
+  riverpod: ^2.6.1
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+  build_runner: ^2.4.15
+  riverpod_generator: ^2.6.5
 
 dev_dependencies:
   flutter_test:

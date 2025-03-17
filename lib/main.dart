@@ -1,28 +1,20 @@
-import 'package:ate_project/core/routes.dart';
-import 'package:ate_project/core/services/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'presentation/views/home/home_view_model.dart';
-import 'data/repositories/user_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/routes/router_provider.dart';
 
 void main() {
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthService()),
-        ChangeNotifierProvider(create: (_) => HomeViewModel(UserRepository())),
-      ],
-      child: MyApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+
     return MaterialApp.router(
-      routerConfig: AppRouter.router,
+      routerConfig: router,
       debugShowCheckedModeBanner: false,
     );
   }

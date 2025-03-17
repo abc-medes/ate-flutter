@@ -47,6 +47,9 @@ lib/
 │ ├── settings/ # Settings feature
 │ │ ├── views/ # Settings UI
 │ │ ├── state/ # State management for settings
+│── presentation/ # **UI Layer (Organized per feature)**
+│ ├── widgets/ # **Reusable UI components (buttons, forms)**
+│ ├── theme/ # **Global app theme & styles**
 │── main.dart # Application entry point
 
 ---

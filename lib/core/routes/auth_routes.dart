@@ -1,5 +1,5 @@
-import 'package:ate_project/presentation/views/auth/login_view.dart';
-import 'package:ate_project/presentation/views/auth/onboarding_view.dart';
+import 'package:ate_project/features/auth/views/login_view.dart';
+import 'package:ate_project/features/auth/views/onboarding_view.dart';
 import 'package:go_router/go_router.dart';
 
 final authRoutes = [

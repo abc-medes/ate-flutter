@@ -1,5 +1,5 @@
-import 'package:ate_project/presentation/views/app/debug/debug_view.dart';
-import 'package:ate_project/presentation/views/app/home/home_view.dart';
+import 'package:ate_project/features/debug/debug_view.dart';
+import 'package:ate_project/features/home/views/home_view.dart';
 import 'package:go_router/go_router.dart';
 
 final appRoutes = [

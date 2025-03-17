@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 final appRoutes = [
   GoRoute(
-    path: '/home',
+    path: '/',
     builder: (context, state) => const HomeView(),
   ),
   GoRoute(

@@ -20,8 +20,8 @@ class HomeView extends ConsumerWidget {
             Text("Welcome to Home!"),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () => context.go('/dashboard'),
-              child: Text("Go to Dashboard"),
+              onPressed: () => context.go('/debug'),
+              child: Text("Go to Debug"),
             ),
             SizedBox(height: 20),
             ElevatedButton(

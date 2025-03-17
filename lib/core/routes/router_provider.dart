@@ -23,7 +23,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             : '/auth/onboarding';
       }
 
-      return state.matchedLocation.startsWith('/home') ? null : '/home';
+      return null;
     },
     routes: [...authRoutes, ...appRoutes],
   );

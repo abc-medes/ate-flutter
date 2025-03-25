@@ -24,9 +24,7 @@ class LoginView extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () {
-                // TODO: Handle login
-              },
+              onPressed: () {},
               child: const Text('Login'),
             ),
           ],

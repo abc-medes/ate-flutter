@@ -1,70 +1,56 @@
+import 'package:ate_project/core/services/auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SocialLoginButton extends StatelessWidget {
-  final String text;
-  final String icon;
-  final Color color;
-  final Color textColor;
-  final bool isLoading;
-  final VoidCallback onPressed;
-
-  const SocialLoginButton({
+class SocialAuthButton extends StatelessWidget {
+  const SocialAuthButton({
     super.key,
+    required this.ref,
     required this.text,
     required this.icon,
-    required this.color,
-    required this.textColor,
-    required this.isLoading,
+    required this.iconColor,
     required this.onPressed,
   });
+
+  final WidgetRef ref;
+  final String text;
+  final IconData icon;
+  final Color iconColor;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 56,
+      height: 54,
       child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: ref.watch(authProvider).isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: textColor,
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black87,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: Colors.grey.withOpacity(0.2),
-              width: 1,
-            ),
           ),
         ),
-        child: isLoading
-            ? SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(textColor),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Image.asset(
-                  //   icon,
-                  //   width: 24,
-                  //   height: 24,
-                  // ),
-                  // const SizedBox(width: 12),
-                  Text(
-                    text,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: textColor,
-                    ),
-                  ),
-                ],
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: iconColor,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              text,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
               ),
+            ),
+          ],
+        ),
       ),
     );
   }

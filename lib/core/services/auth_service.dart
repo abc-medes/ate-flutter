@@ -283,9 +283,6 @@ class AuthService {
   // Check if email is available
   Future<bool> isEmailAvailable(String email) async {
     try {
-      // Check if a user with this email exists by trying to sign in with a fake password
-      // If the error is 'Invalid login credentials', the email exists
-      // If the error is 'User not found', the email is available
       try {
         await _client.auth.signInWithPassword(
           email: email,

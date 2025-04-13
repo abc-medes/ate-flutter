@@ -71,9 +71,24 @@ intl_translation/
 # Log files
 *.log
 
-# Android build files
-android/app/.cxx/
-android/app/src/main/cpp/CMakeLists.txt
-android/**/.cxx/
-android/**/cmake/
-**/CMakeLists.txt
+# Environment files
+.env
+*.env
+.env.*
+!.env.example
+
+# CMake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+.cmake/
+build/
+*.cmake

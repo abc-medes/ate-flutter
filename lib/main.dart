@@ -1,6 +1,8 @@
+import 'package:ate_project/core/routes/router_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/routes/router_provider.dart';
+import 'package:ate_project/l10n/l10n.dart';
+import 'package:ate_project/core/theme/app_theme.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -11,41 +13,16 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final router = ref.watch(routerProvider);
-
     return MaterialApp.router(
+      title: 'Health & Fitness',
       debugShowCheckedModeBanner: false,
-      routerConfig: router,
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primaryColor: const Color(0xFF4CAF50),
-        scaffoldBackgroundColor: const Color(0xFFF8F9FA),
-        textTheme: const TextTheme(
-          headlineLarge: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-          bodyMedium: TextStyle(
-            fontSize: 16,
-            color: Colors.black54,
-          ),
-        ),
-        inputDecorationTheme: const InputDecorationTheme(
-          border: OutlineInputBorder(),
-          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFF4CAF50),
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          ),
-        ),
-      ),
+
+      // Add localization support
+      localizationsDelegates: L10n.localizationsDelegates,
+      supportedLocales: L10n.supportedLocales,
+
+      theme: AppTheme.lightTheme,
+      routerConfig: ref.watch(routerProvider),
     );
   }
 }

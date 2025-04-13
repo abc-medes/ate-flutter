@@ -1,0 +1,90 @@
+{
+    "appTitle": "헬스 & 피트니스",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+    "welcomeBack": "다시 오신 것을 환영합니다",
+    "@welcomeBack": {
+        "description": "Title shown on the login screen"
+    },
+    "signInToContinue": "건강한 삶을 위해 로그인해주세요",
+    "@signInToContinue": {
+        "description": "Subtitle shown on the login screen"
+    },
+    "createAccount": "계정 만들기",
+    "@createAccount": {
+        "description": "Title shown on the signup screen"
+    },
+    "startJourney": "건강한 여정을 시작하세요",
+    "@startJourney": {
+        "description": "Subtitle shown on the signup screen"
+    },
+    "email": "이메일",
+    "@email": {
+        "description": "Label for email input field"
+    },
+    "password": "비밀번호",
+    "@password": {
+        "description": "Label for password input field"
+    },
+    "confirmPassword": "비밀번호 확인",
+    "@confirmPassword": {
+        "description": "Label for confirm password input field"
+    },
+    "fullName": "이름",
+    "@fullName": {
+        "description": "Label for full name input field"
+    },
+    "forgotPassword": "비밀번호를 잊으셨나요?",
+    "@forgotPassword": {
+        "description": "Text for forgot password button"
+    },
+    "login": "로그인",
+    "@login": {
+        "description": "Text for login button"
+    },
+    "orContinueWith": "또는 다음으로 계속하기",
+    "@orContinueWith": {
+        "description": "Text for social login separator"
+    },
+    "orSignUpWith": "또는 다음으로 가입하기",
+    "@orSignUpWith": {
+        "description": "Text for social signup separator"
+    },
+    "welcomeToApp": "헬스 & 피트니스에 오신 것을 환영합니다",
+    "@welcomeToApp": {
+        "description": "Welcome text on onboarding screen"
+    },
+    "appDescription": "더 나은 라이프스타일을 위한 당신의 건강 파트너",
+    "@appDescription": {
+        "description": "App description on onboarding screen"
+    },
+    "pleaseEnterEmail": "이메일을 입력해주세요",
+    "@pleaseEnterEmail": {
+        "description": "Validation message for empty email"
+    },
+    "pleaseEnterValidEmail": "올바른 이메일을 입력해주세요",
+    "@pleaseEnterValidEmail": {
+        "description": "Validation message for invalid email"
+    },
+    "pleaseEnterPassword": "비밀번호를 입력해주세요",
+    "@pleaseEnterPassword": {
+        "description": "Validation message for empty password"
+    },
+    "passwordMinLength": "비밀번호는 최소 6자 이상이어야 합니다",
+    "@passwordMinLength": {
+        "description": "Validation message for short password"
+    },
+    "pleaseConfirmPassword": "비밀번호를 다시 입력해주세요",
+    "@pleaseConfirmPassword": {
+        "description": "Validation message for empty confirm password"
+    },
+    "passwordsDoNotMatch": "비밀번호가 일치하지 않습니다",
+    "@passwordsDoNotMatch": {
+        "description": "Validation message for non-matching passwords"
+    },
+    "pleaseEnterName": "이름을 입력해주세요",
+    "@pleaseEnterName": {
+        "description": "Validation message for empty name"
+    }
+} 

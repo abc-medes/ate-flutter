@@ -1,0 +1,90 @@
+{
+    "appTitle": "Health & Fitness",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+    "welcomeBack": "Welcome Back",
+    "@welcomeBack": {
+        "description": "Title shown on the login screen"
+    },
+    "signInToContinue": "Sign in to continue your health journey",
+    "@signInToContinue": {
+        "description": "Subtitle shown on the login screen"
+    },
+    "createAccount": "Create Account",
+    "@createAccount": {
+        "description": "Title shown on the signup screen"
+    },
+    "startJourney": "Start your health journey with us",
+    "@startJourney": {
+        "description": "Subtitle shown on the signup screen"
+    },
+    "email": "Email",
+    "@email": {
+        "description": "Label for email input field"
+    },
+    "password": "Password",
+    "@password": {
+        "description": "Label for password input field"
+    },
+    "confirmPassword": "Confirm Password",
+    "@confirmPassword": {
+        "description": "Label for confirm password input field"
+    },
+    "fullName": "Full Name",
+    "@fullName": {
+        "description": "Label for full name input field"
+    },
+    "forgotPassword": "Forgot Password?",
+    "@forgotPassword": {
+        "description": "Text for forgot password button"
+    },
+    "login": "Login",
+    "@login": {
+        "description": "Text for login button"
+    },
+    "orContinueWith": "Or continue with",
+    "@orContinueWith": {
+        "description": "Text for social login separator"
+    },
+    "orSignUpWith": "Or sign up with",
+    "@orSignUpWith": {
+        "description": "Text for social signup separator"
+    },
+    "welcomeToApp": "Welcome to Health & Fitness",
+    "@welcomeToApp": {
+        "description": "Welcome text on onboarding screen"
+    },
+    "appDescription": "Your personal health companion for a better lifestyle",
+    "@appDescription": {
+        "description": "App description on onboarding screen"
+    },
+    "pleaseEnterEmail": "Please enter your email",
+    "@pleaseEnterEmail": {
+        "description": "Validation message for empty email"
+    },
+    "pleaseEnterValidEmail": "Please enter a valid email",
+    "@pleaseEnterValidEmail": {
+        "description": "Validation message for invalid email"
+    },
+    "pleaseEnterPassword": "Please enter your password",
+    "@pleaseEnterPassword": {
+        "description": "Validation message for empty password"
+    },
+    "passwordMinLength": "Password must be at least 6 characters",
+    "@passwordMinLength": {
+        "description": "Validation message for short password"
+    },
+    "pleaseConfirmPassword": "Please confirm your password",
+    "@pleaseConfirmPassword": {
+        "description": "Validation message for empty confirm password"
+    },
+    "passwordsDoNotMatch": "Passwords do not match",
+    "@passwordsDoNotMatch": {
+        "description": "Validation message for non-matching passwords"
+    },
+    "pleaseEnterName": "Please enter your name",
+    "@pleaseEnterName": {
+        "description": "Validation message for empty name"
+    }
+} 

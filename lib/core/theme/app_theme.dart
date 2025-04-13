@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+final themeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
 
 class AppColors {
   // Primary Colors
@@ -14,8 +17,11 @@ class AppColors {
   // Neutral Colors
   static const background = Color(0xFFF5F5F5);
   static const surface = Color(0xFFFFFFFF);
+  static const surfaceVariant = Color(0xFFF3F3F3);
   static const textPrimary = Color(0xFF212121);
   static const textSecondary = Color(0xFF757575);
+  static const textTertiary = Color(0xFF9E9E9E);
+  static const divider = Color(0xFFBDBDBD);
 
   // Feedback Colors
   static const success = Color(0xFF4CAF50);
@@ -28,7 +34,8 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.light(
+      brightness: Brightness.light,
+      colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         primaryContainer: AppColors.primaryLight,
         secondary: AppColors.secondary,
@@ -37,6 +44,8 @@ class AppTheme {
         background: AppColors.background,
         error: AppColors.error,
       ),
+
+      // Typography
       textTheme: const TextTheme(
         displayLarge: TextStyle(
           fontSize: 32,
@@ -48,6 +57,11 @@ class AppTheme {
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
+        displaySmall: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
         bodyLarge: TextStyle(
           fontSize: 16,
           color: AppColors.textPrimary,
@@ -56,10 +70,19 @@ class AppTheme {
           fontSize: 14,
           color: AppColors.textSecondary,
         ),
+        labelLarge: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
       ),
+
+      // Input Fields
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.primary),
@@ -76,22 +99,56 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.error),
         ),
+        hintStyle: TextStyle(
+          color: AppColors.textSecondary.withOpacity(0.7),
+        ),
       ),
+
+      // Buttons
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          minimumSize: const Size(double.infinity, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          elevation: 0,
         ),
       ),
+
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          textStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
+      ),
+
+      // Divider
+      dividerTheme: const DividerThemeData(
+        color: AppColors.divider,
+        thickness: 1,
+        space: 1,
+      ),
+    );
+  }
+
+  static ThemeData get darkTheme {
+    return lightTheme.copyWith(
+      brightness: Brightness.dark,
+      colorScheme: const ColorScheme.dark(
+        primary: AppColors.primaryLight,
+        primaryContainer: AppColors.primary,
+        secondary: AppColors.secondaryLight,
+        secondaryContainer: AppColors.secondary,
+        surface: Color(0xFF1E1E1E),
+        background: Color(0xFF121212),
+        error: AppColors.error,
       ),
     );
   }

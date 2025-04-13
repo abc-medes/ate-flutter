@@ -1,76 +1,364 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:ate_project/core/services/user_service.dart';
 
+// Base service providers
+final authServiceProvider = Provider<AuthService>((ref) => AuthService());
+final userServiceProvider = Provider<UserService>((ref) {
+  final authService = ref.watch(authServiceProvider);
+  return UserService(authService);
+});
+
+// Auth state enum
+enum AuthStatus {
+  initial,
+  unauthenticated,
+  authenticating,
+  authenticated,
+  error,
+}
+
+// Auth state model (now without user data)
 class AuthState {
-  final bool isAuthenticated;
-  final bool isOnboardingCompleted;
-  final bool isLoading;
+  final AuthStatus status;
   final String? errorMessage;
+  final bool isLoading;
   final String? userId;
-  final String? email;
 
   AuthState({
-    this.isAuthenticated = false,
-    this.isOnboardingCompleted = false,
-    this.isLoading = false,
+    this.status = AuthStatus.initial,
     this.errorMessage,
+    this.isLoading = false,
     this.userId,
-    this.email,
   });
 
   AuthState copyWith({
-    bool? isAuthenticated,
-    bool? isOnboardingCompleted,
-    bool? isLoading,
+    AuthStatus? status,
     String? errorMessage,
+    bool? isLoading,
     String? userId,
-    String? email,
   }) {
     return AuthState(
-      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
-      isOnboardingCompleted:
-          isOnboardingCompleted ?? this.isOnboardingCompleted,
-      isLoading: isLoading ?? this.isLoading,
+      status: status ?? this.status,
       errorMessage: errorMessage ?? this.errorMessage,
+      isLoading: isLoading ?? this.isLoading,
       userId: userId ?? this.userId,
-      email: email ?? this.email,
     );
   }
+
+  bool get isAuthenticated =>
+      status == AuthStatus.authenticated && userId != null;
+  bool get isInitializing => status == AuthStatus.initial;
+  bool get hasError => status == AuthStatus.error || errorMessage != null;
+
+  // Explicitly check if loading or has error for router
+  bool get isLoadingOrError => isLoading || errorMessage != null;
 }
 
+// Auth notifier (now just manages auth state, not user data)
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier() : super(AuthState());
+  final AuthService _authService;
+  StreamSubscription<bool>? _authSubscription;
 
-  Future<void> login({required String userId, required String email}) async {
-    state = state.copyWith(isLoading: true);
+  AuthNotifier(this._authService) : super(AuthState()) {
+    _initializeAuthState();
+  }
+
+  void _initializeAuthState() {
+    _authSubscription = _authService.authStateChanges.listen(
+      (isAuthenticated) {
+        if (isAuthenticated) {
+          state = AuthState(
+            status: AuthStatus.authenticated,
+            userId: _authService.currentUser?.id,
+            isLoading: false,
+          );
+        } else {
+          state = AuthState(
+            status: AuthStatus.unauthenticated,
+            isLoading: false,
+          );
+        }
+      },
+      onError: (error) {
+        state = AuthState(
+          status: AuthStatus.error,
+          errorMessage: error.toString(),
+          isLoading: false,
+        );
+      },
+    );
+  }
+
+  Future<void> signIn(String email, String password) async {
+    state = state.copyWith(isLoading: true, status: AuthStatus.authenticating);
 
     try {
-      await Future.delayed(const Duration(seconds: 1));
-      state = state.copyWith(
-        isAuthenticated: true,
-        userId: userId,
-        email: email,
-        isLoading: false,
-        errorMessage: null,
-      );
+      await _authService.signIn(email, password);
+      // Auth state will be updated by the stream listener
     } catch (e) {
-      state = state.copyWith(
-          isLoading: false, errorMessage: "Login failed. Please try again.");
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: e.toString(),
+        isLoading: false,
+      );
     }
   }
 
-  void logout() {
-    state = AuthState();
+  Future<void> signUp(String email, String password, String name) async {
+    state = state.copyWith(isLoading: true, status: AuthStatus.authenticating);
+
+    try {
+      await _authService.signUp(email, password, name);
+      // Auth state will be updated by the stream listener
+    } catch (e) {
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: e.toString(),
+        isLoading: false,
+      );
+    }
   }
 
-  void completeOnboarding() {
-    state = state.copyWith(isOnboardingCompleted: true);
+  Future<void> signOut() async {
+    state = state.copyWith(isLoading: true);
+
+    try {
+      await _authService.signOut();
+      // Auth state will be updated by the stream listener
+    } catch (e) {
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: e.toString(),
+        isLoading: false,
+      );
+    }
   }
 
-  void resetError() {
+  Future<void> signInWithGoogle() async {
+    state = state.copyWith(isLoading: true, status: AuthStatus.authenticating);
+
+    try {
+      await _authService.signInWithGoogle();
+      // Auth state will be updated by the stream listener
+    } catch (e) {
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: e.toString(),
+        isLoading: false,
+      );
+    }
+  }
+
+  Future<void> signInWithApple() async {
+    state = state.copyWith(isLoading: true, status: AuthStatus.authenticating);
+
+    try {
+      await _authService.signInWithApple();
+      // Auth state will be updated by the stream listener
+    } catch (e) {
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: e.toString(),
+        isLoading: false,
+      );
+    }
+  }
+
+  void clearError() {
     state = state.copyWith(errorMessage: null);
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 }
 
-final authStateProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  return AuthNotifier();
+// Main auth provider
+final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  final authService = ref.watch(authServiceProvider);
+  return AuthNotifier(authService);
 });
+
+// Helper auth providers
+final isAuthenticatedProvider = Provider<bool>((ref) {
+  return ref.watch(authProvider).isAuthenticated;
+});
+
+final authLoadingProvider = Provider<bool>((ref) {
+  return ref.watch(authProvider).isLoading;
+});
+
+final authErrorProvider = Provider<String?>((ref) {
+  return ref.watch(authProvider).errorMessage;
+});
+
+// User ID provider that depends on auth state
+final userIdProvider = Provider<String?>((ref) {
+  return ref.watch(authProvider).userId;
+});
+
+class AuthService {
+  final SupabaseClient _client = Supabase.instance.client;
+
+  // Current Supabase user
+  User? get currentUser => _client.auth.currentUser;
+
+  // Check if user is authenticated
+  bool get isAuthenticated => currentUser != null;
+
+  // Stream of authentication state changes
+  Stream<bool> get authStateChanges =>
+      _client.auth.onAuthStateChange.map((state) => state.session != null);
+
+  // Stream of user IDs
+  Stream<String?> get userIdStream =>
+      _client.auth.onAuthStateChange.map((state) => state.session?.user.id);
+
+  // Sign up with email and password
+  Future<void> signUp(String email, String password, String name) async {
+    try {
+      // Create auth user
+      final authResponse = await _client.auth.signUp(
+        email: email,
+        password: password,
+      );
+
+      if (authResponse.user == null) {
+        throw Exception('Failed to create user');
+      }
+
+      // Create initial profile data
+      final profileData = {
+        'id': authResponse.user!.id,
+        'email': email,
+        'name': name,
+        'created_at': DateTime.now().toIso8601String(),
+        'preferences': {
+          'dark_mode': false,
+          'notification_settings': {
+            'push_enabled': true,
+            'email_enabled': true,
+          }
+        },
+        'onboarding_status': {
+          'personal_info_completed': false,
+          'health_profile_completed': false,
+          'goals_completed': false,
+        },
+        'health_profile': {}
+      };
+
+      // Insert profile data into profiles table
+      await _client.from('profiles').insert(profileData);
+    } catch (e) {
+      throw Exception('Failed to sign up: ${e.toString()}');
+    }
+  }
+
+  // Sign in with email and password
+  Future<void> signIn(String email, String password) async {
+    try {
+      final authResponse = await _client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      if (authResponse.user == null) {
+        throw Exception('Failed to sign in');
+      }
+    } catch (e) {
+      throw Exception('Failed to sign in: ${e.toString()}');
+    }
+  }
+
+  // Sign out
+  Future<void> signOut() async {
+    await _client.auth.signOut();
+  }
+
+  // Check if email is available
+  Future<bool> isEmailAvailable(String email) async {
+    try {
+      // Check if a user with this email exists by trying to sign in with a fake password
+      // If the error is 'Invalid login credentials', the email exists
+      // If the error is 'User not found', the email is available
+      try {
+        await _client.auth.signInWithPassword(
+          email: email,
+          password: 'fake_password_for_checking_email_existence',
+        );
+        // If we got here, email exists
+        return false;
+      } catch (signInError) {
+        final errorMessage = signInError.toString().toLowerCase();
+        if (errorMessage.contains('user not found')) {
+          return true; // Email is available
+        } else {
+          return false; // Email exists but wrong password
+        }
+      }
+    } catch (e) {
+      throw Exception('Failed to check email: ${e.toString()}');
+    }
+  }
+
+  // Reset password
+  Future<void> resetPassword(String email) async {
+    try {
+      await _client.auth.resetPasswordForEmail(email);
+    } catch (e) {
+      throw Exception('Failed to reset password: ${e.toString()}');
+    }
+  }
+
+  // Sign in with Google
+  Future<void> signInWithGoogle() async {
+    try {
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.flutterquickstart://login-callback/',
+      );
+    } catch (e) {
+      throw Exception('Failed to sign in with Google: ${e.toString()}');
+    }
+  }
+
+  // Sign in with Apple
+  Future<void> signInWithApple() async {
+    try {
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.apple,
+        redirectTo: 'io.supabase.flutterquickstart://login-callback/',
+      );
+    } catch (e) {
+      throw Exception('Failed to sign in with Apple: ${e.toString()}');
+    }
+  }
+
+  // Fetch user profile from the database
+  Future<Map<String, dynamic>> fetchUserProfile(String userId) async {
+    try {
+      final response =
+          await _client.from('profiles').select().eq('id', userId).single();
+
+      return response ?? {};
+    } catch (e) {
+      // If no profile exists, return empty map
+      return {};
+    }
+  }
+
+  // Update user profile
+  Future<void> updateUserProfile(
+      String userId, Map<String, dynamic> data) async {
+    try {
+      await _client.from('profiles').update(data).eq('id', userId);
+    } catch (e) {
+      throw Exception('Failed to update profile: ${e.toString()}');
+    }
+  }
+}

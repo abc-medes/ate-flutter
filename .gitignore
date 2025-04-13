@@ -70,3 +70,10 @@ intl_translation/
 
 # Log files
 *.log
+
+# Android build files
+android/app/.cxx/
+android/app/src/main/cpp/CMakeLists.txt
+android/**/.cxx/
+android/**/cmake/
+**/CMakeLists.txt

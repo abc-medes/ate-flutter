@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ate_project/core/services/auth_service.dart';
+import 'package:ate_project/core/routes/route_names.dart';
 
 class LoginView extends ConsumerWidget {
+  static String get routeName => RouteNames.login;
+
   const LoginView({super.key});
 
   @override

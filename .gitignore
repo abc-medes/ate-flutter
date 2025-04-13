@@ -20,6 +20,9 @@ android/key.properties
 android/local.properties
 android/.cxx/
 android/app/debug.keystore
+**/android/**/cmake/*
+**/android/**/CMakeLists.txt
+**/android/.cxx/
 
 # iOS
 ios/Pods/

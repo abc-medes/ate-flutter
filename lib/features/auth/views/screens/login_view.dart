@@ -18,12 +18,17 @@ class LoginView extends ConsumerStatefulWidget {
 
 class _LoginViewState extends ConsumerState<LoginView> {
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _isEmailValid = true;
+  bool _showPassword = false;
+  bool _isPasswordVisible = false;
+  bool _isLoading = false;
   final _supabase = Supabase.instance.client;
 
   @override
   void dispose() {
     _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -36,7 +41,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final isLoading = authState.isLoading;
+    final isLoading = authState.isLoading || _isLoading;
     final error = authState.errorMessage;
 
     // Check platform
@@ -91,10 +96,16 @@ class _LoginViewState extends ConsumerState<LoginView> {
                     onChanged: (_) {
                       setState(() {
                         _isEmailValid = _validateEmail();
+                        // Reset password visibility if email changes
+                        if (_showPassword) {
+                          _showPassword = false;
+                        }
                       });
                     },
                   ),
                 ),
+
+                // Show error below the TextField if validation fails
                 if (!_isEmailValid)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, left: 4.0),
@@ -106,7 +117,43 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       ),
                     ),
                   ),
+
                 const SizedBox(height: 16),
+
+                // Password field (only shown after email check)
+                if (_showPassword) ...[
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: TextField(
+                      controller: _passwordController,
+                      obscureText: !_isPasswordVisible,
+                      decoration: InputDecoration(
+                        hintText: 'Password',
+                        hintStyle: TextStyle(color: AppColors.textTertiary),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 18),
+                        border: InputBorder.none,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordVisible
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: AppColors.textTertiary,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // Continue button
                 SizedBox(
@@ -118,7 +165,11 @@ class _LoginViewState extends ConsumerState<LoginView> {
                         : () {
                             if (_validateEmail() &&
                                 _emailController.text.isNotEmpty) {
-                              _handleEmailLogin(context);
+                              if (_showPassword) {
+                                _handlePasswordLogin(context);
+                              } else {
+                                _checkEmailExists(context);
+                              }
                             } else {
                               setState(() {
                                 _isEmailValid = false;
@@ -142,15 +193,34 @@ class _LoginViewState extends ConsumerState<LoginView> {
                               strokeWidth: 2,
                             ),
                           )
-                        : const Text(
-                            'Continue',
-                            style: TextStyle(
+                        : Text(
+                            _showPassword ? 'Login' : 'Continue',
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                   ),
                 ),
+
+                // Forgot password link (only shown when password is visible)
+                if (_showPassword) ...[
+                  const SizedBox(height: 12),
+                  Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        // TODO: Implement forgot password flow
+                      },
+                      child: Text(
+                        'Forgot your password?',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 24),
 
                 // Or divider
@@ -198,21 +268,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
                     onPressed: () {
                       // TODO: Implement Facebook login
                     }),
-                const SizedBox(height: 40),
-
-                Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      // TODO: Implement forgot password flow
-                    },
-                    child: Text(
-                      'Forgot your password?',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ),
 
                 // Error message if any
                 if (error != null)
@@ -277,7 +332,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
     }
   }
 
-  void _handleEmailLogin(BuildContext context) async {
+  Future<void> _checkEmailExists(BuildContext context) async {
     if (!_validateEmail() || _emailController.text.isEmpty) {
       setState(() {
         _isEmailValid = false;
@@ -285,46 +340,107 @@ class _LoginViewState extends ConsumerState<LoginView> {
       return;
     }
 
-    // Navigate to a loading screen that directly handles the checking
-    context.push(RouteNames.checkingEmail, extra: _emailController.text);
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Use the authService method to check if email exists
+      final authService = ref.read(authServiceProvider);
+      final isEmailAvailable =
+          await authService.isEmailAvailable(_emailController.text);
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (isEmailAvailable) {
+        // Email doesn't exist - go to signup
+        context.push(RouteNames.signup, extra: _emailController.text);
+      } else {
+        // Email exists - show password field
+        setState(() {
+          _showPassword = true;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      // Show error
+      ref.read(authProvider.notifier).state =
+          ref.read(authProvider.notifier).state.copyWith(
+                errorMessage: "Error checking email: ${e.toString()}",
+              );
+    }
+  }
+
+  void _handlePasswordLogin(BuildContext context) async {
+    if (_passwordController.text.isEmpty) {
+      // Show password error
+      ref.read(authProvider.notifier).state =
+          ref.read(authProvider.notifier).state.copyWith(
+                errorMessage: "Please enter your password",
+              );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Attempt to sign in with password
+      await _supabase.auth.signInWithPassword(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      // Auth success, router will handle the navigation
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      // Show login error
+      ref.read(authProvider.notifier).state =
+          ref.read(authProvider.notifier).state.copyWith(
+                errorMessage: "Login failed: ${e.toString()}",
+              );
+    }
   }
 
   void _handleGoogleSignIn(WidgetRef ref) async {
-    LoadingScreen.show(context, message: "Connecting to Google...");
-
     try {
       await ref.read(authProvider.notifier).signInWithGoogle();
-
-      // Always dismiss loading screen when operation completes
-      LoadingScreen.dismiss(context);
-
-      if (!mounted) return;
 
       // Check if user profile exists after successful auth
       _checkUserProfileExists(_supabase.auth.currentUser);
     } catch (e) {
-      // Always dismiss loading screen when operation fails
-      LoadingScreen.dismiss(context);
       // Error will be handled by the AuthNotifier
     }
   }
 
   void _handleAppleSignIn(WidgetRef ref) async {
-    LoadingScreen.show(context, message: "Connecting to Apple...");
-
     try {
       await ref.read(authProvider.notifier).signInWithApple();
-
-      // Always dismiss loading screen when operation completes
-      LoadingScreen.dismiss(context);
-
-      if (!mounted) return;
 
       // Check if user profile exists after successful auth
       _checkUserProfileExists(_supabase.auth.currentUser);
     } catch (e) {
-      // Always dismiss loading screen when operation fails
-      LoadingScreen.dismiss(context);
       // Error will be handled by the AuthNotifier
     }
   }

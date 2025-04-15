@@ -6,7 +6,7 @@ class RouteNames {
   static const checkingEmail = '/auth/checking-email';
 
   // Main Routes
-  static const home = '/home';
+  static const home = '/';
   static const profile = '/profile';
 
   // Cannot be instantiated

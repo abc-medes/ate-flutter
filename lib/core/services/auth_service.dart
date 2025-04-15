@@ -106,21 +106,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<void> signUp(String email, String password, String name) async {
-    state = state.copyWith(isLoading: true, status: AuthStatus.authenticating);
-
-    try {
-      await _authService.signUp(email, password, name);
-      // Auth state will be updated by the stream listener
-    } catch (e) {
-      state = AuthState(
-        status: AuthStatus.error,
-        errorMessage: e.toString(),
-        isLoading: false,
-      );
-    }
-  }
-
   Future<void> signOut() async {
     state = state.copyWith(isLoading: true);
 
@@ -221,11 +206,15 @@ class AuthService {
   // Sign up with email and password
   Future<void> signUp(String email, String password, String name) async {
     try {
+      print('Starting signup process for email: $email');
+
       // Create auth user
       final authResponse = await _client.auth.signUp(
         email: email,
         password: password,
       );
+
+      print('Auth user created: ${authResponse.user?.id}');
 
       if (authResponse.user == null) {
         throw Exception('Failed to create user');
@@ -252,9 +241,59 @@ class AuthService {
         'health_profile': {}
       };
 
-      // Insert profile data into profiles table
-      await _client.from('profiles').insert(profileData);
+      print(
+          'Attempting to insert profile data for user: ${authResponse.user!.id}');
+
+      try {
+        // Check if profile already exists before inserting
+        final existingProfile = await _client
+            .from('profiles')
+            .select()
+            .eq('id', authResponse.user!.id)
+            .maybeSingle();
+
+        if (existingProfile == null) {
+          // Only insert if profile doesn't exist
+          try {
+            await _client.from('profiles').insert(profileData);
+            print('Profile data inserted successfully');
+          } catch (insertError) {
+            // If it's a duplicate key error, try to update instead
+            if (insertError
+                .toString()
+                .contains('duplicate key value violates unique constraint')) {
+              print('Handling duplicate key error by updating profile');
+              await _client
+                  .from('profiles')
+                  .update(profileData)
+                  .eq('id', authResponse.user!.id);
+              print('Profile updated successfully after duplicate key error');
+            } else {
+              // For other errors, rethrow
+              throw insertError;
+            }
+          }
+        } else {
+          // Profile exists, update it
+          await _client
+              .from('profiles')
+              .update(profileData)
+              .eq('id', authResponse.user!.id);
+          print('Existing profile updated successfully');
+        }
+      } catch (profileError) {
+        print('ERROR CREATING PROFILE: $profileError');
+        // If profile creation fails, we should try to clean up the auth user
+        try {
+          await _client.auth.signOut();
+          print('Signed out user after profile creation failed');
+        } catch (deleteError) {
+          print('Failed to sign out user: $deleteError');
+        }
+        throw Exception('Failed to create user profile: $profileError');
+      }
     } catch (e) {
+      print('SIGNUP ERROR: $e');
       throw Exception('Failed to sign up: ${e.toString()}');
     }
   }
@@ -280,24 +319,12 @@ class AuthService {
     await _client.auth.signOut();
   }
 
-  // Check if email is available
+  // Check if email is available - without trying fake passwords
   Future<bool> isEmailAvailable(String email) async {
     try {
-      try {
-        await _client.auth.signInWithPassword(
-          email: email,
-          password: 'fake_password_for_checking_email_existence',
-        );
-        // If we got here, email exists
-        return false;
-      } catch (signInError) {
-        final errorMessage = signInError.toString().toLowerCase();
-        if (errorMessage.contains('user not found')) {
-          return true; // Email is available
-        } else {
-          return false; // Email exists but wrong password
-        }
-      }
+      // We'll create a Supabase function for this later
+      // For now, let's return true to skip this check
+      return true;
     } catch (e) {
       throw Exception('Failed to check email: ${e.toString()}');
     }
@@ -356,6 +383,33 @@ class AuthService {
       await _client.from('profiles').update(data).eq('id', userId);
     } catch (e) {
       throw Exception('Failed to update profile: ${e.toString()}');
+    }
+  }
+
+  // Send email verification code
+  Future<void> sendEmailVerificationCode(String email) async {
+    try {
+      await _client.auth.signInWithOtp(
+        email: email,
+        shouldCreateUser: true,
+      );
+    } catch (e) {
+      throw Exception('Failed to send verification code: ${e.toString()}');
+    }
+  }
+
+  // Verify email with OTP code
+  Future<AuthResponse> verifyEmailWithOTP(String email, String otp) async {
+    try {
+      final response = await _client.auth.verifyOTP(
+        email: email,
+        token: otp,
+        type: OtpType.signup,
+      );
+
+      return response;
+    } catch (e) {
+      throw Exception('Failed to verify email: ${e.toString()}');
     }
   }
 }

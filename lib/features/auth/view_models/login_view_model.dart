@@ -3,44 +3,54 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ate_project/core/services/auth_service.dart';
 import 'package:ate_project/core/routes/route_names.dart';
+import 'package:go_router/go_router.dart';
+
+enum LoginStep {
+  emailInput,
+  passwordInput,
+}
 
 class LoginState {
   final TextEditingController emailController;
   final TextEditingController passwordController;
   final bool isEmailValid;
-  final bool showPassword;
+  final LoginStep currentStep;
   final bool isPasswordVisible;
   final bool isLoading;
   final String? error;
+  final bool showEmailOption;
 
   LoginState({
     required this.emailController,
     required this.passwordController,
     this.isEmailValid = true,
-    this.showPassword = false,
+    this.currentStep = LoginStep.emailInput,
     this.isPasswordVisible = false,
     this.isLoading = false,
     this.error,
+    this.showEmailOption = false,
   });
 
   LoginState copyWith({
     TextEditingController? emailController,
     TextEditingController? passwordController,
     bool? isEmailValid,
-    bool? showPassword,
+    LoginStep? currentStep,
     bool? isPasswordVisible,
     bool? isLoading,
     String? error,
     bool clearError = false,
+    bool? showEmailOption,
   }) {
     return LoginState(
       emailController: emailController ?? this.emailController,
       passwordController: passwordController ?? this.passwordController,
       isEmailValid: isEmailValid ?? this.isEmailValid,
-      showPassword: showPassword ?? this.showPassword,
+      currentStep: currentStep ?? this.currentStep,
       isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible,
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : error ?? this.error,
+      showEmailOption: showEmailOption ?? this.showEmailOption,
     );
   }
 
@@ -75,9 +85,12 @@ class LoginViewModel extends StateNotifier<LoginState> {
   void onEmailChanged() {
     validateEmail();
 
-    // Reset password field if email changes when password is showing
-    if (state.showPassword) {
-      state = state.copyWith(showPassword: false);
+    // Reset to email step if email changes
+    if (state.currentStep != LoginStep.emailInput) {
+      state = state.copyWith(
+        currentStep: LoginStep.emailInput,
+        passwordController: TextEditingController(),
+      );
     }
   }
 
@@ -90,87 +103,66 @@ class LoginViewModel extends StateNotifier<LoginState> {
     _authNotifier.clearError();
   }
 
-  Future<bool> checkEmailExists(BuildContext context) async {
-    if (!validateEmail() || state.emailController.text.isEmpty) {
-      state = state.copyWith(isEmailValid: false);
+  Future<bool> checkEmailAndContinue() async {
+    if (state.isLoading) return false;
+
+    if (!validateEmail()) {
+      state =
+          state.copyWith(error: "Please enter a valid email", isLoading: false);
       return false;
     }
+
+    final email = state.emailController.text.trim();
 
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      final isEmailAvailable =
-          await _authService.isEmailAvailable(state.emailController.text);
+      // Check if email exists
+      final emailExists = await _authService.isEmailAvailable(email);
 
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(
+        isLoading: false,
+        currentStep: LoginStep.passwordInput,
+      );
 
-      if (isEmailAvailable) {
-        // Email doesn't exist - should go to signup
-        return false;
-      } else {
-        // Email exists - show password field
-        state = state.copyWith(showPassword: true);
-        return true;
-      }
+      return emailExists;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: "Error checking email: ${e.toString()}",
+        error: "Failed to check email: ${e.toString()}",
       );
       return false;
     }
   }
 
-  Future<bool> handlePasswordLogin() async {
-    if (state.passwordController.text.isEmpty) {
-      state = state.copyWith(error: "Please enter your password");
-      return false;
-    }
+  Future<void> handlePasswordLogin() async {
+    if (state.isLoading) return;
 
-    state = state.copyWith(isLoading: true, clearError: true);
+    final email = state.emailController.text.trim();
+    final password = state.passwordController.text.trim();
 
-    try {
-      await _supabase.auth.signInWithPassword(
-        email: state.emailController.text,
-        password: state.passwordController.text,
-      );
-
-      state = state.copyWith(isLoading: false);
-      return true;
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: "Login failed: ${e.toString()}",
-      );
-      return false;
-    }
-  }
-
-  void checkUserProfileExists(
-      User? user, Function(bool exists) onComplete) async {
-    if (user == null) {
-      onComplete(false);
+    if (password.isEmpty) {
+      state =
+          state.copyWith(error: "Please enter your password", isLoading: false);
       return;
     }
 
-    try {
-      final response = await _supabase
-          .from('profiles')
-          .select()
-          .eq('id', user.id)
-          .maybeSingle();
+    state = state.copyWith(isLoading: true, clearError: true);
 
-      onComplete(response != null);
+    try {
+      await _authService.signIn(email, password);
+      state = state.copyWith(isLoading: false);
     } catch (e) {
-      onComplete(false);
+      state = state.copyWith(
+        isLoading: false,
+        error: "Failed to sign in: ${e.toString()}",
+      );
     }
   }
 
   Future<void> handleGoogleSignIn() async {
     try {
       await _authNotifier.signInWithGoogle();
-
-      // Auth state will be updated by the stream listener
     } catch (e) {
       // Error is handled in AuthNotifier
     }
@@ -179,11 +171,17 @@ class LoginViewModel extends StateNotifier<LoginState> {
   Future<void> handleAppleSignIn() async {
     try {
       await _authNotifier.signInWithApple();
-
-      // Auth state will be updated by the stream listener
     } catch (e) {
       // Error is handled in AuthNotifier
     }
+  }
+
+  void redirectToSignup(BuildContext context) {
+    context.push(RouteNames.signup, extra: state.emailController.text);
+  }
+
+  void toggleEmailOption() {
+    state = state.copyWith(showEmailOption: true);
   }
 }
 

@@ -9,6 +9,7 @@ import 'package:ate_project/core/routes/route_names.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ate_project/core/widgets/loading_view.dart';
+import 'package:ate_project/core/utils/auth_error_helper.dart';
 
 class LoginView extends ConsumerStatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -407,25 +408,99 @@ class _LoginViewState extends ConsumerState<LoginView> {
                             ),
                           ],
                         ),
-                        if (error.toLowerCase().contains("failed") ||
+                        if (error.toLowerCase().contains("incorrect") ||
                             error.toLowerCase().contains("invalid")) ...[
                           const SizedBox(height: 12),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              TextButton(
-                                onPressed: () {
-                                  viewModel.redirectToSignup(context);
-                                },
-                                child: Text(
-                                  'Create a new account instead',
-                                  style: TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () {
+                                    viewModel.clearError();
+                                    // Return to email step if password is wrong
+                                    viewModel.onEmailChanged();
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                        color: AppColors.error.withAlpha(128)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Try again',
+                                    style: TextStyle(
+                                      color: AppColors.error,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () {
+                                    // TODO: Implement forgot password flow
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                        color: AppColors.error.withAlpha(128)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Reset password',
+                                    style: TextStyle(
+                                      color: AppColors.error,
+                                    ),
                                   ),
                                 ),
                               ),
                             ],
+                          ),
+                        ] else if (error.toLowerCase().contains("not found") ||
+                            error.toLowerCase().contains("no account") ||
+                            error
+                                .toLowerCase()
+                                .contains("don't have an account")) ...[
+                          const SizedBox(height: 12),
+                          Center(
+                            child: TextButton(
+                              onPressed: () {
+                                viewModel.redirectToSignup(context);
+                              },
+                              child: Text(
+                                'Create a new account',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ] else if (error.toLowerCase().contains("network") ||
+                            error.toLowerCase().contains("connection")) ...[
+                          const SizedBox(height: 12),
+                          Center(
+                            child: TextButton(
+                              onPressed: () {
+                                viewModel.clearError();
+                                // Try again based on current step
+                                if (viewState.currentStep ==
+                                    LoginStep.emailInput) {
+                                  viewModel.checkEmailAndContinue();
+                                } else {
+                                  viewModel.handlePasswordLogin();
+                                }
+                              },
+                              child: Text(
+                                'Try again',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ],
@@ -472,6 +547,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
   void _handleSocialLogin(BuildContext context, WidgetRef ref,
       Future<void> Function() signInMethod) async {
     final supabase = Supabase.instance.client;
+    final viewModel = ref.read(loginViewModelProvider.notifier);
 
     try {
       await signInMethod();
@@ -508,6 +584,11 @@ class _LoginViewState extends ConsumerState<LoginView> {
       // Ensure loading is dismissed on any error
       if (context.mounted) {
         LoadingScreen.dismiss(context);
+
+        // Show user-friendly error message
+        final userFriendlyError =
+            AuthErrorHelper.getLoginErrorMessage(e.toString());
+        viewModel.setError(userFriendlyError);
       }
     }
   }

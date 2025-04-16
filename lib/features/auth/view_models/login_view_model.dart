@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ate_project/core/services/auth_service.dart';
 import 'package:ate_project/core/routes/route_names.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ate_project/core/utils/auth_error_helper.dart';
 
 enum LoginStep {
   emailInput,
@@ -74,6 +75,11 @@ class LoginViewModel extends StateNotifier<LoginState> {
     super.dispose();
   }
 
+  void setError(String errorMessage) {
+    if (_isDisposed) return;
+    state = state.copyWith(error: errorMessage);
+  }
+
   bool validateEmail() {
     if (_isDisposed) return false;
 
@@ -142,7 +148,7 @@ class LoginViewModel extends StateNotifier<LoginState> {
 
       state = state.copyWith(
         isLoading: false,
-        error: "Failed to check email: ${e.toString()}",
+        error: AuthErrorHelper.getLoginErrorMessage(e.toString()),
       );
       return false;
     }
@@ -170,7 +176,7 @@ class LoginViewModel extends StateNotifier<LoginState> {
       if (_isDisposed) return;
       state = state.copyWith(
         isLoading: false,
-        error: "Failed to sign in: ${e.toString()}",
+        error: AuthErrorHelper.getLoginErrorMessage(e.toString()),
       );
     }
   }

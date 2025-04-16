@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ate_project/core/services/auth_service.dart';
+import 'package:ate_project/core/utils/auth_error_helper.dart';
 
 enum SignupStep {
   detailsInput,
@@ -220,7 +221,7 @@ class SignupViewModel extends StateNotifier<SignupState> {
       print('SIGNUP ERROR: $e');
       state = state.copyWith(
         isLoading: false, // Make sure loading is set to false on error
-        error: "Failed to sign up: ${e.toString()}",
+        error: AuthErrorHelper.getSignupErrorMessage(e.toString()),
       );
       return false;
     }

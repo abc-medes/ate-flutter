@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ate_project/core/widgets/loading_view.dart';
+import 'package:ate_project/core/utils/auth_error_helper.dart';
 
 class SignupView extends ConsumerStatefulWidget {
   final String email;
@@ -16,7 +17,6 @@ class SignupView extends ConsumerStatefulWidget {
 }
 
 class _SignupViewState extends ConsumerState<SignupView> {
-  bool _previousLoadingState = false;
   late final SignupViewModel viewModel;
 
   @override
@@ -358,6 +358,9 @@ class _SignupViewState extends ConsumerState<SignupView> {
   }
 
   Widget _buildErrorMessage(SignupState viewState, SignupViewModel viewModel) {
+    final error = viewState.error!;
+    final errorLower = error.toLowerCase();
+
     return Container(
       margin: const EdgeInsets.only(top: 24),
       padding: const EdgeInsets.all(16),
@@ -365,23 +368,82 @@ class _SignupViewState extends ConsumerState<SignupView> {
         color: AppColors.error.withAlpha(26),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.error_outline, color: AppColors.error),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              viewState.error!,
-              style: TextStyle(color: AppColors.error),
+          Row(
+            children: [
+              Icon(Icons.error_outline, color: AppColors.error),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  error,
+                  style: TextStyle(color: AppColors.error),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => viewModel.clearError(),
+                color: AppColors.error,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+
+          // Show different action buttons based on error type
+          if (errorLower.contains('email') &&
+              (errorLower.contains('exists') ||
+                  errorLower.contains('already'))) ...[
+            const SizedBox(height: 12),
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  context.go(RouteNames.login);
+                },
+                child: Text(
+                  'Go to login instead',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => viewModel.clearError(),
-            color: AppColors.error,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
+          ] else if (errorLower.contains('password') &&
+              (errorLower.contains('weak') ||
+                  errorLower.contains('requirements'))) ...[
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.only(left: 32.0),
+              child: Text(
+                'Use at least 8 characters with letters, numbers, and symbols',
+                style: TextStyle(
+                  color: AppColors.error,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ] else if (errorLower.contains('network') ||
+              errorLower.contains('connection') ||
+              errorLower.contains('timeout')) ...[
+            const SizedBox(height: 12),
+            Center(
+              child: TextButton(
+                onPressed: () async {
+                  viewModel.clearError();
+                  await viewModel.signUp();
+                },
+                child: Text(
+                  'Try again',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

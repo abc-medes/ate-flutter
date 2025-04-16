@@ -2,15 +2,14 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ate_project/core/services/user_service.dart';
+import 'package:ate_project/core/utils/auth_error_helper.dart';
 
-// Base service providers
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());
 final userServiceProvider = Provider<UserService>((ref) {
   final authService = ref.watch(authServiceProvider);
   return UserService(authService);
 });
 
-// Auth state enum
 enum AuthStatus {
   initial,
   unauthenticated,
@@ -19,7 +18,6 @@ enum AuthStatus {
   error,
 }
 
-// Auth state model (now without user data)
 class AuthState {
   final AuthStatus status;
   final String? errorMessage;
@@ -52,11 +50,9 @@ class AuthState {
   bool get isInitializing => status == AuthStatus.initial;
   bool get hasError => status == AuthStatus.error || errorMessage != null;
 
-  // Explicitly check if loading or has error for router
   bool get isLoadingOrError => isLoading || errorMessage != null;
 }
 
-// Auth notifier (now just manages auth state, not user data)
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthService _authService;
   StreamSubscription<bool>? _authSubscription;
@@ -84,7 +80,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       onError: (error) {
         state = AuthState(
           status: AuthStatus.error,
-          errorMessage: error.toString(),
+          errorMessage: AuthErrorHelper.getLoginErrorMessage(error.toString()),
           isLoading: false,
         );
       },
@@ -96,11 +92,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     try {
       await _authService.signIn(email, password);
-      // Auth state will be updated by the stream listener
     } catch (e) {
       state = AuthState(
         status: AuthStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: AuthErrorHelper.getLoginErrorMessage(e.toString()),
         isLoading: false,
       );
     }
@@ -111,11 +106,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     try {
       await _authService.signOut();
-      // Auth state will be updated by the stream listener
     } catch (e) {
       state = AuthState(
         status: AuthStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: AuthErrorHelper.getLoginErrorMessage(e.toString()),
         isLoading: false,
       );
     }
@@ -126,11 +120,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     try {
       await _authService.signInWithGoogle();
-      // Auth state will be updated by the stream listener
     } catch (e) {
       state = AuthState(
         status: AuthStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: AuthErrorHelper.getLoginErrorMessage(e.toString()),
         isLoading: false,
       );
     }
@@ -141,11 +134,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     try {
       await _authService.signInWithApple();
-      // Auth state will be updated by the stream listener
     } catch (e) {
       state = AuthState(
         status: AuthStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: AuthErrorHelper.getLoginErrorMessage(e.toString()),
         isLoading: false,
       );
     }

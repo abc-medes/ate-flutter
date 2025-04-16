@@ -18,41 +18,56 @@ class LoginView extends ConsumerStatefulWidget {
 }
 
 class _LoginViewState extends ConsumerState<LoginView> {
-  bool _previousLoadingState = false;
+  // Store view model reference to avoid ref in dispose
+  late final LoginViewModel viewModel;
 
   @override
-  void dispose() {
-    // Make sure loading screen is dismissed when view is unmounted
-    LoadingScreen.dismiss(context);
-    super.dispose();
+  void initState() {
+    super.initState();
+    viewModel = ref.read(loginViewModelProvider.notifier);
   }
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = ref.watch(loginViewModelProvider.notifier);
     final viewState = ref.watch(loginViewModelProvider);
     final authState = ref.watch(authProvider);
 
-    // Check if loading from either auth state or local view state
     final isAuthLoading = authState.isLoading;
     final isLoading = viewState.isLoading;
 
-    // Handle loading state changes after the build is complete
+    // Handle loading state changes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_previousLoadingState != isAuthLoading) {
-        _previousLoadingState = isAuthLoading;
-        if (isAuthLoading) {
+      // Ensure the widget is still mounted before updating UI
+      if (!mounted) return;
+
+      if (isAuthLoading || isLoading) {
+        try {
           LoadingScreen.show(context, message: 'Signing in...');
-        } else {
+        } catch (e) {
+          print('Error showing loading screen: $e');
+        }
+      } else {
+        try {
           LoadingScreen.dismiss(context);
+        } catch (e) {
+          print('Error dismissing loading screen: $e');
+        }
+      }
+
+      // Also dismiss loading when there's an error
+      final error = authState.errorMessage ?? viewState.error;
+      if (error != null && !isLoading && !isAuthLoading && mounted) {
+        try {
+          print('Dismissing loading screen due to error: $error');
+          LoadingScreen.dismiss(context);
+        } catch (e) {
+          print('Error dismissing loading screen on error: $e');
         }
       }
     });
 
-    // Get error message from either auth state or local view state
     final error = authState.errorMessage ?? viewState.error;
 
-    // Check platform
     final bool isAndroid = Platform.isAndroid;
     final bool isIOS = Platform.isIOS;
 
@@ -234,20 +249,35 @@ class _LoginViewState extends ConsumerState<LoginView> {
                               onPressed: isLoading
                                   ? null
                                   : () async {
-                                      switch (viewState.currentStep) {
-                                        case LoginStep.emailInput:
-                                          final emailExists = await viewModel
-                                              .checkEmailAndContinue();
-                                          if (!emailExists && context.mounted) {
-                                            // Show dialog asking if they want to sign up
-                                            _showSignupDialog(
-                                                context, viewModel);
-                                          }
-                                          break;
+                                      try {
+                                        switch (viewState.currentStep) {
+                                          case LoginStep.emailInput:
+                                            final emailExists = await viewModel
+                                                .checkEmailAndContinue();
+                                            if (!emailExists &&
+                                                context.mounted) {
+                                              // Show dialog asking if they want to sign up
+                                              _showSignupDialog(
+                                                  context, viewModel);
+                                            }
+                                            break;
 
-                                        case LoginStep.passwordInput:
-                                          await viewModel.handlePasswordLogin();
-                                          break;
+                                          case LoginStep.passwordInput:
+                                            await viewModel
+                                                .handlePasswordLogin();
+                                            break;
+                                        }
+
+                                        // Force dismiss loading screen
+                                        if (mounted) {
+                                          LoadingScreen.dismiss(context);
+                                        }
+                                      } catch (e) {
+                                        print("Login error: $e");
+                                        // Safety net to ensure loading is dismissed on any error
+                                        if (mounted) {
+                                          LoadingScreen.dismiss(context);
+                                        }
                                       }
                                     },
                               style: ElevatedButton.styleFrom(
@@ -443,29 +473,41 @@ class _LoginViewState extends ConsumerState<LoginView> {
       Future<void> Function() signInMethod) async {
     final supabase = Supabase.instance.client;
 
-    await signInMethod();
+    try {
+      await signInMethod();
 
-    // Check if user profile exists after successful auth
-    final user = supabase.auth.currentUser;
-    if (user != null) {
-      try {
-        final response = await supabase
-            .from('profiles')
-            .select()
-            .eq('id', user.id)
-            .maybeSingle();
+      // Check if user profile exists after successful auth
+      final user = supabase.auth.currentUser;
+      if (user != null) {
+        try {
+          final response = await supabase
+              .from('profiles')
+              .select()
+              .eq('id', user.id)
+              .maybeSingle();
 
-        if (response == null && context.mounted) {
-          // Profile doesn't exist, redirect to signup
+          if (response == null && context.mounted) {
+            // Profile doesn't exist, redirect to signup
+            await supabase.auth.signOut();
+            context.push(RouteNames.signup);
+          }
+        } catch (e) {
+          print("Error checking profile: $e");
+          // Error checking profile, assume it doesn't exist
           await supabase.auth.signOut();
-          context.push(RouteNames.signup);
+
+          // Make sure loading is dismissed
+          if (context.mounted) {
+            LoadingScreen.dismiss(context);
+            context.push(RouteNames.signup);
+          }
         }
-      } catch (e) {
-        // Error checking profile, assume it doesn't exist
-        await supabase.auth.signOut();
-        if (context.mounted) {
-          context.push(RouteNames.signup);
-        }
+      }
+    } catch (e) {
+      print("Social login error: $e");
+      // Ensure loading is dismissed on any error
+      if (context.mounted) {
+        LoadingScreen.dismiss(context);
       }
     }
   }

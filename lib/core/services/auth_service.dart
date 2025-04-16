@@ -206,9 +206,6 @@ class AuthService {
   // Sign up with email and password
   Future<void> signUp(String email, String password, String name) async {
     try {
-      print('Starting signup process for email: $email');
-
-      // Create auth user
       final authResponse = await _client.auth.signUp(
         email: email,
         password: password,
@@ -220,7 +217,6 @@ class AuthService {
         throw Exception('Failed to create user');
       }
 
-      // Create initial profile data
       final profileData = {
         'id': authResponse.user!.id,
         'email': email,
@@ -245,7 +241,6 @@ class AuthService {
           'Attempting to insert profile data for user: ${authResponse.user!.id}');
 
       try {
-        // Check if profile already exists before inserting
         final existingProfile = await _client
             .from('profiles')
             .select()
@@ -253,33 +248,13 @@ class AuthService {
             .maybeSingle();
 
         if (existingProfile == null) {
-          // Only insert if profile doesn't exist
-          try {
-            await _client.from('profiles').insert(profileData);
-            print('Profile data inserted successfully');
-          } catch (insertError) {
-            // If it's a duplicate key error, try to update instead
-            if (insertError
-                .toString()
-                .contains('duplicate key value violates unique constraint')) {
-              print('Handling duplicate key error by updating profile');
-              await _client
-                  .from('profiles')
-                  .update(profileData)
-                  .eq('id', authResponse.user!.id);
-              print('Profile updated successfully after duplicate key error');
-            } else {
-              // For other errors, rethrow
-              throw insertError;
-            }
-          }
+          await _client.from('profiles').insert(profileData);
+          print('Profile data inserted successfully');
         } else {
-          // Profile exists, update it
-          await _client
-              .from('profiles')
-              .update(profileData)
-              .eq('id', authResponse.user!.id);
-          print('Existing profile updated successfully');
+          // If profile exists during signup, this is an error scenario
+          // Don't update, throw an error instead
+          throw Exception(
+              'User profile already exists. Please login instead of creating a new account.');
         }
       } catch (profileError) {
         print('ERROR CREATING PROFILE: $profileError');

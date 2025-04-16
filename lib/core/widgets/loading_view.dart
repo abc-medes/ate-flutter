@@ -6,34 +6,79 @@ import 'dart:math' as math;
 final GlobalKey<_LoadingOverlayState> _overlayKey =
     GlobalKey<_LoadingOverlayState>();
 
+// Track whether overlay is currently shown
+bool _isOverlayShown = false;
+OverlayEntry? _currentOverlayEntry;
+
 class LoadingScreen extends StatefulWidget {
   final String? message;
   final bool showLogo;
 
   const LoadingScreen({
-    Key? key,
+    super.key,
     this.message,
     this.showLogo = true,
-  }) : super(key: key);
+  });
 
-  /// Show loading screen as an overlay (compatible with GoRouter)
   static void show(BuildContext context, {String? message}) {
-    // Ensure we don't have existing overlay
-    dismiss(context);
+    try {
+      dismiss(context);
 
-    // Create overlay entry
-    final overlay = _LoadingOverlay(
-      key: _overlayKey,
-      message: message,
-    );
+      if (!context.mounted) return;
 
-    // Insert overlay
-    Overlay.of(context).insert(overlay._overlayEntry);
+      final overlayEntry = OverlayEntry(
+        builder: (context) => LoadingScreen(
+          message: message,
+        ),
+      );
+
+      _currentOverlayEntry = overlayEntry;
+      _isOverlayShown = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          if (context.mounted) {
+            Overlay.of(context).insert(overlayEntry);
+            print('Loading screen shown: $message');
+          }
+        } catch (e) {
+          print('Error showing loading screen in post-frame: $e');
+        }
+      });
+    } catch (e) {
+      print('Error preparing loading screen: $e');
+    }
   }
 
-  /// Dismiss the loading screen overlay
   static void dismiss(BuildContext context) {
-    _overlayKey.currentState?.dismiss();
+    try {
+      if (_overlayKey.currentState != null) {
+        _overlayKey.currentState?.dismiss();
+      }
+    } catch (e) {
+      print('Error dismissing via key: $e');
+    }
+
+    try {
+      if (_isOverlayShown && _currentOverlayEntry != null) {
+        // Use a post-frame callback to ensure UI isn't being built
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          try {
+            _currentOverlayEntry?.remove();
+            print('Loading screen dismissed via direct overlay entry');
+          } catch (e) {
+            print('Error removing overlay entry in post-frame: $e');
+          } finally {
+            _currentOverlayEntry = null;
+            _isOverlayShown = false;
+          }
+        });
+      }
+    } catch (e) {
+      print('Error dismissing via direct overlay: $e');
+      _isOverlayShown = false;
+      _currentOverlayEntry = null;
+    }
   }
 
   @override

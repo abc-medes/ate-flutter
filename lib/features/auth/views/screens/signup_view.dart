@@ -17,34 +17,27 @@ class SignupView extends ConsumerStatefulWidget {
 
 class _SignupViewState extends ConsumerState<SignupView> {
   bool _previousLoadingState = false;
+  late final SignupViewModel viewModel;
 
   @override
-  void dispose() {
-    LoadingScreen.dismiss(context);
-    super.dispose();
+  void initState() {
+    super.initState();
+    viewModel = ref.read(signupViewModelProvider(widget.email).notifier);
   }
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = ref.watch(signupViewModelProvider(widget.email).notifier);
     final viewState = ref.watch(signupViewModelProvider(widget.email));
 
-    // Ensure loading screen is properly managed
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final isCurrentlyLoading = viewState.isLoading;
 
-      // Check if loading state has changed
-      if (_previousLoadingState != isCurrentlyLoading) {
-        _previousLoadingState = isCurrentlyLoading;
-
-        if (isCurrentlyLoading) {
-          LoadingScreen.show(context, message: 'Creating your account...');
-        } else {
-          LoadingScreen.dismiss(context);
-        }
+      if (isCurrentlyLoading) {
+        LoadingScreen.show(context, message: 'Creating your account...');
+      } else {
+        LoadingScreen.dismiss(context);
       }
 
-      // Additional check to dismiss on error
       if (!isCurrentlyLoading && viewState.error != null) {
         LoadingScreen.dismiss(context);
       }
@@ -367,7 +360,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
   Widget _buildErrorMessage(SignupState viewState, SignupViewModel viewModel) {
     return Container(
       margin: const EdgeInsets.only(top: 24),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.error.withAlpha(26),
         borderRadius: BorderRadius.circular(12),

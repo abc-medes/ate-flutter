@@ -204,8 +204,8 @@ class SignupViewModel extends StateNotifier<SignupState> {
   }
 }
 
-final signupViewModelProvider =
-    StateNotifierProvider.family<SignupViewModel, SignupState, String>(
+final signupViewModelProvider = StateNotifierProvider.family
+    .autoDispose<SignupViewModel, SignupState, String>(
   (ref, email) {
     final authService = ref.watch(authServiceProvider);
     return SignupViewModel(authService, email);

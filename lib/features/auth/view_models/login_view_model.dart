@@ -53,11 +53,6 @@ class LoginState {
       showEmailOption: showEmailOption ?? this.showEmailOption,
     );
   }
-
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-  }
 }
 
 class LoginViewModel extends StateNotifier<LoginState> {
@@ -182,6 +177,11 @@ class LoginViewModel extends StateNotifier<LoginState> {
 
   void toggleEmailOption() {
     state = state.copyWith(showEmailOption: true);
+  }
+
+  void disposeState() {
+    state.emailController.dispose();
+    state.passwordController.dispose();
   }
 }
 

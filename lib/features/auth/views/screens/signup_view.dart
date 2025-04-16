@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ate_project/core/widgets/loading_view.dart';
-import 'package:ate_project/core/utils/auth_error_helper.dart';
+import 'package:ate_project/core/widgets/error_snackbar.dart';
 
 class SignupView extends ConsumerStatefulWidget {
   final String email;
@@ -38,8 +38,16 @@ class _SignupViewState extends ConsumerState<SignupView> {
         LoadingScreen.dismiss(context);
       }
 
-      if (!isCurrentlyLoading && viewState.error != null) {
+      if (viewState.error != null) {
         LoadingScreen.dismiss(context);
+
+        ErrorSnackbar.showSignupError(
+          context: context,
+          errorMessage: viewState.error!,
+          clearError: () => viewModel.clearError(),
+          onTryAgain: () => viewModel.signUp(),
+          onGoToLogin: () => context.go(RouteNames.login),
+        );
       }
     });
 
@@ -147,7 +155,6 @@ class _SignupViewState extends ConsumerState<SignupView> {
           onChanged: (_) => viewModel.validatePassword(),
         ),
 
-        // Password validation error
         if (!viewState.isPasswordValid)
           Padding(
             padding: const EdgeInsets.only(top: 8.0, left: 4.0),
@@ -211,9 +218,6 @@ class _SignupViewState extends ConsumerState<SignupView> {
             ),
           ),
         ),
-
-        // Error message
-        if (viewState.error != null) _buildErrorMessage(viewState, viewModel),
       ],
     );
   }
@@ -335,7 +339,6 @@ class _SignupViewState extends ConsumerState<SignupView> {
         ),
         const SizedBox(height: 16),
 
-        // Back to login button
         Center(
           child: TextButton(
             onPressed: () {
@@ -350,102 +353,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
             ),
           ),
         ),
-
-        // Error message
-        if (viewState.error != null) _buildErrorMessage(viewState, viewModel),
       ],
-    );
-  }
-
-  Widget _buildErrorMessage(SignupState viewState, SignupViewModel viewModel) {
-    final error = viewState.error!;
-    final errorLower = error.toLowerCase();
-
-    return Container(
-      margin: const EdgeInsets.only(top: 24),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.error.withAlpha(26),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.error_outline, color: AppColors.error),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  error,
-                  style: TextStyle(color: AppColors.error),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => viewModel.clearError(),
-                color: AppColors.error,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-            ],
-          ),
-
-          // Show different action buttons based on error type
-          if (errorLower.contains('email') &&
-              (errorLower.contains('exists') ||
-                  errorLower.contains('already'))) ...[
-            const SizedBox(height: 12),
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  context.go(RouteNames.login);
-                },
-                child: Text(
-                  'Go to login instead',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ] else if (errorLower.contains('password') &&
-              (errorLower.contains('weak') ||
-                  errorLower.contains('requirements'))) ...[
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.only(left: 32.0),
-              child: Text(
-                'Use at least 8 characters with letters, numbers, and symbols',
-                style: TextStyle(
-                  color: AppColors.error,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ] else if (errorLower.contains('network') ||
-              errorLower.contains('connection') ||
-              errorLower.contains('timeout')) ...[
-            const SizedBox(height: 12),
-            Center(
-              child: TextButton(
-                onPressed: () async {
-                  viewModel.clearError();
-                  await viewModel.signUp();
-                },
-                child: Text(
-                  'Try again',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
     );
   }
 

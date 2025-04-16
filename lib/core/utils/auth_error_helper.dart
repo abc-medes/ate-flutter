@@ -2,8 +2,24 @@ class AuthErrorHelper {
   static String getLoginErrorMessage(String error) {
     final errorLower = error.toLowerCase();
 
-    // Handle common Supabase error messages
+    // Handle Supabase AuthException format
+    if (errorLower.contains('authexception')) {
+      if (errorLower.contains('invalid login credentials') ||
+          errorLower.contains('errorcode: invalid_credentials')) {
+        return 'The email or password you entered is incorrect. Please try again.';
+      }
 
+      if (errorLower.contains('user not found') ||
+          errorLower.contains('errorcode: user_not_found')) {
+        return 'No account found with this email. Would you like to create one?';
+      }
+
+      if (errorLower.contains('email not confirmed')) {
+        return 'Your email has not been verified. Please check your inbox for a verification link.';
+      }
+    }
+
+    // Handle common Supabase error messages
     // Invalid credentials
     if (errorLower.contains('invalid login credentials') ||
         errorLower.contains('invalid credentials') ||
@@ -65,6 +81,9 @@ class AuthErrorHelper {
         errorLower.contains('external provider')) {
       return 'There was a problem with the sign-in provider. Please try again or use another method.';
     }
+
+    // Log the unhandled error for debugging
+    print('Unhandled auth error: $error');
 
     // Default error
     return 'Something went wrong. Please try again later.';

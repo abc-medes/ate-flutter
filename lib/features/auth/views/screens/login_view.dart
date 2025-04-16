@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ate_project/core/widgets/loading_view.dart';
 import 'package:ate_project/core/utils/auth_error_helper.dart';
+import 'package:ate_project/core/widgets/error_snackbar.dart';
 
 class LoginView extends ConsumerStatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -21,6 +22,8 @@ class LoginView extends ConsumerStatefulWidget {
 class _LoginViewState extends ConsumerState<LoginView> {
   // Store view model reference to avoid ref in dispose
   late final LoginViewModel viewModel;
+  final GlobalKey<ScaffoldMessengerState> _scaffoldKey =
+      GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
@@ -36,9 +39,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
     final isAuthLoading = authState.isLoading;
     final isLoading = viewState.isLoading;
 
-    // Handle loading state changes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Ensure the widget is still mounted before updating UI
       if (!mounted) return;
 
       if (isAuthLoading || isLoading) {
@@ -55,19 +56,34 @@ class _LoginViewState extends ConsumerState<LoginView> {
         }
       }
 
-      // Also dismiss loading when there's an error
-      final error = authState.errorMessage ?? viewState.error;
-      if (error != null && !isLoading && !isAuthLoading && mounted) {
-        try {
-          print('Dismissing loading screen due to error: $error');
-          LoadingScreen.dismiss(context);
-        } catch (e) {
-          print('Error dismissing loading screen on error: $e');
-        }
+      // Check for errors from either authState or viewState
+      final error = viewState.error;
+      print('Error: $error');
+      if (error != null && !isLoading && !isAuthLoading) {
+        LoadingScreen.dismiss(context);
+
+        ErrorSnackbar.showLoginError(
+          context: context,
+          errorMessage: error,
+          clearError: () {
+            viewModel.clearError();
+          },
+          onTryAgain: () {
+            if (viewState.currentStep == LoginStep.emailInput) {
+              viewModel.checkEmailAndContinue();
+            } else {
+              viewModel.handlePasswordLogin();
+            }
+          },
+          onResetPassword: () {
+            // TODO: Implement reset password flow
+          },
+          onCreateAccount: () {
+            viewModel.redirectToSignup(context);
+          },
+        );
       }
     });
-
-    final error = authState.errorMessage ?? viewState.error;
 
     final bool isAndroid = Platform.isAndroid;
     final bool isIOS = Platform.isIOS;
@@ -374,138 +390,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
                     ],
                   ),
                 ),
-
-                // Error message if any
-                if (error != null)
-                  Container(
-                    margin: const EdgeInsets.only(top: 24),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withAlpha(26),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.error_outline, color: AppColors.error),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                error,
-                                style: TextStyle(color: AppColors.error),
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () {
-                                viewModel.clearError();
-                              },
-                              color: AppColors.error,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                          ],
-                        ),
-                        if (error.toLowerCase().contains("incorrect") ||
-                            error.toLowerCase().contains("invalid")) ...[
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: () {
-                                    viewModel.clearError();
-                                    // Return to email step if password is wrong
-                                    viewModel.onEmailChanged();
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    side: BorderSide(
-                                        color: AppColors.error.withAlpha(128)),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Try again',
-                                    style: TextStyle(
-                                      color: AppColors.error,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: () {
-                                    // TODO: Implement forgot password flow
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    side: BorderSide(
-                                        color: AppColors.error.withAlpha(128)),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Reset password',
-                                    style: TextStyle(
-                                      color: AppColors.error,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ] else if (error.toLowerCase().contains("not found") ||
-                            error.toLowerCase().contains("no account") ||
-                            error
-                                .toLowerCase()
-                                .contains("don't have an account")) ...[
-                          const SizedBox(height: 12),
-                          Center(
-                            child: TextButton(
-                              onPressed: () {
-                                viewModel.redirectToSignup(context);
-                              },
-                              child: Text(
-                                'Create a new account',
-                                style: TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ] else if (error.toLowerCase().contains("network") ||
-                            error.toLowerCase().contains("connection")) ...[
-                          const SizedBox(height: 12),
-                          Center(
-                            child: TextButton(
-                              onPressed: () {
-                                viewModel.clearError();
-                                // Try again based on current step
-                                if (viewState.currentStep ==
-                                    LoginStep.emailInput) {
-                                  viewModel.checkEmailAndContinue();
-                                } else {
-                                  viewModel.handlePasswordLogin();
-                                }
-                              },
-                              child: Text(
-                                'Try again',
-                                style: TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
               ],
             ),
           ),
@@ -563,16 +447,13 @@ class _LoginViewState extends ConsumerState<LoginView> {
               .maybeSingle();
 
           if (response == null && context.mounted) {
-            // Profile doesn't exist, redirect to signup
             await supabase.auth.signOut();
             context.push(RouteNames.signup);
           }
         } catch (e) {
           print("Error checking profile: $e");
-          // Error checking profile, assume it doesn't exist
           await supabase.auth.signOut();
 
-          // Make sure loading is dismissed
           if (context.mounted) {
             LoadingScreen.dismiss(context);
             context.push(RouteNames.signup);
@@ -581,14 +462,19 @@ class _LoginViewState extends ConsumerState<LoginView> {
       }
     } catch (e) {
       print("Social login error: $e");
-      // Ensure loading is dismissed on any error
       if (context.mounted) {
         LoadingScreen.dismiss(context);
 
-        // Show user-friendly error message
-        final userFriendlyError =
-            AuthErrorHelper.getLoginErrorMessage(e.toString());
-        viewModel.setError(userFriendlyError);
+        ErrorSnackbar.showLoginError(
+          context: context,
+          errorMessage: e.toString(),
+          clearError: () {
+            viewModel.clearError();
+          },
+          onTryAgain: () {
+            signInMethod();
+          },
+        );
       }
     }
   }

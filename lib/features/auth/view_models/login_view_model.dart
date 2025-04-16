@@ -58,7 +58,7 @@ class LoginState {
 class LoginViewModel extends StateNotifier<LoginState> {
   final AuthService _authService;
   final AuthNotifier _authNotifier;
-  final SupabaseClient _supabase = Supabase.instance.client;
+  bool _isDisposed = false;
 
   LoginViewModel(this._authService, this._authNotifier)
       : super(LoginState(
@@ -66,7 +66,17 @@ class LoginViewModel extends StateNotifier<LoginState> {
           passwordController: TextEditingController(),
         ));
 
+  @override
+  void dispose() {
+    _isDisposed = true;
+    state.emailController.dispose();
+    state.passwordController.dispose();
+    super.dispose();
+  }
+
   bool validateEmail() {
+    if (_isDisposed) return false;
+
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     final isValid = state.emailController.text.isEmpty ||
         emailRegex.hasMatch(state.emailController.text);
@@ -78,6 +88,8 @@ class LoginViewModel extends StateNotifier<LoginState> {
   }
 
   void onEmailChanged() {
+    if (_isDisposed) return;
+
     validateEmail();
 
     // Reset to email step if email changes
@@ -90,16 +102,18 @@ class LoginViewModel extends StateNotifier<LoginState> {
   }
 
   void togglePasswordVisibility() {
+    if (_isDisposed) return;
     state = state.copyWith(isPasswordVisible: !state.isPasswordVisible);
   }
 
   void clearError() {
+    if (_isDisposed) return;
     state = state.copyWith(clearError: true);
     _authNotifier.clearError();
   }
 
   Future<bool> checkEmailAndContinue() async {
-    if (state.isLoading) return false;
+    if (_isDisposed || state.isLoading) return false;
 
     if (!validateEmail()) {
       state =
@@ -115,6 +129,8 @@ class LoginViewModel extends StateNotifier<LoginState> {
       // Check if email exists
       final emailExists = await _authService.isEmailAvailable(email);
 
+      if (_isDisposed) return false;
+
       state = state.copyWith(
         isLoading: false,
         currentStep: LoginStep.passwordInput,
@@ -122,6 +138,8 @@ class LoginViewModel extends StateNotifier<LoginState> {
 
       return emailExists;
     } catch (e) {
+      if (_isDisposed) return false;
+
       state = state.copyWith(
         isLoading: false,
         error: "Failed to check email: ${e.toString()}",
@@ -131,7 +149,7 @@ class LoginViewModel extends StateNotifier<LoginState> {
   }
 
   Future<void> handlePasswordLogin() async {
-    if (state.isLoading) return;
+    if (_isDisposed || state.isLoading) return;
 
     final email = state.emailController.text.trim();
     final password = state.passwordController.text.trim();
@@ -146,8 +164,10 @@ class LoginViewModel extends StateNotifier<LoginState> {
 
     try {
       await _authService.signIn(email, password);
+      if (_isDisposed) return;
       state = state.copyWith(isLoading: false);
     } catch (e) {
+      if (_isDisposed) return;
       state = state.copyWith(
         isLoading: false,
         error: "Failed to sign in: ${e.toString()}",
@@ -176,12 +196,8 @@ class LoginViewModel extends StateNotifier<LoginState> {
   }
 
   void toggleEmailOption() {
+    if (_isDisposed) return;
     state = state.copyWith(showEmailOption: true);
-  }
-
-  void disposeState() {
-    state.emailController.dispose();
-    state.passwordController.dispose();
   }
 }
 

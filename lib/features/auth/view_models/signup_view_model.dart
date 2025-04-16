@@ -107,6 +107,7 @@ class SignupState {
 
 class SignupViewModel extends StateNotifier<SignupState> {
   final AuthService _authService;
+  bool _isDisposed = false;
 
   SignupViewModel(this._authService, String email)
       : super(SignupState(
@@ -118,20 +119,35 @@ class SignupViewModel extends StateNotifier<SignupState> {
           otpController: TextEditingController(),
         ));
 
+  @override
+  void dispose() {
+    _isDisposed = true;
+    state.emailController.dispose();
+    state.nameController.dispose();
+    state.passwordController.dispose();
+    state.confirmPasswordController.dispose();
+    state.otpController.dispose();
+    super.dispose();
+  }
+
   void togglePasswordVisibility() {
+    if (_isDisposed) return;
     state = state.copyWith(isPasswordVisible: !state.isPasswordVisible);
   }
 
   void toggleConfirmPasswordVisibility() {
+    if (_isDisposed) return;
     state = state.copyWith(
         isConfirmPasswordVisible: !state.isConfirmPasswordVisible);
   }
 
   void clearError() {
+    if (_isDisposed) return;
     state = state.copyWith(clearError: true);
   }
 
   bool validateEmail() {
+    if (_isDisposed) return false;
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     final isValid = emailRegex.hasMatch(state.emailController.text);
     state = state.copyWith(isEmailValid: isValid);
@@ -139,7 +155,7 @@ class SignupViewModel extends StateNotifier<SignupState> {
   }
 
   bool validatePassword() {
-    // Password should be at least 8 characters and contain at least one number
+    if (_isDisposed) return false;
     final password = state.passwordController.text;
     final isValid = password.length >= 8 && RegExp(r'\d').hasMatch(password);
 
@@ -148,6 +164,7 @@ class SignupViewModel extends StateNotifier<SignupState> {
   }
 
   bool validatePasswordsMatch() {
+    if (_isDisposed) return false;
     final doMatch =
         state.passwordController.text == state.confirmPasswordController.text;
 
@@ -156,11 +173,13 @@ class SignupViewModel extends StateNotifier<SignupState> {
   }
 
   void goBackToDetails() {
+    if (_isDisposed) return;
     state = state.copyWith(currentStep: SignupStep.detailsInput);
   }
 
-  // Direct signup method without email verification
   Future<bool> signUp() async {
+    if (_isDisposed) return false;
+
     if (!validateEmail()) {
       state = state.copyWith(
           error: "Please enter a valid email address", isLoading: false);
@@ -187,6 +206,8 @@ class SignupViewModel extends StateNotifier<SignupState> {
       await _authService.signUp(state.emailController.text,
           state.passwordController.text, state.nameController.text);
 
+      if (_isDisposed) return true;
+
       state = state.copyWith(
         isLoading: false,
         currentStep: SignupStep.emailSent, // Show success screen
@@ -194,6 +215,8 @@ class SignupViewModel extends StateNotifier<SignupState> {
 
       return true;
     } catch (e) {
+      if (_isDisposed) return false;
+
       print('SIGNUP ERROR: $e');
       state = state.copyWith(
         isLoading: false, // Make sure loading is set to false on error

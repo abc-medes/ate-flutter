@@ -3,9 +3,10 @@ class RouteNames {
   static const login = '/auth/login';
   static const signup = '/auth/signup';
   static const onboarding = '/auth/onboarding';
+  static const checkingEmail = '/auth/checking-email';
 
   // Main Routes
-  static const home = '/home';
+  static const home = '/';
   static const profile = '/profile';
 
   // Cannot be instantiated

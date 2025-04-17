@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:ate_project/features/auth/view_models/login_view_model.dart';
 import 'package:ate_project/features/auth/views/widgets/social_login_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ate_project/core/theme/app_theme.dart';
 import 'package:ate_project/core/services/auth_service.dart';
@@ -91,17 +92,8 @@ class _LoginViewState extends ConsumerState<LoginView> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        leading: viewState.currentStep == LoginStep.passwordInput
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  if (viewState.currentStep == LoginStep.passwordInput) {
-                    // If in password step, go back to email step
-                    viewModel.onEmailChanged();
-                  }
-                },
-              )
-            : null,
+        leading: null,
+        automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -388,6 +380,70 @@ class _LoginViewState extends ConsumerState<LoginView> {
                         ),
                       ),
                     ],
+                  ),
+                ),
+
+                // Continue without login option
+                const SizedBox(height: 40),
+                Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0, vertical: 4.0),
+                      child: TextButton(
+                        onPressed: () {
+                          // Show a Cupertino dialog explaining limited features
+                          showCupertinoDialog(
+                            context: context,
+                            builder: (context) => CupertinoAlertDialog(
+                              title: const Text('Continue as Guest'),
+                              content: const Text(
+                                  'You can use our app with limited features without signing in. Some personalized features will not be available.'),
+                              actions: [
+                                CupertinoDialogAction(
+                                  child: const Text('Cancel'),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                                CupertinoDialogAction(
+                                  isDefaultAction: true,
+                                  child: const Text('Continue'),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    context.go(RouteNames.home);
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.arrow_forward,
+                              size: 16,
+                              color: AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Continue without signing in',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],

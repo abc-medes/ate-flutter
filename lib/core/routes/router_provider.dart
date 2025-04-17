@@ -12,21 +12,21 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     redirect: (context, state) {
-      if (authState.isLoadingOrError) {
-        return RouteNames.login;
-      }
+      // if (authState.isLoadingOrError) {
+      //   return RouteNames.login;
+      // }
 
-      if (!authState.isAuthenticated) {
-        return state.matchedLocation.startsWith('/auth')
-            ? null
-            : RouteNames.login;
-      }
+      // if (!authState.isAuthenticated) {
+      //   return state.matchedLocation.startsWith('/auth')
+      //       ? null
+      //       : RouteNames.login;
+      // }
 
-      if (userState.user != null && !userState.isOnboardingCompleted) {
-        return state.matchedLocation.startsWith(RouteNames.onboarding)
-            ? null
-            : RouteNames.onboarding;
-      }
+      // if (userState.user != null && !userState.isOnboardingCompleted) {
+      //   return state.matchedLocation.startsWith(RouteNames.onboarding)
+      //       ? null
+      //       : RouteNames.onboarding;
+      // }
 
       return null;
     },

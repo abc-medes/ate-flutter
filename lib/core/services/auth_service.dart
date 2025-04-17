@@ -213,9 +213,12 @@ class AuthService {
         'id': authResponse.user!.id,
         'email': email,
         'name': name,
+        'avatar_url': null,
         'created_at': DateTime.now().toIso8601String(),
+        'last_sign_in_at': DateTime.now().toIso8601String(),
         'preferences': {
           'dark_mode': false,
+          'language': null,
           'notification_settings': {
             'push_enabled': true,
             'email_enabled': true,
@@ -225,8 +228,14 @@ class AuthService {
           'personal_info_completed': false,
           'health_profile_completed': false,
           'goals_completed': false,
+          'completed_at': null,
         },
-        'health_profile': {}
+        'health_profile': {
+          'height': null,
+          'weight': null,
+          'date_of_birth': null,
+          'gender': null,
+        }
       };
 
       print(

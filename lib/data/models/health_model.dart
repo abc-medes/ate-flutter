@@ -22,14 +22,43 @@ import 'package:flutter/material.dart';
  * - Long-term medications
  */
 
+enum HealthDataCategory { userInput, autoDetected, environmental }
+
+enum UserInputField {
+  height,
+  weight,
+  dateOfBirth,
+  gender,
+  preExistingConditions,
+  medications,
+  allergies,
+  nutritionData,
+  moodData,
+  symptoms,
+  sleepQuality
+}
+
+enum AutoDetectedField {
+  activityData,
+  screenTimeData,
+  sleepDurationData,
+  locationData,
+  heartRateData
+}
+
+enum EnvironmentalField {
+  weatherData,
+  airQualityData,
+  uvIndexData,
+  pollenData,
+  seasonalData
+}
+
 class HealthMetrics {
-  // User-input fields (manually entered by user)
   final UserInputData userInputData;
 
-  // Auto-detected fields (data that can be collected without user input)
   final AutoDetectedData autoDetectedData;
 
-  // Environmental data (weather, air quality, etc.)
   final EnvironmentalData environmentalData;
 
   HealthMetrics({
@@ -42,21 +71,30 @@ class HealthMetrics {
   double? get bmi {
     if (userInputData.height == null ||
         userInputData.weight == null ||
-        userInputData.height == 0) return null;
+        userInputData.height == 0) {
+      return null;
+    }
     return userInputData.weight! /
         ((userInputData.height! / 100) * (userInputData.height! / 100));
   }
 
   // Get BMI category
   String? get bmiCategory {
-    if (bmi == null) return null;
-    if (bmi! < 18.5) return 'Underweight';
-    if (bmi! < 25) return 'Normal weight';
-    if (bmi! < 30) return 'Overweight';
+    if (bmi == null) {
+      return null;
+    }
+    if (bmi! < 18.5) {
+      return 'Underweight';
+    }
+    if (bmi! < 25) {
+      return 'Normal weight';
+    }
+    if (bmi! < 30) {
+      return 'Overweight';
+    }
     return 'Obese';
   }
 
-  // Calculate age if date of birth is available
   int? get age {
     if (userInputData.dateOfBirth == null) return null;
     final today = DateTime.now();
@@ -69,40 +107,33 @@ class HealthMetrics {
     return age;
   }
 
-  // Check if basic profile is complete
   bool get isBasicProfileComplete =>
       userInputData.height != null &&
       userInputData.weight != null &&
       userInputData.dateOfBirth != null &&
       userInputData.gender != null;
 
-  // Get top suggestions for home view based on missing high-priority data
   List<String> get homeSuggestions {
     final suggestions = <String>[];
 
-    // Check for missing high-priority nutrition data
     if (userInputData.nutritionData?.recentMeals == null ||
         userInputData.nutritionData!.recentMeals!.isEmpty) {
       suggestions.add('Log your meals for today');
     }
 
-    // Check for missing activity data
     if (autoDetectedData.activityData == null ||
         autoDetectedData.activityData!.steps < 1000) {
       suggestions.add('Track your daily activity');
     }
 
-    // Check for missing sleep data
     if (autoDetectedData.sleepDurationData == null) {
       suggestions.add('Record your sleep duration');
     }
 
-    // Check for missing mood data
     if (userInputData.moodData == null) {
       suggestions.add('How are you feeling today?');
     }
 
-    // Suggest checking environmental data
     suggestions.add('Check today\'s air quality (미세먼지)');
 
     return suggestions;
@@ -141,34 +172,77 @@ class HealthMetrics {
 
 // Data that requires user manual input
 class UserInputData {
+  // Map each enum field to its corresponding data
+  final Map<UserInputField, dynamic> _data = {};
+
   // LOW PRIORITY - infrequent changes
-  final double? height; // in cm
-  final double? weight; // in kg - MEDIUM PRIORITY as it may change weekly
-  final DateTime? dateOfBirth;
-  final String? gender;
-  final List<HealthCondition>? preExistingConditions;
-  final List<Medication>? medications;
-  final List<Allergy>? allergies;
+  double? get height => _data[UserInputField.height] as double?; // in cm
+  double? get weight => _data[UserInputField.weight]
+      as double?; // in kg - MEDIUM PRIORITY as it may change weekly
+  DateTime? get dateOfBirth => _data[UserInputField.dateOfBirth] as DateTime?;
+  String? get gender => _data[UserInputField.gender] as String?;
+  List<HealthCondition>? get preExistingConditions =>
+      _data[UserInputField.preExistingConditions] as List<HealthCondition>?;
+  List<Medication>? get medications =>
+      _data[UserInputField.medications] as List<Medication>?;
+  List<Allergy>? get allergies =>
+      _data[UserInputField.allergies] as List<Allergy>?;
 
   // HIGH PRIORITY - daily tracking
-  final NutritionData? nutritionData; // HIGH PRIORITY - daily food tracking
-  final MoodData? moodData; // HIGH PRIORITY - changes daily
-  final SymptomData? symptoms; // HIGH PRIORITY - important for daily health
-  final SleepQualityData? sleepQuality; // HIGH PRIORITY - daily tracking
+  NutritionData? get nutritionData =>
+      _data[UserInputField.nutritionData] as NutritionData?;
+  MoodData? get moodData => _data[UserInputField.moodData] as MoodData?;
+  SymptomData? get symptoms => _data[UserInputField.symptoms] as SymptomData?;
+  SleepQualityData? get sleepQuality =>
+      _data[UserInputField.sleepQuality] as SleepQualityData?;
 
   UserInputData({
-    this.height,
-    this.weight,
-    this.dateOfBirth,
-    this.gender,
-    this.preExistingConditions,
-    this.medications,
-    this.allergies,
-    this.nutritionData,
-    this.moodData,
-    this.symptoms,
-    this.sleepQuality,
-  });
+    double? height,
+    double? weight,
+    DateTime? dateOfBirth,
+    String? gender,
+    List<HealthCondition>? preExistingConditions,
+    List<Medication>? medications,
+    List<Allergy>? allergies,
+    NutritionData? nutritionData,
+    MoodData? moodData,
+    SymptomData? symptoms,
+    SleepQualityData? sleepQuality,
+  }) {
+    if (height != null) {
+      _data[UserInputField.height] = height;
+    }
+    if (weight != null) {
+      _data[UserInputField.weight] = weight;
+    }
+    if (dateOfBirth != null) {
+      _data[UserInputField.dateOfBirth] = dateOfBirth;
+    }
+    if (gender != null) {
+      _data[UserInputField.gender] = gender;
+    }
+    if (preExistingConditions != null) {
+      _data[UserInputField.preExistingConditions] = preExistingConditions;
+    }
+    if (medications != null) {
+      _data[UserInputField.medications] = medications;
+    }
+    if (allergies != null) {
+      _data[UserInputField.allergies] = allergies;
+    }
+    if (nutritionData != null) {
+      _data[UserInputField.nutritionData] = nutritionData;
+    }
+    if (moodData != null) {
+      _data[UserInputField.moodData] = moodData;
+    }
+    if (symptoms != null) {
+      _data[UserInputField.symptoms] = symptoms;
+    }
+    if (sleepQuality != null) {
+      _data[UserInputField.sleepQuality] = sleepQuality;
+    }
+  }
 
   factory UserInputData.fromJson(Map<String, dynamic> json) {
     return UserInputData(
@@ -206,20 +280,60 @@ class UserInputData {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'height': height,
-      'weight': weight,
-      'date_of_birth': dateOfBirth?.toIso8601String(),
-      'gender': gender,
-      'pre_existing_conditions':
-          preExistingConditions?.map((x) => x.toJson()).toList(),
-      'medications': medications?.map((x) => x.toJson()).toList(),
-      'allergies': allergies?.map((x) => x.toJson()).toList(),
-      'nutrition_data': nutritionData?.toJson(),
-      'mood_data': moodData?.toJson(),
-      'symptoms': symptoms?.toJson(),
-      'sleep_quality': sleepQuality?.toJson(),
-    };
+    final jsonMap = <String, dynamic>{};
+
+    // Convert based on enum fields
+    if (_data.containsKey(UserInputField.height)) {
+      jsonMap['height'] = height;
+    }
+    if (_data.containsKey(UserInputField.weight)) {
+      jsonMap['weight'] = weight;
+    }
+    if (_data.containsKey(UserInputField.dateOfBirth)) {
+      jsonMap['date_of_birth'] = dateOfBirth?.toIso8601String();
+    }
+    if (_data.containsKey(UserInputField.gender)) {
+      jsonMap['gender'] = gender;
+    }
+    if (_data.containsKey(UserInputField.preExistingConditions)) {
+      jsonMap['pre_existing_conditions'] =
+          preExistingConditions?.map((x) => x.toJson()).toList();
+    }
+    if (_data.containsKey(UserInputField.medications)) {
+      jsonMap['medications'] = medications?.map((x) => x.toJson()).toList();
+    }
+    if (_data.containsKey(UserInputField.allergies)) {
+      jsonMap['allergies'] = allergies?.map((x) => x.toJson()).toList();
+    }
+    if (_data.containsKey(UserInputField.nutritionData)) {
+      jsonMap['nutrition_data'] = nutritionData?.toJson();
+    }
+    if (_data.containsKey(UserInputField.moodData)) {
+      jsonMap['mood_data'] = moodData?.toJson();
+    }
+    if (_data.containsKey(UserInputField.symptoms)) {
+      jsonMap['symptoms'] = symptoms?.toJson();
+    }
+    if (_data.containsKey(UserInputField.sleepQuality)) {
+      jsonMap['sleep_quality'] = sleepQuality?.toJson();
+    }
+
+    return jsonMap;
+  }
+
+  // Set a field by enum
+  void setField(UserInputField field, dynamic value) {
+    _data[field] = value;
+  }
+
+  // Get a field by enum
+  dynamic getField(UserInputField field) {
+    return _data[field];
+  }
+
+  // Check if a field exists
+  bool hasField(UserInputField field) {
+    return _data.containsKey(field);
   }
 
   UserInputData copyWith({
@@ -235,38 +349,90 @@ class UserInputData {
     SymptomData? symptoms,
     SleepQualityData? sleepQuality,
   }) {
-    return UserInputData(
-      height: height ?? this.height,
-      weight: weight ?? this.weight,
-      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
-      gender: gender ?? this.gender,
-      preExistingConditions:
-          preExistingConditions ?? this.preExistingConditions,
-      medications: medications ?? this.medications,
-      allergies: allergies ?? this.allergies,
-      nutritionData: nutritionData ?? this.nutritionData,
-      moodData: moodData ?? this.moodData,
-      symptoms: symptoms ?? this.symptoms,
-      sleepQuality: sleepQuality ?? this.sleepQuality,
-    );
+    final newData = UserInputData();
+
+    // Copy existing data
+    newData._data.addAll(_data);
+
+    // Update with new values if provided
+    if (height != null) {
+      newData._data[UserInputField.height] = height;
+    }
+    if (weight != null) {
+      newData._data[UserInputField.weight] = weight;
+    }
+    if (dateOfBirth != null) {
+      newData._data[UserInputField.dateOfBirth] = dateOfBirth;
+    }
+    if (gender != null) {
+      newData._data[UserInputField.gender] = gender;
+    }
+    if (preExistingConditions != null) {
+      newData._data[UserInputField.preExistingConditions] =
+          preExistingConditions;
+    }
+    if (medications != null) {
+      newData._data[UserInputField.medications] = medications;
+    }
+    if (allergies != null) {
+      newData._data[UserInputField.allergies] = allergies;
+    }
+    if (nutritionData != null) {
+      newData._data[UserInputField.nutritionData] = nutritionData;
+    }
+    if (moodData != null) {
+      newData._data[UserInputField.moodData] = moodData;
+    }
+    if (symptoms != null) {
+      newData._data[UserInputField.symptoms] = symptoms;
+    }
+    if (sleepQuality != null) {
+      newData._data[UserInputField.sleepQuality] = sleepQuality;
+    }
+
+    return newData;
   }
 }
 
 // Data that can be automatically collected via phone sensors, etc.
 class AutoDetectedData {
-  final PhysicalActivityData? activityData;
-  final ScreenTimeData? screenTimeData;
-  final SleepDurationData? sleepDurationData;
-  final LocationData? locationData;
-  final HeartRateData? heartRateData; // For phones with heart rate sensor
+  // Map each enum field to its corresponding data
+  final Map<AutoDetectedField, dynamic> _data = {};
+
+  PhysicalActivityData? get activityData =>
+      _data[AutoDetectedField.activityData] as PhysicalActivityData?;
+  ScreenTimeData? get screenTimeData =>
+      _data[AutoDetectedField.screenTimeData] as ScreenTimeData?;
+  SleepDurationData? get sleepDurationData =>
+      _data[AutoDetectedField.sleepDurationData] as SleepDurationData?;
+  LocationData? get locationData =>
+      _data[AutoDetectedField.locationData] as LocationData?;
+  HeartRateData? get heartRateData =>
+      _data[AutoDetectedField.heartRateData] as HeartRateData?;
 
   AutoDetectedData({
-    this.activityData,
-    this.screenTimeData,
-    this.sleepDurationData,
-    this.locationData,
-    this.heartRateData,
-  });
+    PhysicalActivityData? activityData,
+    ScreenTimeData? screenTimeData,
+    SleepDurationData? sleepDurationData,
+    LocationData? locationData,
+    HeartRateData? heartRateData,
+  }) {
+    if (activityData != null) {
+      _data[AutoDetectedField.activityData] = activityData;
+    }
+    if (screenTimeData != null) {
+      _data[AutoDetectedField.screenTimeData] = screenTimeData;
+    }
+    if (sleepDurationData != null) {
+      _data[AutoDetectedField.sleepDurationData] = sleepDurationData;
+    }
+    if (locationData != null) {
+      _data[AutoDetectedField.locationData] = locationData;
+    }
+    if (heartRateData != null) {
+      _data[AutoDetectedField.heartRateData] = heartRateData;
+    }
+  }
 
   factory AutoDetectedData.fromJson(Map<String, dynamic> json) {
     return AutoDetectedData(
@@ -289,13 +455,40 @@ class AutoDetectedData {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'activity_data': activityData?.toJson(),
-      'screen_time_data': screenTimeData?.toJson(),
-      'sleep_duration_data': sleepDurationData?.toJson(),
-      'location_data': locationData?.toJson(),
-      'heart_rate_data': heartRateData?.toJson(),
-    };
+    final jsonMap = <String, dynamic>{};
+
+    if (_data.containsKey(AutoDetectedField.activityData)) {
+      jsonMap['activity_data'] = activityData?.toJson();
+    }
+    if (_data.containsKey(AutoDetectedField.screenTimeData)) {
+      jsonMap['screen_time_data'] = screenTimeData?.toJson();
+    }
+    if (_data.containsKey(AutoDetectedField.sleepDurationData)) {
+      jsonMap['sleep_duration_data'] = sleepDurationData?.toJson();
+    }
+    if (_data.containsKey(AutoDetectedField.locationData)) {
+      jsonMap['location_data'] = locationData?.toJson();
+    }
+    if (_data.containsKey(AutoDetectedField.heartRateData)) {
+      jsonMap['heart_rate_data'] = heartRateData?.toJson();
+    }
+
+    return jsonMap;
+  }
+
+  // Set a field by enum
+  void setField(AutoDetectedField field, dynamic value) {
+    _data[field] = value;
+  }
+
+  // Get a field by enum
+  dynamic getField(AutoDetectedField field) {
+    return _data[field];
+  }
+
+  // Check if a field exists
+  bool hasField(AutoDetectedField field) {
+    return _data.containsKey(field);
   }
 
   AutoDetectedData copyWith({
@@ -305,35 +498,71 @@ class AutoDetectedData {
     LocationData? locationData,
     HeartRateData? heartRateData,
   }) {
-    return AutoDetectedData(
-      activityData: activityData ?? this.activityData,
-      screenTimeData: screenTimeData ?? this.screenTimeData,
-      sleepDurationData: sleepDurationData ?? this.sleepDurationData,
-      locationData: locationData ?? this.locationData,
-      heartRateData: heartRateData ?? this.heartRateData,
-    );
+    final newData = AutoDetectedData();
+
+    // Copy existing data
+    newData._data.addAll(_data);
+
+    // Update with new values if provided
+    if (activityData != null) {
+      newData._data[AutoDetectedField.activityData] = activityData;
+    }
+    if (screenTimeData != null) {
+      newData._data[AutoDetectedField.screenTimeData] = screenTimeData;
+    }
+    if (sleepDurationData != null) {
+      newData._data[AutoDetectedField.sleepDurationData] = sleepDurationData;
+    }
+    if (locationData != null) {
+      newData._data[AutoDetectedField.locationData] = locationData;
+    }
+    if (heartRateData != null) {
+      newData._data[AutoDetectedField.heartRateData] = heartRateData;
+    }
+
+    return newData;
   }
 }
 
 // Environmental data from APIs and external sources
 class EnvironmentalData {
-  final WeatherData?
-      weatherData; // HIGH PRIORITY - daily weather affects health
-  final AirQualityData?
-      airQualityData; // HIGH PRIORITY - 미세먼지 (fine dust) tracking
-  final UVIndexData? uvIndexData; // HIGH PRIORITY - sun exposure tracking
-  final PollenData?
-      pollenData; // MEDIUM PRIORITY - important for allergy sufferers
-  final SeasonalData?
-      seasonalData; // MEDIUM PRIORITY - seasonal health considerations
+  // Map each enum field to its corresponding data
+  final Map<EnvironmentalField, dynamic> _data = {};
+
+  WeatherData? get weatherData =>
+      _data[EnvironmentalField.weatherData] as WeatherData?;
+  AirQualityData? get airQualityData =>
+      _data[EnvironmentalField.airQualityData] as AirQualityData?;
+  UVIndexData? get uvIndexData =>
+      _data[EnvironmentalField.uvIndexData] as UVIndexData?;
+  PollenData? get pollenData =>
+      _data[EnvironmentalField.pollenData] as PollenData?;
+  SeasonalData? get seasonalData =>
+      _data[EnvironmentalField.seasonalData] as SeasonalData?;
 
   EnvironmentalData({
-    this.weatherData,
-    this.airQualityData,
-    this.uvIndexData,
-    this.pollenData,
-    this.seasonalData,
-  });
+    WeatherData? weatherData,
+    AirQualityData? airQualityData,
+    UVIndexData? uvIndexData,
+    PollenData? pollenData,
+    SeasonalData? seasonalData,
+  }) {
+    if (weatherData != null) {
+      _data[EnvironmentalField.weatherData] = weatherData;
+    }
+    if (airQualityData != null) {
+      _data[EnvironmentalField.airQualityData] = airQualityData;
+    }
+    if (uvIndexData != null) {
+      _data[EnvironmentalField.uvIndexData] = uvIndexData;
+    }
+    if (pollenData != null) {
+      _data[EnvironmentalField.pollenData] = pollenData;
+    }
+    if (seasonalData != null) {
+      _data[EnvironmentalField.seasonalData] = seasonalData;
+    }
+  }
 
   factory EnvironmentalData.fromJson(Map<String, dynamic> json) {
     return EnvironmentalData(
@@ -356,13 +585,40 @@ class EnvironmentalData {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'weather_data': weatherData?.toJson(),
-      'air_quality_data': airQualityData?.toJson(),
-      'uv_index_data': uvIndexData?.toJson(),
-      'pollen_data': pollenData?.toJson(),
-      'seasonal_data': seasonalData?.toJson(),
-    };
+    final jsonMap = <String, dynamic>{};
+
+    if (_data.containsKey(EnvironmentalField.weatherData)) {
+      jsonMap['weather_data'] = weatherData?.toJson();
+    }
+    if (_data.containsKey(EnvironmentalField.airQualityData)) {
+      jsonMap['air_quality_data'] = airQualityData?.toJson();
+    }
+    if (_data.containsKey(EnvironmentalField.uvIndexData)) {
+      jsonMap['uv_index_data'] = uvIndexData?.toJson();
+    }
+    if (_data.containsKey(EnvironmentalField.pollenData)) {
+      jsonMap['pollen_data'] = pollenData?.toJson();
+    }
+    if (_data.containsKey(EnvironmentalField.seasonalData)) {
+      jsonMap['seasonal_data'] = seasonalData?.toJson();
+    }
+
+    return jsonMap;
+  }
+
+  // Set a field by enum
+  void setField(EnvironmentalField field, dynamic value) {
+    _data[field] = value;
+  }
+
+  // Get a field by enum
+  dynamic getField(EnvironmentalField field) {
+    return _data[field];
+  }
+
+  // Check if a field exists
+  bool hasField(EnvironmentalField field) {
+    return _data.containsKey(field);
   }
 
   EnvironmentalData copyWith({
@@ -372,13 +628,29 @@ class EnvironmentalData {
     PollenData? pollenData,
     SeasonalData? seasonalData,
   }) {
-    return EnvironmentalData(
-      weatherData: weatherData ?? this.weatherData,
-      airQualityData: airQualityData ?? this.airQualityData,
-      uvIndexData: uvIndexData ?? this.uvIndexData,
-      pollenData: pollenData ?? this.pollenData,
-      seasonalData: seasonalData ?? this.seasonalData,
-    );
+    final newData = EnvironmentalData();
+
+    // Copy existing data
+    newData._data.addAll(_data);
+
+    // Update with new values if provided
+    if (weatherData != null) {
+      newData._data[EnvironmentalField.weatherData] = weatherData;
+    }
+    if (airQualityData != null) {
+      newData._data[EnvironmentalField.airQualityData] = airQualityData;
+    }
+    if (uvIndexData != null) {
+      newData._data[EnvironmentalField.uvIndexData] = uvIndexData;
+    }
+    if (pollenData != null) {
+      newData._data[EnvironmentalField.pollenData] = pollenData;
+    }
+    if (seasonalData != null) {
+      newData._data[EnvironmentalField.seasonalData] = seasonalData;
+    }
+
+    return newData;
   }
 }
 
@@ -634,10 +906,7 @@ class ActivitySession {
 
   factory ActivitySession.fromJson(Map<String, dynamic> json) {
     return ActivitySession(
-      type: ExerciseType.values.firstWhere(
-        (e) => e.toString().split('.').last == json['type'],
-        orElse: () => ExerciseType.other,
-      ),
+      type: ExerciseTypeExtension.fromJson(json['type']),
       startTime: DateTime.parse(json['start_time']),
       endTime: DateTime.parse(json['end_time']),
       durationMinutes: json['duration_minutes'],
@@ -651,7 +920,7 @@ class ActivitySession {
 
   Map<String, dynamic> toJson() {
     return {
-      'type': type.toString().split('.').last,
+      'type': type.toJson(),
       'start_time': startTime.toIso8601String(),
       'end_time': endTime.toIso8601String(),
       'duration_minutes': durationMinutes,
@@ -814,6 +1083,16 @@ enum ActivityLevel {
   extremelyActive
 }
 
+extension ActivityLevelExtension on ActivityLevel {
+  String toJson() => name;
+
+  static ActivityLevel fromJson(String? json) {
+    if (json == null) return ActivityLevel.sedentary;
+    return ActivityLevel.values.firstWhere((e) => e.name == json,
+        orElse: () => ActivityLevel.sedentary);
+  }
+}
+
 enum ExerciseType {
   walking,
   running,
@@ -825,6 +1104,16 @@ enum ExerciseType {
   hiit,
   teamSports,
   other
+}
+
+extension ExerciseTypeExtension on ExerciseType {
+  String toJson() => name;
+
+  static ExerciseType fromJson(String? json) {
+    if (json == null) return ExerciseType.other;
+    return ExerciseType.values
+        .firstWhere((e) => e.name == json, orElse: () => ExerciseType.other);
+  }
 }
 
 // HIGH PRIORITY - Food tracking is a key feature for daily health
@@ -864,10 +1153,7 @@ class NutritionData {
   factory NutritionData.fromJson(Map<String, dynamic> json) {
     return NutritionData(
       dietType: json['diet_type'] != null
-          ? DietType.values.firstWhere(
-              (e) => e.toString().split('.').last == json['diet_type'],
-              orElse: () => DietType.regular,
-            )
+          ? DietTypeExtension.fromJson(json['diet_type'])
           : null,
       dietaryRestrictions: json['dietary_restrictions'] != null
           ? List<String>.from(json['dietary_restrictions'])
@@ -883,7 +1169,7 @@ class NutritionData {
 
   Map<String, dynamic> toJson() {
     return {
-      'diet_type': dietType?.toString().split('.').last,
+      'diet_type': dietType?.toJson(),
       'dietary_restrictions': dietaryRestrictions,
       'daily_water_intake': dailyWaterIntake,
       'meals_per_day': mealsPerDay,
@@ -960,10 +1246,7 @@ class MoodData {
 
   factory MoodData.fromJson(Map<String, dynamic> json) {
     return MoodData(
-      moodLevel: MoodLevel.values.firstWhere(
-        (e) => e.toString().split('.').last == json['mood_level'],
-        orElse: () => MoodLevel.neutral,
-      ),
+      moodLevel: MoodLevelExtension.fromJson(json['mood_level']),
       factors:
           json['factors'] != null ? List<String>.from(json['factors']) : null,
       notes: json['notes'],
@@ -973,7 +1256,7 @@ class MoodData {
 
   Map<String, dynamic> toJson() {
     return {
-      'mood_level': moodLevel.toString().split('.').last,
+      'mood_level': moodLevel.toJson(),
       'factors': factors,
       'notes': notes,
       'timestamp': timestamp.toIso8601String(),
@@ -1059,8 +1342,12 @@ class SleepQualityData {
   });
 
   String get qualityCategory {
-    if (rating < 4) return 'Poor';
-    if (rating < 7) return 'Average';
+    if (rating < 4) {
+      return 'Poor';
+    }
+    if (rating < 7) {
+      return 'Average';
+    }
     return 'Good';
   }
 
@@ -1097,7 +1384,27 @@ enum DietType {
   other
 }
 
+extension DietTypeExtension on DietType {
+  String toJson() => name;
+
+  static DietType fromJson(String? json) {
+    if (json == null) return DietType.regular;
+    return DietType.values
+        .firstWhere((e) => e.name == json, orElse: () => DietType.regular);
+  }
+}
+
 enum MoodLevel { veryNegative, negative, neutral, positive, veryPositive }
+
+extension MoodLevelExtension on MoodLevel {
+  String toJson() => name;
+
+  static MoodLevel fromJson(String? json) {
+    if (json == null) return MoodLevel.neutral;
+    return MoodLevel.values
+        .firstWhere((e) => e.name == json, orElse: () => MoodLevel.neutral);
+  }
+}
 
 // ENVIRONMENTAL DATA SUPPORT CLASSES
 
@@ -1316,10 +1623,7 @@ class SeasonalData {
 
   factory SeasonalData.fromJson(Map<String, dynamic> json) {
     return SeasonalData(
-      currentSeason: Season.values.firstWhere(
-        (e) => e.toString().split('.').last == json['current_season'],
-        orElse: () => Season.spring,
-      ),
+      currentSeason: SeasonExtension.fromJson(json['current_season']),
       isAllergySeason: json['is_allergy_season'] ?? false,
       isFluSeason: json['is_flu_season'] ?? false,
       seasonalAdvice: json['seasonal_advice'] != null
@@ -1332,7 +1636,7 @@ class SeasonalData {
 
   Map<String, dynamic> toJson() {
     return {
-      'current_season': currentSeason.toString().split('.').last,
+      'current_season': currentSeason.toJson(),
       'is_allergy_season': isAllergySeason,
       'is_flu_season': isFluSeason,
       'seasonal_advice': seasonalAdvice,
@@ -1343,3 +1647,57 @@ class SeasonalData {
 }
 
 enum Season { spring, summer, fall, winter }
+
+extension SeasonExtension on Season {
+  String toJson() => name;
+
+  static Season fromJson(String? json) {
+    if (json == null) return Season.spring;
+    return Season.values
+        .firstWhere((e) => e.name == json, orElse: () => Season.spring);
+  }
+}
+
+// Add this method to demonstrate the usage of the new enum-based approach
+void demonstrateEnumBasedApproach() {
+  // Create a new user input data object with just a few fields
+  final userData = UserInputData()
+    ..setField(UserInputField.height, 180.0)
+    ..setField(UserInputField.weight, 75.0);
+
+  // Add mood data later
+  userData.setField(
+      UserInputField.moodData,
+      MoodData(
+          moodLevel: MoodLevel.positive,
+          factors: ['Exercise', 'Good sleep'],
+          timestamp: DateTime.now()));
+
+  // Check if a field exists
+  if (userData.hasField(UserInputField.height)) {
+    print('Height is ${userData.height} cm');
+  }
+
+  // Create environmental data
+  final envData = EnvironmentalData();
+  envData.setField(
+      EnvironmentalField.weatherData,
+      WeatherData(
+          temperature: 25.0,
+          feelsLike: 26.0,
+          humidity: 65,
+          windSpeed: 5.0,
+          condition: 'Sunny',
+          timestamp: DateTime.now(),
+          location: 'Seoul'));
+
+  // Create a complete health metrics object
+  final healthMetrics = HealthMetrics(
+      userInputData: userData,
+      autoDetectedData: AutoDetectedData(),
+      environmentalData: envData);
+
+  // Convert to JSON and back
+  final json = healthMetrics.toJson();
+  final recreated = HealthMetrics.fromJson(json);
+}

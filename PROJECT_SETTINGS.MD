@@ -14,7 +14,7 @@ flutter gen-l10n
 ```
 
 **Why is this needed?**
-- This command generates the necessary localization files from `.arb` files in `lib/l10n/`
+- This command generates the necessary localization files from `.arb` files in ` lib/core/config/l10n/`
 - Must be run every time you modify translation strings in `.arb` files
 - Generates:
   - `app_localizations.dart`: Base abstract class with all string keys

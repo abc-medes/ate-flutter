@@ -355,7 +355,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
 
                 const SizedBox(height: 24),
 
-                // Don't have an account - Sign up link - Show for both steps
                 Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,

@@ -197,4 +197,109 @@ class HealthRepository {
       return false;
     }
   }
+
+  // Update specific user profile field
+  Future<bool> updateProfileField<T>(
+      {required String fieldName, required T value}) async {
+    try {
+      final healthMetrics = await getHealthData();
+
+      if (healthMetrics == null) {
+        // Create new health metrics with just the specific field
+        // Use UserInputData constructor with named parameters
+        final userInputData = UserInputData(
+          height: fieldName == 'height' && value is double ? value : null,
+          weight: fieldName == 'weight' && value is double ? value : null,
+          dateOfBirth:
+              fieldName == 'dateOfBirth' && value is DateTime ? value : null,
+          gender: fieldName == 'gender' && value is String ? value : null,
+        );
+
+        final newHealthMetrics = HealthMetrics(
+          userInputData: userInputData,
+          autoDetectedData: AutoDetectedData(),
+          environmentalData: EnvironmentalData(),
+        );
+
+        return await saveHealthData(newHealthMetrics);
+      }
+
+      // Update existing user data with new field value
+      UserInputData updatedUserInputData;
+
+      switch (fieldName) {
+        case 'height':
+          if (value is double) {
+            updatedUserInputData = healthMetrics.userInputData.copyWith(
+              height: value,
+            );
+          } else {
+            print('Invalid value type for height');
+            return false;
+          }
+          break;
+        case 'weight':
+          if (value is double) {
+            updatedUserInputData = healthMetrics.userInputData.copyWith(
+              weight: value,
+            );
+          } else {
+            print('Invalid value type for weight');
+            return false;
+          }
+          break;
+        case 'dateOfBirth':
+          if (value is DateTime) {
+            updatedUserInputData = healthMetrics.userInputData.copyWith(
+              dateOfBirth: value,
+            );
+          } else {
+            print('Invalid value type for dateOfBirth');
+            return false;
+          }
+          break;
+        case 'gender':
+          if (value is String) {
+            updatedUserInputData = healthMetrics.userInputData.copyWith(
+              gender: value,
+            );
+          } else {
+            print('Invalid value type for gender');
+            return false;
+          }
+          break;
+        default:
+          print('Unknown field: $fieldName');
+          return false;
+      }
+
+      // Update health metrics
+      final updatedHealthMetrics = healthMetrics.copyWith(
+        userInputData: updatedUserInputData,
+      );
+
+      return await saveHealthData(updatedHealthMetrics);
+    } catch (e) {
+      print('Error updating $fieldName: $e');
+      return false;
+    }
+  }
+
+  // Legacy methods kept for backward compatibility
+
+  Future<bool> updateHeight(double height) async {
+    return updateProfileField(fieldName: 'height', value: height);
+  }
+
+  Future<bool> updateWeight(double weight) async {
+    return updateProfileField(fieldName: 'weight', value: weight);
+  }
+
+  Future<bool> updateDateOfBirth(DateTime dateOfBirth) async {
+    return updateProfileField(fieldName: 'dateOfBirth', value: dateOfBirth);
+  }
+
+  Future<bool> updateGender(String gender) async {
+    return updateProfileField(fieldName: 'gender', value: gender);
+  }
 }

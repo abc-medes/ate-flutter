@@ -1,8 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ate_project/core/routes/route_names.dart';
-import 'package:ate_project/core/theme/app_theme.dart';
 
 /// Helper class for showing authentication prompts throughout the app
 class AuthPromptHelper {

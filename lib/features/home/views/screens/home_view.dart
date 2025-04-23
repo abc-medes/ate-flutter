@@ -3,6 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ate_project/core/services/auth_service.dart';
 import 'package:ate_project/core/theme/app_theme.dart';
+import 'package:ate_project/data/repositories/health_repository.dart';
+import 'package:ate_project/data/models/health_model.dart';
+
+// Create a provider for HealthRepository
+final healthRepositoryProvider = Provider<HealthRepository>((ref) {
+  return HealthRepository();
+});
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -13,11 +20,111 @@ class HomeView extends ConsumerStatefulWidget {
 
 class _HomeViewState extends ConsumerState<HomeView> {
   late bool _showLoginPrompt;
+  List<BasicUserData> _missingBasicData = [];
+  bool _isLoadingHealthData = true;
 
   @override
   void initState() {
     super.initState();
     _showLoginPrompt = !ref.read(isAuthenticatedProvider);
+    _checkMissingHealthData();
+  }
+
+  Future<void> _checkMissingHealthData() async {
+    final healthRepo = ref.read(healthRepositoryProvider);
+    final missingFields = await healthRepo.getMissingBasicUserData();
+
+    setState(() {
+      _missingBasicData = missingFields;
+      _isLoadingHealthData = false;
+    });
+  }
+
+  List<DailyUserData> _getDailyUserDataFields() {
+    return DailyUserData.values;
+  }
+
+  String _getHealthFieldName(BasicUserData field) {
+    switch (field) {
+      case BasicUserData.height:
+        return 'Height';
+      case BasicUserData.weight:
+        return 'Weight';
+      case BasicUserData.dateOfBirth:
+        return 'Date of Birth';
+      case BasicUserData.gender:
+        return 'Gender';
+      case BasicUserData.preExistingConditions:
+        return 'Health Conditions';
+      case BasicUserData.medications:
+        return 'Medications';
+      case BasicUserData.allergies:
+        return 'Allergies';
+    }
+  }
+
+  IconData _getHealthFieldIcon(BasicUserData field) {
+    switch (field) {
+      case BasicUserData.height:
+        return Icons.height;
+      case BasicUserData.weight:
+        return Icons.monitor_weight;
+      case BasicUserData.dateOfBirth:
+        return Icons.cake;
+      case BasicUserData.gender:
+        return Icons.person;
+      case BasicUserData.preExistingConditions:
+        return Icons.medical_information;
+      case BasicUserData.medications:
+        return Icons.medication;
+      case BasicUserData.allergies:
+        return Icons.coronavirus;
+    }
+  }
+
+  String _getDailyDataName(DailyUserData field) {
+    switch (field) {
+      case DailyUserData.nutritionData:
+        return 'Nutrition';
+      case DailyUserData.moodData:
+        return 'Mood';
+      case DailyUserData.symptoms:
+        return 'Symptoms';
+      case DailyUserData.sleepQuality:
+        return 'Sleep';
+      case DailyUserData.activityData:
+        return 'Activity';
+    }
+  }
+
+  IconData _getDailyDataIcon(DailyUserData field) {
+    switch (field) {
+      case DailyUserData.nutritionData:
+        return Icons.restaurant_menu;
+      case DailyUserData.moodData:
+        return Icons.mood;
+      case DailyUserData.symptoms:
+        return Icons.healing;
+      case DailyUserData.sleepQuality:
+        return Icons.nightlight_round;
+      case DailyUserData.activityData:
+        return Icons.directions_run;
+    }
+  }
+
+  Color _getDailyDataColor(DailyUserData field) {
+    switch (field) {
+      case DailyUserData.nutritionData:
+        return AppColors.nutrition;
+      case DailyUserData.moodData:
+        return AppColors.mood;
+      case DailyUserData.symptoms:
+        return Colors.redAccent;
+      case DailyUserData.sleepQuality:
+        return AppColors.sleep;
+      case DailyUserData.activityData:
+        return AppColors.activity;
+    }
   }
 
   @override
@@ -41,7 +148,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 onDismiss: () => setState(() => _showLoginPrompt = false),
                 onLogin: () => context.push('/auth/login'),
               ),
-
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
               child: Row(
@@ -77,8 +183,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 ],
               ),
             ),
-
-            // Main content area with cards
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -86,7 +190,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   slivers: [
                     const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-                    // Featured navigation cards
                     SliverToBoxAdapter(
                       child: Row(
                         children: [
@@ -129,36 +232,69 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     ),
 
                     // Quick access cards
+                    // TODO: Add quick access cards for missing health fields
+                    // SliverToBoxAdapter(
+                    //   child: SizedBox(
+                    //     height: 110,
+                    //     child: ListView(
+                    //       scrollDirection: Axis.horizontal,
+                    //       children: [
+                    //         // Show quick access cards for missing health fields (max 2)
+                    //         if (_missingBasicData.isNotEmpty)
+                    //           for (var field in _missingBasicData.take(2))
+                    //             QuickAccessCard(
+                    //               title: 'Add ${_getHealthFieldName(field)}',
+                    //               icon: _getHealthFieldIcon(field),
+                    //               color: Colors.orange,
+                    //               onTap: () => context.push('/profile/edit'),
+                    //             ),
+
+                    //         // Show "See More Health" card if there are more than 2 missing fields
+                    //         if (_missingBasicData.length > 2)
+                    //           QuickAccessCard(
+                    //             title: 'More Health Data',
+                    //             icon: Icons.more_horiz,
+                    //             color: Colors.orange,
+                    //             onTap: () => context.push('/profile/edit'),
+                    //           ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
+
+                    const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+                    // Daily Health Tracking Section
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 8),
+                        child: Text(
+                          'Daily Health Tracking',
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                        ),
+                      ),
+                    ),
+
+                    // Daily tracking cards
                     SliverToBoxAdapter(
                       child: SizedBox(
                         height: 110,
                         child: ListView(
                           scrollDirection: Axis.horizontal,
                           children: [
-                            QuickAccessCard(
-                              title: 'Daily Activity',
-                              icon: Icons.directions_run,
-                              color: AppColors.activity,
-                              onTap: () => context.push('/activity'),
-                            ),
-                            QuickAccessCard(
-                              title: 'Nutrition',
-                              icon: Icons.restaurant_menu,
-                              color: AppColors.nutrition,
-                              onTap: () => context.push('/nutrition'),
-                            ),
-                            QuickAccessCard(
-                              title: 'Sleep',
-                              icon: Icons.nightlight_round,
-                              color: AppColors.sleep,
-                              onTap: () => context.push('/sleep'),
-                            ),
-                            QuickAccessCard(
-                              title: 'Mood',
-                              icon: Icons.mood,
-                              color: AppColors.mood,
-                              onTap: () => context.push('/mood'),
-                            ),
+                            // Always show daily data input cards
+                            for (var field in _getDailyUserDataFields())
+                              QuickAccessCard(
+                                title: _getDailyDataName(field),
+                                icon: _getDailyDataIcon(field),
+                                color: _getDailyDataColor(field),
+                                onTap: () => context.push(
+                                    '/${_getDailyDataName(field).toLowerCase()}/log'),
+                              ),
                           ],
                         ),
                       ),
@@ -184,6 +320,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
                                   ),
                             ),
                           ),
+                          // Add missing health data insight if there's missing data
+                          if (_missingBasicData.isNotEmpty)
+                            InsightCard(
+                              title: 'Complete Your Health Profile',
+                              description:
+                                  'Add missing health data to get better insights',
+                              icon: Icons.favorite_border,
+                              onTap: () => context.push('/profile/edit'),
+                            ),
                           InsightCard(
                             title: 'Complete Your Profile',
                             description:

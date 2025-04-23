@@ -32,10 +32,134 @@ enum UserInputField {
   preExistingConditions,
   medications,
   allergies,
+
   nutritionData,
   moodData,
   symptoms,
-  sleepQuality
+  sleepQuality,
+  activityData
+}
+
+enum BasicUserData {
+  height,
+  weight,
+  dateOfBirth,
+  gender,
+  preExistingConditions,
+  medications,
+  allergies
+}
+
+// Extension to convert between BasicUserData and UserInputField
+extension BasicUserDataExtension on BasicUserData {
+  UserInputField toUserInputField() {
+    switch (this) {
+      case BasicUserData.height:
+        return UserInputField.height;
+      case BasicUserData.weight:
+        return UserInputField.weight;
+      case BasicUserData.dateOfBirth:
+        return UserInputField.dateOfBirth;
+      case BasicUserData.gender:
+        return UserInputField.gender;
+      case BasicUserData.preExistingConditions:
+        return UserInputField.preExistingConditions;
+      case BasicUserData.medications:
+        return UserInputField.medications;
+      case BasicUserData.allergies:
+        return UserInputField.allergies;
+    }
+  }
+}
+
+// Conceptual grouping of UserInputField into daily tracking data
+enum DailyUserData {
+  nutritionData,
+  moodData,
+  symptoms,
+  sleepQuality,
+  activityData
+}
+
+// Extension to convert between DailyUserData and UserInputField
+extension DailyUserDataExtension on DailyUserData {
+  UserInputField toUserInputField() {
+    switch (this) {
+      case DailyUserData.nutritionData:
+        return UserInputField.nutritionData;
+      case DailyUserData.moodData:
+        return UserInputField.moodData;
+      case DailyUserData.symptoms:
+        return UserInputField.symptoms;
+      case DailyUserData.sleepQuality:
+        return UserInputField.sleepQuality;
+      case DailyUserData.activityData:
+        return UserInputField.activityData;
+    }
+  }
+}
+
+// Extension to check if UserInputField is BasicUserData or DailyUserData
+extension UserInputFieldExtension on UserInputField {
+  bool get isBasicUserData {
+    return this == UserInputField.height ||
+        this == UserInputField.weight ||
+        this == UserInputField.dateOfBirth ||
+        this == UserInputField.gender ||
+        this == UserInputField.preExistingConditions ||
+        this == UserInputField.medications ||
+        this == UserInputField.allergies;
+  }
+
+  bool get isDailyUserData {
+    return this == UserInputField.nutritionData ||
+        this == UserInputField.moodData ||
+        this == UserInputField.symptoms ||
+        this == UserInputField.sleepQuality ||
+        this == UserInputField.activityData;
+  }
+
+  BasicUserData? toBasicUserData() {
+    if (!isBasicUserData) return null;
+
+    switch (this) {
+      case UserInputField.height:
+        return BasicUserData.height;
+      case UserInputField.weight:
+        return BasicUserData.weight;
+      case UserInputField.dateOfBirth:
+        return BasicUserData.dateOfBirth;
+      case UserInputField.gender:
+        return BasicUserData.gender;
+      case UserInputField.preExistingConditions:
+        return BasicUserData.preExistingConditions;
+      case UserInputField.medications:
+        return BasicUserData.medications;
+      case UserInputField.allergies:
+        return BasicUserData.allergies;
+      default:
+        return null;
+    }
+  }
+
+  DailyUserData? toDailyUserData() {
+    if (!isDailyUserData) return null;
+
+    switch (this) {
+      case UserInputField.nutritionData:
+        return DailyUserData.nutritionData;
+      case UserInputField.moodData:
+        return DailyUserData.moodData;
+      case UserInputField.symptoms:
+        return DailyUserData.symptoms;
+      case UserInputField.sleepQuality:
+        return DailyUserData.sleepQuality;
+      case UserInputField.activityData:
+        return DailyUserData.activityData;
+      default:
+        return null;
+    }
+  }
 }
 
 enum AutoDetectedField {
@@ -53,6 +177,45 @@ enum EnvironmentalField {
   pollenData,
   seasonalData
 }
+
+// Activity-related enums that might be needed
+enum ActivityLevel {
+  sedentary,
+  lightlyActive,
+  moderatelyActive,
+  veryActive,
+  extremelyActive
+}
+
+enum ExerciseType {
+  walking,
+  running,
+  cycling,
+  swimming,
+  weightLifting,
+  yoga,
+  pilates,
+  hiit,
+  teamSports,
+  other
+}
+
+enum DietType {
+  regular,
+  vegetarian,
+  vegan,
+  pescatarian,
+  paleo,
+  keto,
+  lowCarb,
+  lowFat,
+  mediterranean,
+  other
+}
+
+enum MoodLevel { veryNegative, negative, neutral, positive, veryPositive }
+
+enum Season { spring, summer, fall, winter }
 
 class HealthMetrics {
   final UserInputData userInputData;
@@ -1075,14 +1238,6 @@ class HeartRateData {
   }
 }
 
-enum ActivityLevel {
-  sedentary,
-  lightlyActive,
-  moderatelyActive,
-  veryActive,
-  extremelyActive
-}
-
 extension ActivityLevelExtension on ActivityLevel {
   String toJson() => name;
 
@@ -1091,19 +1246,6 @@ extension ActivityLevelExtension on ActivityLevel {
     return ActivityLevel.values.firstWhere((e) => e.name == json,
         orElse: () => ActivityLevel.sedentary);
   }
-}
-
-enum ExerciseType {
-  walking,
-  running,
-  cycling,
-  swimming,
-  weightLifting,
-  yoga,
-  pilates,
-  hiit,
-  teamSports,
-  other
 }
 
 extension ExerciseTypeExtension on ExerciseType {
@@ -1371,19 +1513,6 @@ class SleepQualityData {
   }
 }
 
-enum DietType {
-  regular,
-  vegetarian,
-  vegan,
-  pescatarian,
-  paleo,
-  keto,
-  lowCarb,
-  lowFat,
-  mediterranean,
-  other
-}
-
 extension DietTypeExtension on DietType {
   String toJson() => name;
 
@@ -1393,8 +1522,6 @@ extension DietTypeExtension on DietType {
         .firstWhere((e) => e.name == json, orElse: () => DietType.regular);
   }
 }
-
-enum MoodLevel { veryNegative, negative, neutral, positive, veryPositive }
 
 extension MoodLevelExtension on MoodLevel {
   String toJson() => name;
@@ -1645,8 +1772,6 @@ class SeasonalData {
     };
   }
 }
-
-enum Season { spring, summer, fall, winter }
 
 extension SeasonExtension on Season {
   String toJson() => name;

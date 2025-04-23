@@ -14,6 +14,19 @@ class AppColors {
   static const secondaryLight = Color(0xFF67DAFF);
   static const secondaryDark = Color(0xFF007AC1);
 
+  // Tertiary Colors (for additional accent and UI elements)
+  static const tertiary = Color(0xFF1976D2); // Deep blue
+  static const tertiaryLight = Color(0xFF63A4FF);
+  static const tertiaryDark = Color(0xFF004BA0);
+
+  // Additional UI colors
+  static const bodySimulator = Color(0xFF1976D2); // Blue for body simulator
+  static const healthLogs = Color(0xFF388E3C); // Green for health logs
+  static const activity = Color(0xFFFF9800); // Orange for activity
+  static const nutrition = Color(0xFFE91E63); // Pink for nutrition
+  static const sleep = Color(0xFF673AB7); // Purple for sleep
+  static const mood = Color(0xFFFFEB3B); // Yellow for mood tracking
+
   // Neutral Colors
   static const background = Color(0xFFF5F5F5);
   static const surface = Color(0xFFFFFFFF);
@@ -37,8 +50,13 @@ class AppTheme {
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         primaryContainer: AppColors.primaryLight,
+        onPrimaryContainer: AppColors.primaryDark,
         secondary: AppColors.secondary,
         secondaryContainer: AppColors.secondaryLight,
+        onSecondaryContainer: AppColors.secondaryDark,
+        tertiary: AppColors.tertiary,
+        tertiaryContainer: AppColors.tertiaryLight,
+        onTertiaryContainer: AppColors.tertiaryDark,
         surface: AppColors.surface,
         background: AppColors.background,
         error: AppColors.error,
@@ -143,8 +161,13 @@ class AppTheme {
       colorScheme: const ColorScheme.dark(
         primary: AppColors.primaryLight,
         primaryContainer: AppColors.primary,
+        onPrimaryContainer: AppColors.primaryLight,
         secondary: AppColors.secondaryLight,
         secondaryContainer: AppColors.secondary,
+        onSecondaryContainer: AppColors.secondaryLight,
+        tertiary: AppColors.tertiaryLight,
+        tertiaryContainer: AppColors.tertiary,
+        onTertiaryContainer: AppColors.tertiaryLight,
         surface: Color(0xFF1E1E1E),
         background: Color(0xFF121212),
         error: AppColors.error,

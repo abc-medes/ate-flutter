@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ate_project/core/services/auth_service.dart';
+import 'package:ate_project/core/theme/app_theme.dart';
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -93,7 +94,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             child: NavigationCard(
                               title: 'Body Simulator',
                               icon: Icons.accessibility_new,
-                              color: Colors.blue[700]!,
+                              color: AppColors.bodySimulator,
                               onTap: () => context.push('/body-simulator'),
                             ),
                           ),
@@ -102,7 +103,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             child: NavigationCard(
                               title: 'Health Logs',
                               icon: Icons.bar_chart,
-                              color: Colors.green[700]!,
+                              color: AppColors.healthLogs,
                               onTap: () => context.push('/health-logs'),
                             ),
                           ),
@@ -137,21 +138,25 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             QuickAccessCard(
                               title: 'Daily Activity',
                               icon: Icons.directions_run,
+                              color: AppColors.activity,
                               onTap: () => context.push('/activity'),
                             ),
                             QuickAccessCard(
                               title: 'Nutrition',
                               icon: Icons.restaurant_menu,
+                              color: AppColors.nutrition,
                               onTap: () => context.push('/nutrition'),
                             ),
                             QuickAccessCard(
                               title: 'Sleep',
                               icon: Icons.nightlight_round,
+                              color: AppColors.sleep,
                               onTap: () => context.push('/sleep'),
                             ),
                             QuickAccessCard(
                               title: 'Mood',
                               icon: Icons.mood,
+                              color: AppColors.mood,
                               onTap: () => context.push('/mood'),
                             ),
                           ],
@@ -390,12 +395,14 @@ class NavigationCard extends StatelessWidget {
 class QuickAccessCard extends StatelessWidget {
   final String title;
   final IconData icon;
+  final Color color;
   final VoidCallback onTap;
 
   const QuickAccessCard({
     Key? key,
     required this.title,
     required this.icon,
+    required this.color,
     required this.onTap,
   }) : super(key: key);
 
@@ -417,7 +424,7 @@ class QuickAccessCard extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                color: Theme.of(context).colorScheme.primary,
+                color: color,
               ),
               const SizedBox(height: 8),
               Text(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ate_project/core/services/auth_service.dart';
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -10,22 +11,36 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView> {
-  bool _showLoginPrompt = true;
+  late bool _showLoginPrompt;
+
+  @override
+  void initState() {
+    super.initState();
+    _showLoginPrompt = !ref.read(isAuthenticatedProvider);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isAuthenticated = ref.watch(isAuthenticatedProvider);
+
+    if (isAuthenticated && _showLoginPrompt) {
+      Future.microtask(() {
+        setState(() {
+          _showLoginPrompt = false;
+        });
+      });
+    }
+
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
-            // Login prompt at the top (can be dismissed)
             if (_showLoginPrompt)
               LoginPromptCard(
                 onDismiss: () => setState(() => _showLoginPrompt = false),
                 onLogin: () => context.push('/auth/login'),
               ),
 
-            // Greeting and profile section
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
               child: Row(

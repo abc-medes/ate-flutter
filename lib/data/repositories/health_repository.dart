@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ate_project/data/models/health_model.dart';
 
@@ -108,3 +109,8 @@ class HealthRepository {
     return DailyUserData.values;
   }
 }
+
+// Create a provider for HealthRepository
+final healthRepositoryProvider = Provider<HealthRepository>((ref) {
+  return HealthRepository();
+});

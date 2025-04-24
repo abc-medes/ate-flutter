@@ -2,6 +2,7 @@ import 'package:ate_project/features/home/views/widgets/action_item.dart';
 import 'package:ate_project/features/home/views/widgets/insight_card.dart';
 import 'package:ate_project/features/home/views/widgets/login_prompt_card.dart';
 import 'package:ate_project/features/home/views/widgets/navigation_card.dart';
+import 'package:ate_project/features/home/views/widgets/quick_access_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -417,59 +418,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     context.push('/profile/edit');
                   },
                 ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Large navigation card widget
-
-// Quick access card widget
-class QuickAccessCard extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  const QuickAccessCard({
-    Key? key,
-    required this.title,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          width: 100,
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                color: color,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
             ],
           ),
         ),

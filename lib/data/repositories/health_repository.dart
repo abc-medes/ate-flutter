@@ -100,8 +100,6 @@ class HealthRepository {
       }
     }
 
-    print(missingFields);
-
     return missingFields;
   }
 
@@ -110,7 +108,6 @@ class HealthRepository {
   }
 }
 
-// Create a provider for HealthRepository
 final healthRepositoryProvider = Provider<HealthRepository>((ref) {
   return HealthRepository();
 });

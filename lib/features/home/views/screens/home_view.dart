@@ -357,39 +357,49 @@ class _HomeViewState extends ConsumerState<HomeView> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+        minHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          top: 20,
-          left: 20,
-          right: 20,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 1.0,
+        maxChildSize: 1.0,
+        minChildSize: 1.0,
+        builder: (_, scrollController) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            top: 20,
+            left: 20,
+            right: 20,
+          ),
+          child: ListView(
+            controller: scrollController,
             children: [
               ActionItem(
                 icon: Icons.restaurant,
                 label: 'Log Meal',
-                onTap: () {},
+                showInputOnTap: true,
               ),
               ActionItem(
                 icon: Icons.monitor_weight,
                 label: 'Log Weight',
-                onTap: () {},
+                showInputOnTap: true,
               ),
               ActionItem(
                 icon: Icons.favorite,
                 label: 'Log Symptoms',
-                onTap: () {},
+                showInputOnTap: true,
               ),
               ActionItem(
                 icon: Icons.mood,
                 label: 'Log Mood',
-                onTap: () {},
+                showInputOnTap: true,
               ),
 
               // Divider if there are missing health data items

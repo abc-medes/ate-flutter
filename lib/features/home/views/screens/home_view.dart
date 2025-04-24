@@ -6,11 +6,6 @@ import 'package:ate_project/core/theme/app_theme.dart';
 import 'package:ate_project/data/repositories/health_repository.dart';
 import 'package:ate_project/data/models/health_model.dart';
 
-// Create a provider for HealthRepository
-final healthRepositoryProvider = Provider<HealthRepository>((ref) {
-  return HealthRepository();
-});
-
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
 
@@ -336,13 +331,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             icon: Icons.person_add,
                             onTap: () => context.push('/profile'),
                           ),
-                          InsightCard(
-                            title: 'Check Air Quality',
-                            description:
-                                'Current air quality index in your area',
-                            icon: Icons.air,
-                            onTap: () => context.push('/environmental'),
-                          ),
                         ],
                       ),
                     ),
@@ -363,47 +351,70 @@ class _HomeViewState extends ConsumerState<HomeView> {
   void _showActionSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ActionItem(
-              icon: Icons.restaurant,
-              label: 'Log Meal',
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/nutrition/log');
-              },
-            ),
-            ActionItem(
-              icon: Icons.monitor_weight,
-              label: 'Log Weight',
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/weight/log');
-              },
-            ),
-            ActionItem(
-              icon: Icons.favorite,
-              label: 'Log Symptoms',
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/symptoms/log');
-              },
-            ),
-            ActionItem(
-              icon: Icons.mood,
-              label: 'Log Mood',
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/mood/log');
-              },
-            ),
-          ],
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          top: 20,
+          left: 20,
+          right: 20,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ActionItem(
+                icon: Icons.restaurant,
+                label: 'Log Meal',
+                onTap: () {},
+              ),
+              ActionItem(
+                icon: Icons.monitor_weight,
+                label: 'Log Weight',
+                onTap: () {},
+              ),
+              ActionItem(
+                icon: Icons.favorite,
+                label: 'Log Symptoms',
+                onTap: () {},
+              ),
+              ActionItem(
+                icon: Icons.mood,
+                label: 'Log Mood',
+                onTap: () {},
+              ),
+
+              // Divider if there are missing health data items
+              if (_missingBasicData.isNotEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Divider(height: 1),
+                ),
+
+              // Add action items for missing basic health data
+              if (_missingBasicData.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 8, bottom: 4),
+                  child: Text(
+                    'Complete Your Profile',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+
+              for (var field in _missingBasicData)
+                ActionItem(
+                  icon: _getHealthFieldIcon(field),
+                  label: 'Add ${_getHealthFieldName(field)}',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/profile/edit');
+                  },
+                ),
+            ],
+          ),
         ),
       ),
     );

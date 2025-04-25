@@ -239,13 +239,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
                     const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-                    // Section title
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 8),
                         child: Text(
-                          'Quick Access',
+                          'Complete Your Profile',
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
@@ -254,36 +253,34 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       ),
                     ),
 
-                    // Quick access cards
-                    // TODO: Add quick access cards for missing health fields
-                    // SliverToBoxAdapter(
-                    //   child: SizedBox(
-                    //     height: 110,
-                    //     child: ListView(
-                    //       scrollDirection: Axis.horizontal,
-                    //       children: [
-                    //         // Show quick access cards for missing health fields (max 2)
-                    //         if (_missingBasicData.isNotEmpty)
-                    //           for (var field in _missingBasicData.take(2))
-                    //             QuickAccessCard(
-                    //               title: 'Add ${_getHealthFieldName(field)}',
-                    //               icon: _getHealthFieldIcon(field),
-                    //               color: Colors.orange,
-                    //               onTap: () => context.push('/profile/edit'),
-                    //             ),
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: 110,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            // Show quick access cards for missing health fields (max 2)
+                            if (_missingBasicData.isNotEmpty)
+                              for (var field in _missingBasicData.take(2))
+                                QuickAccessCard(
+                                  title: 'Add ${_getHealthFieldName(field)}',
+                                  icon: _getHealthFieldIcon(field),
+                                  color: Colors.orange,
+                                  onTap: () => context.push('/profile/edit'),
+                                ),
 
-                    //         // Show "See More Health" card if there are more than 2 missing fields
-                    //         if (_missingBasicData.length > 2)
-                    //           QuickAccessCard(
-                    //             title: 'More Health Data',
-                    //             icon: Icons.more_horiz,
-                    //             color: Colors.orange,
-                    //             onTap: () => context.push('/profile/edit'),
-                    //           ),
-                    //       ],
-                    //     ),
-                    //   ),
-                    // ),
+                            // Show "See More Health" card if there are more than 2 missing fields
+                            if (_missingBasicData.length > 2)
+                              QuickAccessCard(
+                                title: 'More Health Data',
+                                icon: Icons.more_horiz,
+                                color: Colors.orange,
+                                onTap: () => context.push('/profile/edit'),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
 
                     const SliverToBoxAdapter(child: SizedBox(height: 24)),
 

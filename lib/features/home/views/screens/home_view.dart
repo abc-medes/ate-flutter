@@ -21,7 +21,8 @@ class HomeView extends ConsumerStatefulWidget {
 class _HomeViewState extends ConsumerState<HomeView> {
   late bool _showLoginPrompt;
   List<BasicUserData> _missingBasicData = [];
-  bool _isLoadingHealthData = true;
+  final TextEditingController _chatInputController = TextEditingController();
+  final FocusNode _chatFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -30,14 +31,36 @@ class _HomeViewState extends ConsumerState<HomeView> {
     _checkMissingHealthData();
   }
 
+  @override
+  void dispose() {
+    _chatInputController.dispose();
+    _chatFocusNode.dispose();
+    super.dispose();
+  }
+
   Future<void> _checkMissingHealthData() async {
     final healthRepo = ref.read(healthRepositoryProvider);
     final missingFields = await healthRepo.getMissingBasicUserData();
 
     setState(() {
       _missingBasicData = missingFields;
-      _isLoadingHealthData = false;
     });
+  }
+
+  void _handleChatSubmit(String text) {
+    if (text.trim().isEmpty) return;
+
+    // TODO: Implement chat response handling
+    print('User query: $text');
+
+    _chatInputController.clear();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Processing: "$text"'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   List<DailyUserData> _getDailyUserDataFields() {
@@ -336,8 +359,25 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             icon: Icons.person_add,
                             onTap: () => context.push('/profile'),
                           ),
+
+                          // New chat insights examples
+                          InsightCard(
+                            title: 'Ask Health Questions',
+                            description:
+                                'Use the chat below to ask any health questions',
+                            icon: Icons.chat,
+                            onTap: () {
+                              // Focus on the chat input
+                              _chatFocusNode.requestFocus();
+                            },
+                          ),
                         ],
                       ),
+                    ),
+
+                    // Add space at the bottom to accommodate the chat input
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 80),
                     ),
                   ],
                 ),
@@ -346,10 +386,60 @@ class _HomeViewState extends ConsumerState<HomeView> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showActionSheet(context),
-        child: const Icon(Icons.add),
+      // Replace FloatingActionButton with chat input
+      bottomSheet: Container(
+        padding: const EdgeInsets.only(right: 16, left: 16, bottom: 32),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, -1),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _chatInputController,
+                focusNode: _chatFocusNode,
+                decoration: InputDecoration(
+                  hintText: 'Ask a health question...',
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                onSubmitted: _handleChatSubmit,
+                textInputAction: TextInputAction.send,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.send),
+                color: Colors.white,
+                onPressed: () => _handleChatSubmit(_chatInputController.text),
+              ),
+            ),
+          ],
+        ),
       ),
+      floatingActionButton: null,
     );
   }
 

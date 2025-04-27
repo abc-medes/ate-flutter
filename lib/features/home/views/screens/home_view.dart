@@ -47,36 +47,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
     });
   }
 
-  void _onChatSubmit(String text) {
-    print('User query: $text');
-
-    // Show a loading indicator
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Row(
-          children: [
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(width: 16),
-            Text('AI is processing your question...'),
-          ],
-        ),
-        duration: Duration(seconds: 5),
-      ),
-    );
-
-    // Delay for 5 seconds then show the AI response
-    Future.delayed(const Duration(seconds: 5), () {
-      AIResponseBottomSheet.show(context, text);
-    });
-  }
-
   List<DailyUserData> _getDailyUserDataFields() {
     return DailyUserData.values;
   }
@@ -397,9 +367,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
           ],
         ),
       ),
-      bottomSheet: HealthChatInput(
-        onSubmit: _onChatSubmit,
-      ),
+      bottomSheet: HealthChatInput(),
     );
   }
 }

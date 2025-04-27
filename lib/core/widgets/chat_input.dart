@@ -1,12 +1,10 @@
+import 'package:ate_project/core/widgets/ai_response_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 
 class HealthChatInput extends StatefulWidget {
-  final Function(String) onSubmit;
-
   const HealthChatInput({
-    Key? key,
-    required this.onSubmit,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<HealthChatInput> createState() => _HealthChatInputState();
@@ -23,11 +21,42 @@ class _HealthChatInputState extends State<HealthChatInput> {
     super.dispose();
   }
 
+  void _onChatSubmit(String text) {
+    print('User query: $text');
+
+    // Show a loading indicator
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        content: Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 16),
+            Text('AI is processing your question...'),
+          ],
+        ),
+        duration: Duration(seconds: 5),
+      ),
+    );
+
+    // Delay for 5 seconds then show the AI response
+    Future.delayed(const Duration(seconds: 1), () {
+      AIResponseBottomSheet.show(context, text);
+    });
+  }
+
   void _handleSubmit() {
     final text = _chatInputController.text;
     if (text.trim().isEmpty) return;
 
-    widget.onSubmit(text);
+    _onChatSubmit(text);
     _chatInputController.clear();
   }
 

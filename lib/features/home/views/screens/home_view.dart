@@ -14,9 +14,27 @@ class HomeView extends ConsumerWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: state.messages.isEmpty
-            ? _buildEmptyChatView(context, viewModel)
-            : _buildChatView(context, state, viewModel),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 400),
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.05),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutQuint,
+                )),
+                child: child,
+              ),
+            );
+          },
+          child: state.messages.isEmpty
+              ? _buildEmptyChatView(context, viewModel)
+              : _buildChatView(context, state, viewModel),
+        ),
       ),
     );
   }
@@ -27,21 +45,23 @@ class HomeView extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Animated typing text
-          const TypewriterAnimatedText(
-            [
-              "AI-Powered Health Intelligence",
-              "Personal Health Assistant",
-              "Get Smart Insights",
-            ],
-            textStyle: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+          Container(
+            width: MediaQuery.of(context).size.width * 0.85,
+            child: const TypewriterAnimatedText(
+              [
+                "AI-Powered Health Intelligence",
+                "Personal Health Assistant",
+                "Get Smart Insights",
+              ],
+              textStyle: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
 
           const SizedBox(height: 40),
 
-          // Search bar
           Container(
             width: MediaQuery.of(context).size.width * 0.85,
             decoration: BoxDecoration(
@@ -54,7 +74,15 @@ class HomeView extends ConsumerWidget {
                 ),
               ],
             ),
-            child: const ChatInput(),
+            child: ChatInput(
+              onSubmit: (text, images) {
+                if (text.isNotEmpty) {
+                  viewModel.textController.text = text;
+                  viewModel.handleSubmit();
+                }
+              },
+              onChanged: (_) => viewModel.scrollToBottom(),
+            ),
           ),
 
           const SizedBox(height: 40),
@@ -69,13 +97,22 @@ class HomeView extends ConsumerWidget {
       BuildContext context, HomeViewState state, HomeViewModel viewModel) {
     return Column(
       children: [
-        // Chat messages
+        // Message list
         Expanded(
           child: ListView.builder(
             controller: viewModel.scrollController,
             padding: const EdgeInsets.all(16),
-            itemCount: state.messages.length,
+            itemCount: state.isProcessing
+                ? state.messages.length + 1
+                : state.messages.length,
             itemBuilder: (context, index) {
+              if (state.isProcessing && index == state.messages.length) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _buildTypingIndicator(context),
+                );
+              }
+
               final message = state.messages[index];
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
@@ -86,20 +123,24 @@ class HomeView extends ConsumerWidget {
             },
           ),
         ),
+
+        // Chat input (now always expanded)
         Container(
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 5,
-                spreadRadius: 1,
-                offset: const Offset(0, -1),
-              ),
-            ],
           ),
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: ChatInput(),
+          child: ChatInput(
+            controller: viewModel.textController,
+            onChanged: (_) => viewModel.scrollToBottom(),
+            onSubmit: (text, images) {
+              if (text.isNotEmpty) {
+                viewModel.textController.text = text;
+                viewModel.handleSubmit();
+              }
+            },
+            isDisabled: state.isProcessing,
+          ),
         ),
       ],
     );
@@ -168,6 +209,71 @@ class HomeView extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTypingIndicator(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor:
+                Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            child: Icon(
+              Icons.smart_toy,
+              size: 16,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+                bottomRight: Radius.circular(16),
+              ),
+            ),
+            child: Row(
+              children: [
+                _buildDot(context, 0),
+                _buildDot(context, 1),
+                _buildDot(context, 2),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDot(BuildContext context, int index) {
+    return Container(
+      width: 8,
+      height: 8,
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: TweenAnimationBuilder(
+        tween: Tween<double>(begin: 0, end: 1),
+        duration: Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+        builder: (context, value, child) {
+          return Opacity(
+            opacity: ((value + (index * 0.33)) % 1) < 0.5 ? 0.4 : 1.0,
+            child: child,
+          );
+        },
+        child: Container(),
       ),
     );
   }

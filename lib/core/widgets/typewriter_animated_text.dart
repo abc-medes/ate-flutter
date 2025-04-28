@@ -1,7 +1,4 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class TypewriterAnimatedText extends StatefulWidget {
   final List<String> texts;
@@ -11,11 +8,11 @@ class TypewriterAnimatedText extends StatefulWidget {
 
   const TypewriterAnimatedText(
     this.texts, {
-    Key? key,
+    super.key,
     required this.textStyle,
     this.typingSpeed = const Duration(milliseconds: 50),
     this.pauseBetween = const Duration(milliseconds: 1500),
-  }) : super(key: key);
+  });
 
   @override
   State<TypewriterAnimatedText> createState() => _TypewriterAnimatedTextState();

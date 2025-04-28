@@ -16,22 +16,26 @@ class HomeViewState {
   final bool showLoginPrompt;
   final List<BasicUserData> missingBasicData;
   final List<ChatMessage> messages;
+  final bool isProcessing;
 
   HomeViewState({
     this.showLoginPrompt = false,
     this.missingBasicData = const [],
     this.messages = const [],
+    this.isProcessing = false,
   });
 
   HomeViewState copyWith({
     bool? showLoginPrompt,
     List<BasicUserData>? missingBasicData,
     List<ChatMessage>? messages,
+    bool? isProcessing,
   }) {
     return HomeViewState(
       showLoginPrompt: showLoginPrompt ?? this.showLoginPrompt,
       missingBasicData: missingBasicData ?? this.missingBasicData,
       messages: messages ?? this.messages,
+      isProcessing: isProcessing ?? this.isProcessing,
     );
   }
 }
@@ -47,14 +51,39 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
   HomeViewModel(this._isAuthenticated, this._healthRepository)
       : super(HomeViewState(showLoginPrompt: !_isAuthenticated)) {
     _init();
+
+    // Add listener to textController to scroll when text changes
+    textController.addListener(_onTextChange);
   }
 
   @override
   void dispose() {
+    textController.removeListener(_onTextChange);
     textController.dispose();
     scrollController.dispose();
     chatFocusNode.dispose();
     super.dispose();
+  }
+
+  // Listen for text changes and scroll to bottom
+  void _onTextChange() {
+    if (textController.text.isNotEmpty) {
+      scrollToBottom();
+    }
+  }
+
+  // Public method to scroll to bottom of chat
+  void scrollToBottom() {
+    // Use a small delay to ensure layout is complete
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (scrollController.hasClients) {
+        scrollController.animateTo(
+          scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   void _init() async {
@@ -69,6 +98,9 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
   void handleSubmit() {
     final text = textController.text.trim();
     if (text.isEmpty) return;
+    if (state.isProcessing) return;
+
+    state = state.copyWith(isProcessing: true);
 
     // Add user message
     final updatedMessages = [
@@ -78,13 +110,17 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     state = state.copyWith(messages: updatedMessages);
     textController.clear();
 
-    Future.delayed(const Duration(milliseconds: 800), () {
+    // Simulate AI thinking time
+    Future.delayed(const Duration(milliseconds: 1500), () {
       final aiMessage = ChatMessage(
         text: _generateAIResponse(text),
         isUser: false,
       );
 
-      state = state.copyWith(messages: [...state.messages, aiMessage]);
+      state = state.copyWith(
+        messages: [...state.messages, aiMessage],
+        isProcessing: false, // Set processing to false when done
+      );
 
       Future.delayed(const Duration(milliseconds: 100), () {
         if (scrollController.hasClients) {

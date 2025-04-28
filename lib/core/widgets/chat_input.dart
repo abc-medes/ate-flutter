@@ -2,63 +2,49 @@ import 'package:flutter/material.dart';
 
 class ChatInput extends StatefulWidget {
   final Function(String, List<String>)? onSubmit;
+  final Function(String)? onChanged;
+  final bool isDisabled;
+  final TextEditingController? controller;
 
   const ChatInput({
     super.key,
     this.onSubmit,
+    this.onChanged,
+    this.controller,
+    this.isDisabled = false,
   });
 
   @override
   State<ChatInput> createState() => _ChatInputState();
 }
 
-class _ChatInputState extends State<ChatInput>
-    with SingleTickerProviderStateMixin {
-  final TextEditingController _chatInputController = TextEditingController();
+class _ChatInputState extends State<ChatInput> {
+  late TextEditingController _chatInputController;
   final FocusNode _chatFocusNode = FocusNode();
-  bool _isFocused = false;
   List<String> _selectedImages = [];
-
-  // Animation controller for more control
-  late AnimationController _animationController;
-  late Animation<double> _borderAnimation;
 
   @override
   void initState() {
     super.initState();
-    _chatFocusNode.addListener(_onFocusChange);
+    _chatInputController = widget.controller ?? TextEditingController();
+    _chatInputController.addListener(_onTextChanged);
+  }
 
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 100), // Slow animation
-      vsync: this,
-    );
-
-    _borderAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut, // Smooth curve
-      ),
-    );
+  void _onTextChanged() {
+    if (widget.onChanged != null) {
+      widget.onChanged!(_chatInputController.text);
+    }
   }
 
   @override
   void dispose() {
-    _chatInputController.dispose();
-    _chatFocusNode.removeListener(_onFocusChange);
+    // Only dispose the controller if we created it
+    if (widget.controller == null) {
+      _chatInputController.removeListener(_onTextChanged);
+      _chatInputController.dispose();
+    }
     _chatFocusNode.dispose();
-    _animationController.dispose();
     super.dispose();
-  }
-
-  void _onFocusChange() {
-    setState(() {
-      _isFocused = _chatFocusNode.hasFocus;
-      if (_isFocused) {
-        _animationController.forward();
-      } else {
-        _animationController.reverse();
-      }
-    });
   }
 
   void _handleImageSelection() async {
@@ -68,6 +54,7 @@ class _ChatInputState extends State<ChatInput>
   }
 
   void _handleSubmit() {
+    if (widget.isDisabled) return;
     final text = _chatInputController.text;
     if (text.trim().isEmpty && _selectedImages.isEmpty) return;
 
@@ -87,7 +74,7 @@ class _ChatInputState extends State<ChatInput>
       mainAxisSize: MainAxisSize.min,
       children: [
         // Selected images preview
-        if (_isFocused && _selectedImages.isNotEmpty)
+        if (_selectedImages.isNotEmpty)
           Container(
             height: 80,
             margin: const EdgeInsets.only(bottom: 8),
@@ -134,89 +121,70 @@ class _ChatInputState extends State<ChatInput>
             ),
           ),
 
-        // Animated chat input with border transition
-        AnimatedBuilder(
-          animation: _borderAnimation,
-          builder: (context, child) {
-            final containerBorderWidth = _borderAnimation.value * 2.0;
-
-            return Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: containerBorderWidth,
+        // Chat input (always expanded)
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary,
+              width: 2.0,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Text input field
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: TextField(
+                  controller: _chatInputController,
+                  focusNode: _chatFocusNode,
+                  maxLines: 5,
+                  minLines: 1,
+                  decoration: InputDecoration(
+                    hintText: 'Ask a health question...',
+                    hintStyle: TextStyle(color: Theme.of(context).hintColor),
+                    contentPadding: EdgeInsets.zero,
+                    // Remove all borders
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    focusedErrorBorder: InputBorder.none,
+                  ),
+                  textInputAction: TextInputAction.newline,
                 ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Text input field
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                        16, 8, 16, _borderAnimation.value > 0.5 ? 0 : 8),
-                    child: TextField(
-                      controller: _chatInputController,
-                      focusNode: _chatFocusNode,
-                      maxLines: null, // Allow multiple lines
-                      minLines: 1,
-                      decoration: InputDecoration(
-                        hintText: 'Ask a health question...',
-                        hintStyle:
-                            TextStyle(color: Theme.of(context).hintColor),
-                        contentPadding: EdgeInsets.zero,
-                        // Remove all borders
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        disabledBorder: InputBorder.none,
-                        errorBorder: InputBorder.none,
-                        focusedErrorBorder: InputBorder.none,
-                      ),
-                      textInputAction: TextInputAction.newline,
-                    ),
-                  ),
 
-                  // Animated bottom action buttons
-                  ClipRect(
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 100),
-                      height: _borderAnimation.value *
-                          56.0, // Expand height when focused
-                      child: Opacity(
-                        opacity: _borderAnimation.value,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  Icons.image,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                onPressed: _handleImageSelection,
-                                tooltip: 'Add image',
-                              ),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.send,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                onPressed: _handleSubmit,
-                                tooltip: 'Send message',
-                              ),
-                            ],
-                          ),
-                        ),
+              // Action buttons (always visible)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.image,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
+                      onPressed: _handleImageSelection,
+                      tooltip: 'Add image',
                     ),
-                  ),
-                ],
+                    IconButton(
+                      icon: Icon(
+                        Icons.send,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      onPressed: _handleSubmit,
+                      tooltip: 'Send message',
+                    ),
+                  ],
+                ),
               ),
-            );
-          },
+            ],
+          ),
         ),
       ],
     );

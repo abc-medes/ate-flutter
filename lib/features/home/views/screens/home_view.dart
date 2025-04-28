@@ -30,8 +30,8 @@ class HomeView extends ConsumerWidget {
           const TypewriterAnimatedText(
             [
               "AI-Powered Health Intelligence",
-              "Your Personal Health Assistant",
-              "Smart Insights for Better Wellbeing",
+              "Personal Health Assistant",
+              "Get Smart Insights",
             ],
             textStyle: TextStyle(
               fontSize: 24,

@@ -40,9 +40,7 @@ class _ChatInputState extends State<ChatInput> {
             focusNode: _chatFocusNode,
             decoration: InputDecoration(
               hintText: 'Ask a health question...',
-              hintStyle: TextStyle(color: Colors.grey[400]),
               filled: true,
-              fillColor: Colors.grey[100],
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 12,
@@ -54,18 +52,6 @@ class _ChatInputState extends State<ChatInput> {
             ),
             onSubmitted: (_) => _handleSubmit(),
             textInputAction: TextInputAction.send,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-            shape: BoxShape.circle,
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.send),
-            color: Colors.white,
-            onPressed: _handleSubmit,
           ),
         ),
       ],

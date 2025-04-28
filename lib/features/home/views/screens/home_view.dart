@@ -1,4 +1,5 @@
 import 'package:ate_project/core/widgets/chat_input.dart';
+import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
 import 'package:ate_project/features/home/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,9 +23,44 @@ class HomeView extends ConsumerWidget {
 
   Widget _buildEmptyChatView(BuildContext context, HomeViewModel viewModel) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: ChatInput(),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Animated typing text
+          const TypewriterAnimatedText(
+            [
+              "AI-Powered Health Intelligence",
+              "Your Personal Health Assistant",
+              "Smart Insights for Better Wellbeing",
+            ],
+            textStyle: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 40),
+
+          // Search bar
+          Container(
+            width: MediaQuery.of(context).size.width * 0.85,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).shadowColor.withOpacity(0.1),
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: const ChatInput(),
+          ),
+
+          const SizedBox(height: 40),
+
+          const SizedBox(height: 40),
+        ],
       ),
     );
   }

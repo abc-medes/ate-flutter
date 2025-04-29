@@ -1,3 +1,4 @@
+import 'package:ate_project/core/constants/ai_messages.dart';
 import 'package:ate_project/core/widgets/%5Bdeprecated%5D_ai_response_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -102,6 +103,11 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
 
     state = state.copyWith(isProcessing: true);
 
+    if (!_isAuthenticated) {
+      state = state.copyWith(showLoginPrompt: true);
+      return;
+    }
+
     // Add user message
     final updatedMessages = [
       ...state.messages,
@@ -135,11 +141,12 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
   }
 
   String _generateAIResponse(String question) {
-    // Mock AI responses based on common health questions
+    if (!_isAuthenticated) {
+      return AIMessages.requireLogin;
+    }
     if (question.toLowerCase().contains('hamburger')) {
       return 'Based on general health guidelines, an occasional hamburger can be part of a balanced diet. Consider choosing leaner meats, whole grain buns, and plenty of vegetable toppings. Pair with a side salad instead of fries for a healthier meal.';
     } else {
-      // Generic response for other health questions
       return 'Thank you for your health question. Everyone\'s health needs are different, and it\'s important to maintain a balanced diet, regular physical activity, and adequate sleep. For personalized advice, please consult a healthcare professional.';
     }
   }

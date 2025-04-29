@@ -8,8 +8,6 @@ class User {
   final DateTime createdAt;
   final DateTime lastSignInAt;
   final UserPreferences preferences;
-  final OnboardingStatus onboardingStatus;
-  final HealthProfile healthProfile;
 
   User({
     required this.id,
@@ -19,43 +17,41 @@ class User {
     required this.createdAt,
     required this.lastSignInAt,
     required this.preferences,
-    required this.onboardingStatus,
-    required this.healthProfile,
   });
 
-  // Check if user has completed onboarding
-  bool get isOnboardingCompleted => onboardingStatus.isCompleted;
-
-  // Create a User from Supabase Auth user data and additional profile data
   factory User.fromSupabase(
       supabase.User supabaseUser, Map<String, dynamic> profileData) {
-    // Handle createdAt and lastSignInAt with proper conversion
-    DateTime getDateTime(dynamic dateValue) {
-      if (dateValue == null) return DateTime.now();
-      if (dateValue is DateTime) return dateValue;
-      if (dateValue is String) return DateTime.parse(dateValue);
-      return DateTime.now();
-    }
-
-    final createdAt = getDateTime(supabaseUser.createdAt);
-    final lastSignInAt = getDateTime(supabaseUser.lastSignInAt);
-
     return User(
       id: supabaseUser.id,
       email: supabaseUser.email ?? '',
       name: profileData['name'],
       avatarUrl: profileData['avatar_url'],
-      createdAt: createdAt,
-      lastSignInAt: lastSignInAt,
+      createdAt: supabaseUser.createdAt as DateTime,
+      lastSignInAt: supabaseUser.lastSignInAt as DateTime,
       preferences: UserPreferences.fromJson(profileData['preferences'] ?? {}),
-      onboardingStatus:
-          OnboardingStatus.fromJson(profileData['onboarding_status'] ?? {}),
-      healthProfile:
-          HealthProfile.fromJson(profileData['health_profile'] ?? {}),
     );
   }
 
-  // Convert to JSON for storage
+  factory User.newUser({
+    required String id,
+    required String email,
+    required String name,
+  }) {
+    final now = DateTime.now();
+
+    return User(
+      id: id,
+      email: email,
+      name: name,
+      avatarUrl: null,
+      createdAt: now,
+      lastSignInAt: now,
+      preferences: UserPreferences(
+        notificationSettings: NotificationSettings(),
+      ),
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -65,18 +61,13 @@ class User {
       'created_at': createdAt.toIso8601String(),
       'last_sign_in_at': lastSignInAt.toIso8601String(),
       'preferences': preferences.toJson(),
-      'onboarding_status': onboardingStatus.toJson(),
-      'health_profile': healthProfile.toJson(),
     };
   }
 
-  // Create a copy with updated fields
   User copyWith({
     String? name,
     String? avatarUrl,
     UserPreferences? preferences,
-    OnboardingStatus? onboardingStatus,
-    HealthProfile? healthProfile,
   }) {
     return User(
       id: id,
@@ -86,8 +77,6 @@ class User {
       createdAt: createdAt,
       lastSignInAt: lastSignInAt,
       preferences: preferences ?? this.preferences,
-      onboardingStatus: onboardingStatus ?? this.onboardingStatus,
-      healthProfile: healthProfile ?? this.healthProfile,
     );
   }
 }
@@ -155,152 +144,14 @@ class NotificationSettings {
       'email_enabled': emailEnabled,
     };
   }
-}
 
-class OnboardingStatus {
-  final bool personalInfoCompleted;
-  final bool healthProfileCompleted;
-  final bool goalsCompleted;
-  final DateTime? completedAt;
-
-  OnboardingStatus({
-    this.personalInfoCompleted = false,
-    this.healthProfileCompleted = false,
-    this.goalsCompleted = false,
-    this.completedAt,
-  });
-
-  // Check if all onboarding steps are completed
-  bool get isCompleted =>
-      personalInfoCompleted && healthProfileCompleted && goalsCompleted;
-
-  factory OnboardingStatus.fromJson(Map<String, dynamic> json) {
-    return OnboardingStatus(
-      personalInfoCompleted: json['personal_info_completed'] ?? false,
-      healthProfileCompleted: json['health_profile_completed'] ?? false,
-      goalsCompleted: json['goals_completed'] ?? false,
-      completedAt: json['completed_at'] != null
-          ? DateTime.parse(json['completed_at'])
-          : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'personal_info_completed': personalInfoCompleted,
-      'health_profile_completed': healthProfileCompleted,
-      'goals_completed': goalsCompleted,
-      'completed_at': completedAt?.toIso8601String(),
-    };
-  }
-
-  OnboardingStatus copyWith({
-    bool? personalInfoCompleted,
-    bool? healthProfileCompleted,
-    bool? goalsCompleted,
-    DateTime? completedAt,
+  NotificationSettings copyWith({
+    bool? pushEnabled,
+    bool? emailEnabled,
   }) {
-    return OnboardingStatus(
-      personalInfoCompleted:
-          personalInfoCompleted ?? this.personalInfoCompleted,
-      healthProfileCompleted:
-          healthProfileCompleted ?? this.healthProfileCompleted,
-      goalsCompleted: goalsCompleted ?? this.goalsCompleted,
-      completedAt: completedAt ?? this.completedAt,
+    return NotificationSettings(
+      pushEnabled: pushEnabled ?? this.pushEnabled,
+      emailEnabled: emailEnabled ?? this.emailEnabled,
     );
   }
-
-  // Mark a specific step as completed
-  OnboardingStatus completeStep(String step) {
-    switch (step) {
-      case 'personal_info':
-        return copyWith(personalInfoCompleted: true);
-      case 'health_profile':
-        return copyWith(healthProfileCompleted: true);
-      case 'goals':
-        return copyWith(goalsCompleted: true);
-      default:
-        return this;
-    }
-  }
-
-  // Mark all steps as completed
-  OnboardingStatus completeAll() {
-    return OnboardingStatus(
-      personalInfoCompleted: true,
-      healthProfileCompleted: true,
-      goalsCompleted: true,
-      completedAt: DateTime.now(),
-    );
-  }
-}
-
-class HealthProfile {
-  final double? height; // in cm
-  final double? weight; // in kg
-  final DateTime? dateOfBirth;
-  final String? gender;
-
-  HealthProfile({
-    this.height,
-    this.weight,
-    this.dateOfBirth,
-    this.gender,
-  });
-
-  // Calculate BMI if height and weight are available
-  double? get bmi {
-    if (height == null || weight == null || height == 0) return null;
-    return weight! / ((height! / 100) * (height! / 100));
-  }
-
-  // Calculate age if date of birth is available
-  int? get age {
-    if (dateOfBirth == null) return null;
-    final today = DateTime.now();
-    int age = today.year - dateOfBirth!.year;
-    if (today.month < dateOfBirth!.month ||
-        (today.month == dateOfBirth!.month && today.day < dateOfBirth!.day)) {
-      age--;
-    }
-    return age;
-  }
-
-  factory HealthProfile.fromJson(Map<String, dynamic> json) {
-    return HealthProfile(
-      height: json['height']?.toDouble(),
-      weight: json['weight']?.toDouble(),
-      dateOfBirth: json['date_of_birth'] != null
-          ? DateTime.parse(json['date_of_birth'])
-          : null,
-      gender: json['gender'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'height': height,
-      'weight': weight,
-      'date_of_birth': dateOfBirth?.toIso8601String(),
-      'gender': gender,
-    };
-  }
-
-  HealthProfile copyWith({
-    double? height,
-    double? weight,
-    DateTime? dateOfBirth,
-    String? gender,
-  }) {
-    return HealthProfile(
-      height: height ?? this.height,
-      weight: weight ?? this.weight,
-      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
-      gender: gender ?? this.gender,
-    );
-  }
-
-  // Check if all essential health data is provided
-  bool get isComplete =>
-      height != null && weight != null && dateOfBirth != null && gender != null;
 }

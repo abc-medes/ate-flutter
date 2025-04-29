@@ -14,13 +14,11 @@ final homeViewModelProvider =
 });
 
 class HomeViewState {
-  final bool showLoginPrompt;
   final List<BasicUserData> missingBasicData;
   final List<ChatMessage> messages;
   final bool isProcessing;
 
   HomeViewState({
-    this.showLoginPrompt = false,
     this.missingBasicData = const [],
     this.messages = const [],
     this.isProcessing = false,
@@ -33,7 +31,6 @@ class HomeViewState {
     bool? isProcessing,
   }) {
     return HomeViewState(
-      showLoginPrompt: showLoginPrompt ?? this.showLoginPrompt,
       missingBasicData: missingBasicData ?? this.missingBasicData,
       messages: messages ?? this.messages,
       isProcessing: isProcessing ?? this.isProcessing,
@@ -50,7 +47,7 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
   final FocusNode chatFocusNode = FocusNode();
 
   HomeViewModel(this._isAuthenticated, this._healthRepository)
-      : super(HomeViewState(showLoginPrompt: !_isAuthenticated)) {
+      : super(HomeViewState()) {
     _init();
 
     // Add listener to textController to scroll when text changes

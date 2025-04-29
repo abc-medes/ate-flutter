@@ -1,14 +1,9 @@
 import 'dart:async';
+import 'package:ate_project/data/repositories/auth_repository.dart';
+import 'package:ate_project/data/repositories/user_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:ate_project/core/services/user_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as SB;
 import 'package:ate_project/core/utils/auth_error_helper.dart';
-
-final authServiceProvider = Provider<AuthService>((ref) => AuthService());
-final userServiceProvider = Provider<UserService>((ref) {
-  final authService = ref.watch(authServiceProvider);
-  return UserService(authService);
-});
 
 enum AuthStatus {
   initial,
@@ -105,7 +100,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true);
 
     try {
-      await _authService.signOut();
+      await AuthRepository().signOut();
     } catch (e) {
       state = AuthState(
         status: AuthStatus.error,
@@ -173,105 +168,35 @@ final authErrorProvider = Provider<String?>((ref) {
   return ref.watch(authProvider).errorMessage;
 });
 
-// User ID provider that depends on auth state
 final userIdProvider = Provider<String?>((ref) {
   return ref.watch(authProvider).userId;
 });
 
 class AuthService {
-  final SupabaseClient _client = Supabase.instance.client;
+  final SB.SupabaseClient _client = SB.Supabase.instance.client;
 
-  // Current Supabase user
-  User? get currentUser => _client.auth.currentUser;
+  SB.User? get currentUser => _client.auth.currentUser;
 
-  // Check if user is authenticated
   bool get isAuthenticated => currentUser != null;
 
-  // Stream of authentication state changes
   Stream<bool> get authStateChanges =>
       _client.auth.onAuthStateChange.map((state) => state.session != null);
 
-  // Stream of user IDs
   Stream<String?> get userIdStream =>
       _client.auth.onAuthStateChange.map((state) => state.session?.user.id);
 
-  // Sign up with email and password
   Future<void> signUp(String email, String password, String name) async {
-    try {
-      final authResponse = await _client.auth.signUp(
-        email: email,
-        password: password,
-      );
+    final authResponse = await AuthRepository().signUp(email, password);
 
-      print('Auth user created: ${authResponse.user?.id}');
+    await UserRepository().createProfile(
+      authResponse.user!.id,
+      email,
+      name,
+    );
 
-      if (authResponse.user == null) {
-        throw Exception('Failed to create user');
-      }
-
-      final profileData = {
-        'id': authResponse.user!.id,
-        'email': email,
-        'name': name,
-        'avatar_url': null,
-        'created_at': DateTime.now().toIso8601String(),
-        'last_sign_in_at': DateTime.now().toIso8601String(),
-        'preferences': {
-          'dark_mode': false,
-          'language': null,
-          'notification_settings': {
-            'push_enabled': true,
-            'email_enabled': true,
-          }
-        },
-        'onboarding_status': {
-          'personal_info_completed': false,
-          'health_profile_completed': false,
-          'goals_completed': false,
-          'completed_at': null,
-        },
-        'health_profile': {
-          'height': null,
-          'weight': null,
-          'date_of_birth': null,
-          'gender': null,
-        }
-      };
-
-      print(
-          'Attempting to insert profile data for user: ${authResponse.user!.id}');
-
-      try {
-        final existingProfile = await _client
-            .from('profiles')
-            .select()
-            .eq('id', authResponse.user!.id)
-            .maybeSingle();
-
-        if (existingProfile == null) {
-          await _client.from('profiles').insert(profileData);
-          print('Profile data inserted successfully');
-        } else {
-          // If profile exists during signup, this is an error scenario
-          // Don't update, throw an error instead
-          throw Exception(
-              'User profile already exists. Please login instead of creating a new account.');
-        }
-      } catch (profileError) {
-        print('ERROR CREATING PROFILE: $profileError');
-        // If profile creation fails, we should try to clean up the auth user
-        try {
-          await _client.auth.signOut();
-          print('Signed out user after profile creation failed');
-        } catch (deleteError) {
-          print('Failed to sign out user: $deleteError');
-        }
-        throw Exception('Failed to create user profile: $profileError');
-      }
-    } catch (e) {
-      print('SIGNUP ERROR: $e');
-      throw Exception('Failed to sign up: ${e.toString()}');
-    }
+    await UserRepository().createEmptyUserHealthMetrics(
+      authResponse.user!.id,
+    );
   }
 
   // Sign in with email and password
@@ -291,9 +216,6 @@ class AuthService {
   }
 
   // Sign out
-  Future<void> signOut() async {
-    await _client.auth.signOut();
-  }
 
   // Check if email is available - without trying fake passwords
   Future<bool> isEmailAvailable(String email) async {
@@ -319,7 +241,7 @@ class AuthService {
   Future<void> signInWithGoogle() async {
     try {
       await _client.auth.signInWithOAuth(
-        OAuthProvider.google,
+        SB.OAuthProvider.google,
         redirectTo: 'io.supabase.flutterquickstart://login-callback/',
       );
     } catch (e) {
@@ -331,7 +253,7 @@ class AuthService {
   Future<void> signInWithApple() async {
     try {
       await _client.auth.signInWithOAuth(
-        OAuthProvider.apple,
+        SB.OAuthProvider.apple,
         redirectTo: 'io.supabase.flutterquickstart://login-callback/',
       );
     } catch (e) {
@@ -375,12 +297,12 @@ class AuthService {
   }
 
   // Verify email with OTP code
-  Future<AuthResponse> verifyEmailWithOTP(String email, String otp) async {
+  Future<SB.AuthResponse> verifyEmailWithOTP(String email, String otp) async {
     try {
       final response = await _client.auth.verifyOTP(
         email: email,
         token: otp,
-        type: OtpType.signup,
+        type: SB.OtpType.signup,
       );
 
       return response;
@@ -389,3 +311,5 @@ class AuthService {
     }
   }
 }
+
+final authServiceProvider = Provider<AuthService>((ref) => AuthService());

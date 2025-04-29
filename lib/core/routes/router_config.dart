@@ -1,3 +1,4 @@
+import 'package:ate_project/features/auth/views/screens/login_view.dart';
 import 'package:ate_project/features/home/views/screens/home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -17,9 +18,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Auth routes
       GoRoute(
         path: '/auth/login',
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('Login Screen - To be implemented')),
-        ),
+        builder: (context, state) => const LoginView(),
       ),
 
       // Body simulator route

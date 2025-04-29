@@ -1,8 +1,10 @@
+import 'package:ate_project/core/routes/route_names.dart';
 import 'package:ate_project/core/widgets/chat_input.dart';
 import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
 import 'package:ate_project/features/home/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeView extends ConsumerWidget {
   const HomeView({super.key});
@@ -33,8 +35,14 @@ class HomeView extends ConsumerWidget {
           },
           child: state.messages.isEmpty
               ? _buildEmptyChatView(context, viewModel)
-              : _buildChatView(context, state, viewModel),
+              : _buildChatView(context, state, viewModel, ref),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.go(RouteNames.settings);
+        },
+        child: const Icon(Icons.bug_report),
       ),
     );
   }
@@ -45,7 +53,7 @@ class HomeView extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Animated typing text
-          Container(
+          SizedBox(
             width: MediaQuery.of(context).size.width * 0.85,
             child: const TypewriterAnimatedText(
               [
@@ -93,8 +101,8 @@ class HomeView extends ConsumerWidget {
     );
   }
 
-  Widget _buildChatView(
-      BuildContext context, HomeViewState state, HomeViewModel viewModel) {
+  Widget _buildChatView(BuildContext context, HomeViewState state,
+      HomeViewModel viewModel, WidgetRef ref) {
     return Column(
       children: [
         // Message list
@@ -103,7 +111,7 @@ class HomeView extends ConsumerWidget {
             controller: viewModel.scrollController,
             padding: const EdgeInsets.all(16),
             itemCount: state.isProcessing
-                ? state.messages.length + 1
+                ? state.messages.length + 1 // +1 for typing indicator
                 : state.messages.length,
             itemBuilder: (context, index) {
               if (state.isProcessing && index == state.messages.length) {
@@ -112,7 +120,6 @@ class HomeView extends ConsumerWidget {
                   child: _buildTypingIndicator(context),
                 );
               }
-
               final message = state.messages[index];
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
@@ -124,7 +131,6 @@ class HomeView extends ConsumerWidget {
           ),
         ),
 
-        // Chat input (now always expanded)
         Container(
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,
@@ -173,42 +179,22 @@ class HomeView extends ConsumerWidget {
   Widget _buildAIMessage(BuildContext context, String text) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor:
-                Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            child: Icon(
-              Icons.smart_toy,
-              size: 16,
-              color: Theme.of(context).colorScheme.primary,
+      child: Flexible(
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(16),
+              topRight: Radius.circular(16),
+              bottomRight: Radius.circular(16),
             ),
           ),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-              ),
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.75,
-              ),
-              child: Text(
-                text,
-                style: const TextStyle(height: 1.5),
-              ),
-            ),
+          child: Text(
+            text,
+            style: const TextStyle(height: 1.5),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -216,40 +202,22 @@ class HomeView extends ConsumerWidget {
   Widget _buildTypingIndicator(BuildContext context) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor:
-                Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            child: Icon(
-              Icons.smart_toy,
-              size: 16,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+            bottomRight: Radius.circular(16),
           ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-                bottomRight: Radius.circular(16),
-              ),
-            ),
-            child: Row(
-              children: [
-                _buildDot(context, 0),
-                _buildDot(context, 1),
-                _buildDot(context, 2),
-              ],
-            ),
-          ),
-        ],
+        ),
+        child: Row(
+          children: [
+            _buildDot(context, 0),
+            _buildDot(context, 1),
+            _buildDot(context, 2),
+          ],
+        ),
       ),
     );
   }

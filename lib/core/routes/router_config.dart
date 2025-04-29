@@ -76,54 +76,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           body: Center(child: Text('Health Logs Screen - To be implemented')),
         ),
       ),
-
-      // Quick access routes
-      GoRoute(
-        path: '/activity',
-        builder: (context, state) =>
-            _buildPlaceholderScreen('Activity Tracking'),
-      ),
-      GoRoute(
-        path: '/nutrition',
-        builder: (context, state) => _buildPlaceholderScreen('Nutrition'),
-      ),
-      GoRoute(
-        path: '/sleep',
-        builder: (context, state) => _buildPlaceholderScreen('Sleep Tracking'),
-      ),
-      GoRoute(
-        path: '/mood',
-        builder: (context, state) => _buildPlaceholderScreen('Mood Tracking'),
-      ),
-
-      // Logging routes
-      GoRoute(
-        path: '/nutrition/log',
-        builder: (context, state) => _buildPlaceholderScreen('Log Meal'),
-      ),
-      GoRoute(
-        path: '/weight/log',
-        builder: (context, state) => _buildPlaceholderScreen('Log Weight'),
-      ),
-      GoRoute(
-        path: '/symptoms/log',
-        builder: (context, state) => _buildPlaceholderScreen('Log Symptoms'),
-      ),
-      GoRoute(
-        path: '/mood/log',
-        builder: (context, state) => _buildPlaceholderScreen('Log Mood'),
-      ),
-
-      // Other routes
-      GoRoute(
-        path: '/profile',
-        builder: (context, state) => _buildPlaceholderScreen('Profile'),
-      ),
-      GoRoute(
-        path: '/environmental',
-        builder: (context, state) =>
-            _buildPlaceholderScreen('Environmental Data'),
-      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       body: Center(
@@ -132,31 +84,3 @@ final routerProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
-
-// Helper to build placeholder screens
-Widget _buildPlaceholderScreen(String title) {
-  return Scaffold(
-    appBar: PreferredSize(
-      preferredSize: const Size.fromHeight(56.0),
-      child: Material(
-        elevation: 4.0,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: SafeArea(
-            child: Row(
-              children: [
-                const BackButton(),
-                Text(title,
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    ),
-    body: Center(
-      child: Text('$title Screen - To be implemented'),
-    ),
-  );
-}

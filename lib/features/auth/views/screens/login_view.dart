@@ -10,7 +10,6 @@ import 'package:ate_project/core/routes/route_names.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ate_project/core/widgets/loading_view.dart';
-import 'package:ate_project/core/utils/auth_error_helper.dart';
 import 'package:ate_project/core/widgets/error_snackbar.dart';
 
 class LoginView extends ConsumerStatefulWidget {

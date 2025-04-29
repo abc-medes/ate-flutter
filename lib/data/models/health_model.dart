@@ -178,7 +178,6 @@ enum EnvironmentalField {
   seasonalData
 }
 
-// Activity-related enums that might be needed
 enum ActivityLevel {
   sedentary,
   lightlyActive,

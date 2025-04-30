@@ -1,10 +1,9 @@
 import 'dart:convert';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ate_project/data/models/health_model.dart';
 
 class HealthRepository {
-  static const String _healthDataKey = 'health_data';
+  static const String _healthDataKey = 'health_metrics';
 
   Future<bool> isUserInputFieldSaved(UserInputField field) async {
     final prefs = await SharedPreferences.getInstance();
@@ -107,7 +106,3 @@ class HealthRepository {
     return DailyUserData.values;
   }
 }
-
-final healthRepositoryProvider = Provider<HealthRepository>((ref) {
-  return HealthRepository();
-});

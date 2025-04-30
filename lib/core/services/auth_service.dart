@@ -149,29 +149,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 }
 
-// Main auth provider
-final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  final authService = ref.watch(authServiceProvider);
-  return AuthNotifier(authService);
-});
-
-// Helper auth providers
-final isAuthenticatedProvider = Provider<bool>((ref) {
-  return ref.watch(authProvider).isAuthenticated;
-});
-
-final authLoadingProvider = Provider<bool>((ref) {
-  return ref.watch(authProvider).isLoading;
-});
-
-final authErrorProvider = Provider<String?>((ref) {
-  return ref.watch(authProvider).errorMessage;
-});
-
-final userIdProvider = Provider<String?>((ref) {
-  return ref.watch(authProvider).userId;
-});
-
 class AuthService {
   final SB.SupabaseClient _client = SB.Supabase.instance.client;
 
@@ -313,3 +290,8 @@ class AuthService {
 }
 
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());
+
+final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  final authService = ref.watch(authServiceProvider);
+  return AuthNotifier(authService);
+});

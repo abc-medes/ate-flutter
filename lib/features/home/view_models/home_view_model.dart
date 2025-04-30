@@ -8,9 +8,8 @@ import 'package:ate_project/data/models/health_model.dart';
 
 final homeViewModelProvider =
     StateNotifierProvider<HomeViewModel, HomeViewState>((ref) {
-  final authService = ref.watch(isAuthenticatedProvider);
-  final healthRepo = ref.watch(healthRepositoryProvider);
-  return HomeViewModel(authService, healthRepo);
+  final authService = ref.watch(authProvider).isAuthenticated;
+  return HomeViewModel(authService);
 });
 
 class HomeViewState {
@@ -40,14 +39,12 @@ class HomeViewState {
 
 class HomeViewModel extends StateNotifier<HomeViewState> {
   final bool _isAuthenticated;
-  final HealthRepository _healthRepository;
 
   final TextEditingController textController = TextEditingController();
   final ScrollController scrollController = ScrollController();
   final FocusNode chatFocusNode = FocusNode();
 
-  HomeViewModel(this._isAuthenticated, this._healthRepository)
-      : super(HomeViewState()) {
+  HomeViewModel(this._isAuthenticated) : super(HomeViewState()) {
     _init();
 
     // Add listener to textController to scroll when text changes
@@ -89,7 +86,7 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
   }
 
   Future<void> _checkMissingHealthData() async {
-    final missingFields = await _healthRepository.getMissingBasicUserData();
+    final missingFields = await HealthRepository().getMissingBasicUserData();
     state = state.copyWith(missingBasicData: missingFields);
   }
 

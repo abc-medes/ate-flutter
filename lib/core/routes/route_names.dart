@@ -8,6 +8,7 @@ class RouteNames {
   // Main Routes
   static const home = '/';
   static const profile = '/profile';
+  static const settings = '/settings';
 
   // Cannot be instantiated
   RouteNames._();

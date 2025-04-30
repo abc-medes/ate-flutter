@@ -211,7 +211,7 @@ class SignupViewModel extends StateNotifier<SignupState> {
 
       state = state.copyWith(
         isLoading: false,
-        currentStep: SignupStep.emailSent, // Show success screen
+        currentStep: SignupStep.emailSent,
       );
 
       return true;

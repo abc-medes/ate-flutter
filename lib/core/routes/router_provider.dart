@@ -1,4 +1,5 @@
 import 'package:ate_project/core/routes/route_names.dart';
+import 'package:ate_project/core/services/user_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart';
@@ -7,6 +8,7 @@ import 'app_routes.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
+  final userService = ref.watch(userServiceProvider);
 
   return GoRouter(
     redirect: (context, state) {
@@ -14,6 +16,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         return state.matchedLocation.startsWith('/auth')
             ? null
             : RouteNames.login;
+      }
+
+      if (!userService.isBasicHealthDataComplete) {
+        return RouteNames.onboarding;
       }
 
       return null;

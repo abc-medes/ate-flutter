@@ -67,10 +67,8 @@ class UserRepository {
         'health_metrics': emptyHealthMetrics.toJson(),
       };
 
-      // Insert into database
-      await _client.from('user_health_metrics').insert(healthData);
+      await _client.from('health_metrics').insert(healthData);
 
-      // Also save to local storage
       await _saveLocalHealthData(userId, emptyHealthMetrics);
     } catch (healthDataError) {
       throw Exception('Failed to create user health data: $healthDataError');
@@ -81,7 +79,7 @@ class UserRepository {
       String userId, HealthMetrics healthData) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final key = 'user_health_data_$userId';
+      final key = 'health_metrics';
       await prefs.setString(key, jsonEncode(healthData.toJson()));
     } catch (e) {
       print('Error saving health data to local storage: $e');

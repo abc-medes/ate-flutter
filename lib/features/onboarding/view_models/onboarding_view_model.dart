@@ -1,20 +1,22 @@
 import 'dart:convert';
+import 'package:ate_project/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ate_project/data/models/health_model.dart';
 import 'package:ate_project/data/repositories/health_repository.dart';
 import 'package:ate_project/core/services/user_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class HealthOnboardingState {
   final int selectedHeight;
   final int selectedWeight;
   final DateTime selectedBirthDate;
+  final Gender selectedGender;
   final bool isSaving;
 
   HealthOnboardingState({
     this.selectedHeight = 170,
     this.selectedWeight = 70,
     DateTime? selectedBirthDate,
+    this.selectedGender = Gender.preferNotToSay,
     this.isSaving = false,
   }) : selectedBirthDate = selectedBirthDate ??
             DateTime.now().subtract(const Duration(days: 365 * 30));
@@ -23,12 +25,14 @@ class HealthOnboardingState {
     int? selectedHeight,
     int? selectedWeight,
     DateTime? selectedBirthDate,
+    Gender? selectedGender,
     bool? isSaving,
   }) {
     return HealthOnboardingState(
       selectedHeight: selectedHeight ?? this.selectedHeight,
       selectedWeight: selectedWeight ?? this.selectedWeight,
       selectedBirthDate: selectedBirthDate ?? this.selectedBirthDate,
+      selectedGender: selectedGender ?? this.selectedGender,
       isSaving: isSaving ?? this.isSaving,
     );
   }
@@ -76,6 +80,25 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
     try {
       await _healthRepository.saveBirthDate(state.selectedBirthDate);
 
+      await _userService.refreshBasicHealthData();
+
+      state = state.copyWith(isSaving: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isSaving: false);
+      return false;
+    }
+  }
+
+  void updateGender(Gender gender) {
+    state = state.copyWith(selectedGender: gender);
+  }
+
+  Future<bool> saveGender() async {
+    state = state.copyWith(isSaving: true);
+
+    try {
+      await _healthRepository.saveGender(state.selectedGender);
       await _userService.refreshBasicHealthData();
 
       state = state.copyWith(isSaving: false);

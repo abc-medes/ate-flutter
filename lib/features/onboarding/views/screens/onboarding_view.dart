@@ -1,7 +1,9 @@
 import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
 import 'package:ate_project/features/onboarding/view_models/onboarding_view_model.dart';
 import 'package:ate_project/features/onboarding/views/widgets/birth_date_picker.dart';
+import 'package:ate_project/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:ate_project/features/onboarding/views/widgets/height_picker.dart';
+import 'package:ate_project/features/onboarding/views/widgets/preexisting_conditions_selector.dart';
 import 'package:ate_project/features/onboarding/views/widgets/weight_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -54,9 +56,9 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
       case 1:
         await viewModel.saveBirthDate();
         break;
-      // case 2:
-      //   await viewModel.saveGender();
-      //   break;
+      case 2:
+        await viewModel.saveGender();
+        break;
     }
   }
 
@@ -112,6 +114,7 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
                     _buildHeightWeightPage(context, viewModel, state),
                     _buildDateOfBirthPage(context, viewModel, state),
                     _buildGenderPage(context, viewModel, state),
+                    _buildPreExistingConditionsPage(context, viewModel, state),
                   ],
                 ),
               ),
@@ -310,61 +313,69 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
   // Gender page
   Widget _buildGenderPage(BuildContext context,
       HealthOnboardingViewModel viewModel, HealthOnboardingState state) {
-    return SingleChildScrollView(
-      physics: const ClampingScrollPhysics(),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const SizedBox(height: 24),
+
+        Text(
+          "What's your biological gender?",
+          style: Theme.of(context).textTheme.headlineMedium,
+          textAlign: TextAlign.center,
+        ),
+
+        const SizedBox(height: 36),
+
+        SizedBox(
+          height: 200,
+          child: Row(
+            children: [
+              Expanded(
+                child: GenderPickerWidget(
+                  selectedGender: state.selectedGender,
+                  onGenderChanged: viewModel.updateGender,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Extra space at bottom to enable scrolling all the way down
+        const SizedBox(height: 150),
+      ],
+    );
+  }
+
+  Widget _buildPreExistingConditionsPage(BuildContext context,
+      HealthOnboardingViewModel viewModel, HealthOnboardingState state) {
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(height: 24),
-
           Text(
-            "What's your gender?",
+            "When were you born?",
             style: Theme.of(context).textTheme.headlineMedium,
             textAlign: TextAlign.center,
           ),
-
-          const SizedBox(height: 16),
-
-          Text(
-            "This helps us provide more relevant health recommendations",
-            style: Theme.of(context).textTheme.bodyLarge,
-            textAlign: TextAlign.center,
-          ),
-
           const SizedBox(height: 36),
-
-          // Gender selection (placeholder)
-          Card(
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Text(
-                    "Select Gender",
-                    style: Theme.of(context).textTheme.headlineSmall,
+          SizedBox(
+            height: 400,
+            child: Row(
+              children: [
+                Expanded(
+                  child: PreExistingConditionsSelector(
+                    selectedConditions: ["", "test"],
+                    onConditionsChanged: (conditions) {},
                   ),
-                  const SizedBox(height: 24),
-                  // Replace with actual gender selection
-                  SizedBox(
-                    height: 160,
-                    child: Center(
-                      child: Text(
-                        "Gender Selection Widget\nWill Go Here",
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-
-          // Extra space at bottom to enable scrolling all the way down
-          const SizedBox(height: 150),
+          const SizedBox(height: 100),
         ],
       ),
     );

@@ -64,6 +64,16 @@ class AppTheme {
 
       // Typography
       textTheme: const TextTheme(
+        headlineMedium: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primary,
+        ),
+        headlineSmall: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primary,
+        ),
         displayLarge: TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,

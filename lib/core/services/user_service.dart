@@ -3,21 +3,30 @@ import 'package:ate_project/data/repositories/health_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class UserService {
-  final _healthRepository = HealthRepository();
-  late final bool _isBasicHealthDataComplete;
+  final _healthRepository = healthRepository;
+  List<BasicUserData> _missingBasicUserData = [];
+  bool _initialized = false;
 
-  bool get isBasicHealthDataComplete => _isBasicHealthDataComplete;
+  List<BasicUserData> get missingBasicUserData => _missingBasicUserData;
+  bool get isBasicHealthDataComplete => _missingBasicUserData.isEmpty;
+  bool get isInitialized => _initialized;
 
-  UserService() {
-    hasBasicHealthDataComplete();
+  Future<void> initialize() async {
+    await refreshBasicHealthData();
+    _initialized = true;
   }
 
-  Future<List<BasicUserData>> hasBasicHealthDataComplete() async {
-    final missingUserInputData =
-        await _healthRepository.getMissingBasicUserData();
-    _isBasicHealthDataComplete = missingUserInputData.isEmpty;
-    return missingUserInputData;
+  Future<void> refreshBasicHealthData() async {
+    _missingBasicUserData = await _healthRepository.getMissingBasicUserData();
+  }
+
+  Future<bool> isFieldComplete(BasicUserData field) async {
+    return await _healthRepository.isBasicUserDataSaved(field);
   }
 }
 
-final userServiceProvider = Provider<UserService>((ref) => UserService());
+final userServiceProvider = Provider<UserService>((ref) {
+  final service = UserService();
+  service.initialize();
+  return service;
+});

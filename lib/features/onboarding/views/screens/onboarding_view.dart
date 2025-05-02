@@ -1,13 +1,18 @@
+import 'package:ate_project/core/routes/route_names.dart';
+import 'package:ate_project/core/services/user_service.dart';
 import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
 import 'package:ate_project/features/onboarding/view_models/onboarding_view_model.dart';
+import 'package:ate_project/features/onboarding/views/widgets/allergies_selector.dart';
 import 'package:ate_project/features/onboarding/views/widgets/birth_date_picker.dart';
 import 'package:ate_project/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:ate_project/features/onboarding/views/widgets/height_picker.dart';
+import 'package:ate_project/features/onboarding/views/widgets/medications_selector.dart';
 import 'package:ate_project/features/onboarding/views/widgets/preexisting_conditions_selector.dart';
 import 'package:ate_project/features/onboarding/views/widgets/weight_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ate_project/data/models/health_model.dart';
+import 'package:go_router/go_router.dart';
 
 // Create a provider for tracking current page
 final onboardingPageProvider = StateProvider<int>((ref) => 0);
@@ -62,6 +67,28 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
     }
   }
 
+  void _completeOnboarding() async {
+    // Get the view model
+    final viewModel = ref.read(healthOnboardingProvider.notifier);
+
+    // Set saving state to show the loading indicator
+
+    try {
+      await viewModel.saveGender();
+
+      await ref.read(userServiceProvider).refreshBasicHealthData();
+      context.go(RouteNames.home);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error completing setup: $e')),
+        );
+      }
+      // Set saving state back to false if there's an error
+    }
+    // Note: we don't set isSaving to false on success since the page will be replaced by router
+  }
+
   @override
   Widget build(BuildContext context) {
     // Watch for state changes
@@ -102,6 +129,7 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
                       currentPage == _onboardingSteps.length - 1) {
                     if (notification.metrics.pixels >
                         notification.metrics.maxScrollExtent - 20) {
+                      _completeOnboarding();
                       return true;
                     }
                   }
@@ -114,7 +142,9 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
                     _buildHeightWeightPage(context, viewModel, state),
                     _buildDateOfBirthPage(context, viewModel, state),
                     _buildGenderPage(context, viewModel, state),
-                    _buildPreExistingConditionsPage(context, viewModel, state),
+                    // _buildPreExistingConditionsPage(context, viewModel, state),
+                    // _buildMedicationsPage(context, viewModel, state),
+                    // _buildAllergiesPage(context, viewModel, state),
                   ],
                 ),
               ),
@@ -357,7 +387,7 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
         children: [
           const SizedBox(height: 24),
           Text(
-            "When were you born?",
+            "Pre-existing conditions",
             style: Theme.of(context).textTheme.headlineMedium,
             textAlign: TextAlign.center,
           ),
@@ -370,6 +400,74 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
                   child: PreExistingConditionsSelector(
                     selectedConditions: ["", "test"],
                     onConditionsChanged: (conditions) {},
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMedicationsPage(BuildContext context,
+      HealthOnboardingViewModel viewModel, HealthOnboardingState state) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 24),
+          Text(
+            "Medications",
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 36),
+          SizedBox(
+            height: 400,
+            child: Row(
+              children: [
+                Expanded(
+                  child: MedicationsSelector(
+                    selectedMedications: [],
+                    onMedicationsChanged: (medications) {},
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAllergiesPage(BuildContext context,
+      HealthOnboardingViewModel viewModel, HealthOnboardingState state) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 24),
+          Text(
+            "Medications",
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 36),
+          SizedBox(
+            height: 400,
+            child: Row(
+              children: [
+                Expanded(
+                  child: AllergiesSelector(
+                    selectedAllergies: [],
+                    onAllergiesChanged: (allergies) {},
                   ),
                 ),
               ],

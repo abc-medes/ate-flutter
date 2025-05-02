@@ -75,9 +75,9 @@ class HealthRepository {
       UserInputField.weight,
       UserInputField.dateOfBirth,
       UserInputField.gender,
-      UserInputField.preExistingConditions,
-      UserInputField.medications,
-      UserInputField.allergies,
+      // UserInputField.preExistingConditions,
+      // UserInputField.medications,
+      // UserInputField.allergies,
     ];
 
     for (final field in importantFields) {
@@ -97,6 +97,8 @@ class HealthRepository {
 
     for (final field in BasicUserData.values) {
       final isSaved = await isBasicUserDataSaved(field);
+
+      // TODO: Remove this once we have a way to save allergies and medications
       if (!isSaved) {
         missingFields.add(field);
       }

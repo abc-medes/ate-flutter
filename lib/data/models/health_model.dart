@@ -45,9 +45,9 @@ enum BasicUserData {
   weight,
   dateOfBirth,
   gender,
-  preExistingConditions,
-  medications,
-  allergies
+  // preExistingConditions,
+  // medications,
+  // allergies
 }
 
 // Extension to convert between BasicUserData and UserInputField
@@ -62,12 +62,12 @@ extension BasicUserDataExtension on BasicUserData {
         return UserInputField.dateOfBirth;
       case BasicUserData.gender:
         return UserInputField.gender;
-      case BasicUserData.preExistingConditions:
-        return UserInputField.preExistingConditions;
-      case BasicUserData.medications:
-        return UserInputField.medications;
-      case BasicUserData.allergies:
-        return UserInputField.allergies;
+      // case BasicUserData.preExistingConditions:
+      //   return UserInputField.preExistingConditions;
+      // case BasicUserData.medications:
+      //   return UserInputField.medications;
+      // case BasicUserData.allergies:
+      //   return UserInputField.allergies;
     }
   }
 }
@@ -131,12 +131,12 @@ extension UserInputFieldExtension on UserInputField {
         return BasicUserData.dateOfBirth;
       case UserInputField.gender:
         return BasicUserData.gender;
-      case UserInputField.preExistingConditions:
-        return BasicUserData.preExistingConditions;
-      case UserInputField.medications:
-        return BasicUserData.medications;
-      case UserInputField.allergies:
-        return BasicUserData.allergies;
+      // case UserInputField.preExistingConditions:
+      //   return BasicUserData.preExistingConditions;
+      // case UserInputField.medications:
+      //   return BasicUserData.medications;
+      // case UserInputField.allergies:
+      //   return BasicUserData.allergies;
       default:
         return null;
     }

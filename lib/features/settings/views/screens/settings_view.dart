@@ -4,6 +4,7 @@ import 'package:ate_project/core/services/auth_service.dart';
 import 'package:ate_project/core/theme/app_theme.dart';
 import 'package:ate_project/core/routes/route_names.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsView extends ConsumerWidget {
   const SettingsView({super.key});
@@ -53,6 +54,83 @@ class SettingsView extends ConsumerWidget {
                   if (context.mounted) {
                     context.go(RouteNames.home);
                   }
+                },
+                isDestructive: true,
+              ),
+              _buildSettingItem(
+                context,
+                'Reset Health Data',
+                Icons.medical_services_outlined,
+                () {
+                  // Show confirmation dialog
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Reset Health Data'),
+                        content: const Text(
+                          'This will reset all your health-related data including height, weight, conditions, and more. This action cannot be undone.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('CANCEL'),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              Navigator.of(context).pop();
+
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (BuildContext context) {
+                                  return const AlertDialog(
+                                    content: Row(
+                                      children: [
+                                        CircularProgressIndicator(),
+                                        SizedBox(width: 20),
+                                        Text("Resetting health data..."),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              );
+
+                              try {
+                                final prefs =
+                                    await SharedPreferences.getInstance();
+                                await prefs.remove('health_metrics');
+
+                                if (context.mounted) {
+                                  Navigator.of(context).pop();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          'Health data reset successfully'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  Navigator.of(context).pop();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          'Error resetting health data: $e'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                            child: const Text('RESET',
+                                style: TextStyle(color: Colors.red)),
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 },
                 isDestructive: true,
               ),

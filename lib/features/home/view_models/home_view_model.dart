@@ -164,12 +164,12 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
         return 'Date of Birth';
       case BasicUserData.gender:
         return 'Gender';
-      case BasicUserData.preExistingConditions:
-        return 'Health Conditions';
-      case BasicUserData.medications:
-        return 'Medications';
-      case BasicUserData.allergies:
-        return 'Allergies';
+      // case BasicUserData.preExistingConditions:
+      //   return 'Health Conditions';
+      // case BasicUserData.medications:
+      //   return 'Medications';
+      // case BasicUserData.allergies:
+      //   return 'Allergies';
     }
   }
 
@@ -183,12 +183,12 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
         return Icons.cake;
       case BasicUserData.gender:
         return Icons.person;
-      case BasicUserData.preExistingConditions:
-        return Icons.medical_information;
-      case BasicUserData.medications:
-        return Icons.medication;
-      case BasicUserData.allergies:
-        return Icons.coronavirus;
+      // case BasicUserData.preExistingConditions:
+      //   return Icons.medical_information;
+      // case BasicUserData.medications:
+      //   return Icons.medication;
+      // case BasicUserData.allergies:
+      //   return Icons.coronavirus;
     }
   }
 

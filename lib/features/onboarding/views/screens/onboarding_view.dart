@@ -42,6 +42,10 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
         ref.read(onboardingPageProvider.notifier).state = newPage;
         _saveCurrentPageData(currentPage);
       }
+
+      // if (_pageController.page! > _onboardingSteps.length - 1) {
+      //   _completeOnboarding();
+      // }
     });
   }
 
@@ -68,25 +72,16 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
   }
 
   void _completeOnboarding() async {
-    // Get the view model
     final viewModel = ref.read(healthOnboardingProvider.notifier);
 
-    // Set saving state to show the loading indicator
+    await viewModel.saveGender();
 
-    try {
-      await viewModel.saveGender();
+    await ref.read(userServiceProvider).refreshBasicHealthData();
 
-      await ref.read(userServiceProvider).refreshBasicHealthData();
-      context.go(RouteNames.home);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error completing setup: $e')),
-        );
-      }
-      // Set saving state back to false if there's an error
-    }
-    // Note: we don't set isSaving to false on success since the page will be replaced by router
+    // // Navigate to home
+    // if (mounted) {
+    //   context.go(RouteNames.home);
+    // }
   }
 
   @override
@@ -123,30 +118,18 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
 
             // Main content
             Expanded(
-              child: NotificationListener<ScrollNotification>(
-                onNotification: (notification) {
-                  if (notification is ScrollEndNotification &&
-                      currentPage == _onboardingSteps.length - 1) {
-                    if (notification.metrics.pixels >
-                        notification.metrics.maxScrollExtent - 20) {
-                      _completeOnboarding();
-                      return true;
-                    }
-                  }
-                  return false;
-                },
-                child: PageView(
-                  controller: _pageController,
-                  scrollDirection: Axis.vertical,
-                  children: [
-                    _buildHeightWeightPage(context, viewModel, state),
-                    _buildDateOfBirthPage(context, viewModel, state),
-                    _buildGenderPage(context, viewModel, state),
-                    // _buildPreExistingConditionsPage(context, viewModel, state),
-                    // _buildMedicationsPage(context, viewModel, state),
-                    // _buildAllergiesPage(context, viewModel, state),
-                  ],
-                ),
+              child: PageView(
+                controller: _pageController,
+                scrollDirection: Axis.vertical,
+                children: [
+                  _buildHeightWeightPage(context, viewModel, state),
+                  _buildDateOfBirthPage(context, viewModel, state),
+                  _buildGenderPage(context, viewModel, state),
+                  _buildRedirectPage(),
+                  // _buildPreExistingConditionsPage(context, viewModel, state),
+                  // _buildMedicationsPage(context, viewModel, state),
+                  // _buildAllergiesPage(context, viewModel, state),
+                ],
               ),
             ),
 
@@ -476,6 +459,16 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
           const SizedBox(height: 100),
         ],
       ),
+    );
+  }
+
+  Widget _buildRedirectPage() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.go(RouteNames.home);
+    });
+
+    return const Center(
+      child: CircularProgressIndicator(),
     );
   }
 }

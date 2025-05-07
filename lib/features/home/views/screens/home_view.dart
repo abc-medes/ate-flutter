@@ -38,12 +38,12 @@ class HomeView extends ConsumerWidget {
               : _buildChatView(context, state, viewModel, ref),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.go(RouteNames.settings);
-        },
-        child: const Icon(Icons.bug_report),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     context.go(RouteNames.settings);
+      //   },
+      //   child: const Icon(Icons.bug_report),
+      // ),
     );
   }
 
@@ -179,21 +179,19 @@ class HomeView extends ConsumerWidget {
   Widget _buildAIMessage(BuildContext context, String text) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: Flexible(
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16),
-              topRight: Radius.circular(16),
-              bottomRight: Radius.circular(16),
-            ),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+            bottomRight: Radius.circular(16),
           ),
-          child: Text(
-            text,
-            style: const TextStyle(height: 1.5),
-          ),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(height: 1.5),
         ),
       ),
     );

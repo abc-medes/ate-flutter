@@ -1,4 +1,5 @@
 import 'package:ate_project/core/constants/ai_messages.dart';
+import 'package:ate_project/core/services/api_service.dart';
 import 'package:ate_project/core/widgets/%5Bdeprecated%5D_ai_response_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -90,7 +91,7 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     state = state.copyWith(missingBasicData: missingFields);
   }
 
-  void handleSubmit() {
+  void handleSubmit() async {
     final text = textController.text.trim();
     if (text.isEmpty) return;
     if (state.isProcessing) return;
@@ -102,7 +103,6 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
       return;
     }
 
-    // Add user message
     final updatedMessages = [
       ...state.messages,
       ChatMessage(text: text, isUser: true)
@@ -110,18 +110,21 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     state = state.copyWith(messages: updatedMessages);
     textController.clear();
 
-    // Simulate AI thinking time
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    try {
+      final response = await ApiService().sendChatMessage(text);
+
       final aiMessage = ChatMessage(
-        text: _generateAIResponse(text),
+        text:
+            response['response'] ?? 'Sorry, I could not process your request.',
         isUser: false,
       );
 
       state = state.copyWith(
         messages: [...state.messages, aiMessage],
-        isProcessing: false, // Set processing to false when done
+        isProcessing: false,
       );
 
+      // Scroll to bottom after response
       Future.delayed(const Duration(milliseconds: 100), () {
         if (scrollController.hasClients) {
           scrollController.animateTo(
@@ -131,7 +134,19 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
           );
         }
       });
-    });
+    } catch (e) {
+      // Handle error
+      final errorMessage = ChatMessage(
+        text:
+            'Sorry, there was an error processing your request. Please try again.',
+        isUser: false,
+      );
+
+      state = state.copyWith(
+        messages: [...state.messages, errorMessage],
+        isProcessing: false,
+      );
+    }
   }
 
   String _generateAIResponse(String question) {

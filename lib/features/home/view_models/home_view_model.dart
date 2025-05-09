@@ -149,14 +149,54 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     }
   }
 
-  String _generateAIResponse(String question) {
+  void handleMemorize() async {
+    final text = textController.text.trim();
+    if (text.isEmpty) return;
+    if (state.isProcessing) return;
+
+    state = state.copyWith(isProcessing: true);
+
     if (!_isAuthenticated) {
-      return AIMessages.requireLogin;
+      state = state.copyWith(showLoginPrompt: true);
+      return;
     }
-    if (question.toLowerCase().contains('hamburger')) {
-      return 'Based on general health guidelines, an occasional hamburger can be part of a balanced diet. Consider choosing leaner meats, whole grain buns, and plenty of vegetable toppings. Pair with a side salad instead of fries for a healthier meal.';
-    } else {
-      return 'Thank you for your health question. Everyone\'s health needs are different, and it\'s important to maintain a balanced diet, regular physical activity, and adequate sleep. For personalized advice, please consult a healthcare professional.';
+
+    textController.clear();
+
+    try {
+      final response = await ApiService().memorizeChat(text);
+
+      final aiMessage = ChatMessage(
+        text:
+            response['response'] ?? 'Sorry, I could not process your request.',
+        isUser: false,
+      );
+
+      state = state.copyWith(
+        messages: [...state.messages, aiMessage],
+        isProcessing: false,
+      );
+
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (scrollController.hasClients) {
+          scrollController.animateTo(
+            scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    } catch (e) {
+      final errorMessage = ChatMessage(
+        text:
+            'Sorry, there was an error processing your request. Please try again.',
+        isUser: false,
+      );
+
+      state = state.copyWith(
+        messages: [...state.messages, errorMessage],
+        isProcessing: false,
+      );
     }
   }
 

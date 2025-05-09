@@ -22,6 +22,7 @@ class _ChatInputState extends State<ChatInput> {
   late TextEditingController _chatInputController;
   final FocusNode _chatFocusNode = FocusNode();
   List<String> _selectedImages = [];
+  bool _shouldSaveAsContext = false;
 
   @override
   void initState() {
@@ -127,7 +128,9 @@ class _ChatInputState extends State<ChatInput> {
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: Theme.of(context).colorScheme.primary,
+              color: _shouldSaveAsContext
+                  ? Theme.of(context).colorScheme.secondary
+                  : Theme.of(context).colorScheme.primary,
               width: 2.0,
             ),
           ),
@@ -142,11 +145,17 @@ class _ChatInputState extends State<ChatInput> {
                   focusNode: _chatFocusNode,
                   maxLines: 5,
                   minLines: 1,
+                  cursorColor: _shouldSaveAsContext
+                      ? Theme.of(context).colorScheme.secondary
+                      : Theme.of(context).colorScheme.primary,
                   decoration: InputDecoration(
-                    hintText: 'Ask a health question...',
-                    hintStyle: TextStyle(color: Theme.of(context).hintColor),
+                    hintText: _shouldSaveAsContext
+                        ? 'Tell me what you want to remember...'
+                        : 'How was your health day?',
+                    hintStyle: TextStyle(
+                      color: Theme.of(context).hintColor,
+                    ),
                     contentPadding: EdgeInsets.zero,
-                    // Remove all borders
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
@@ -164,18 +173,48 @@ class _ChatInputState extends State<ChatInput> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.image,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      onPressed: _handleImageSelection,
-                      tooltip: 'Add image',
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            _shouldSaveAsContext
+                                ? Icons.save
+                                : Icons.save_outlined,
+                            color: _shouldSaveAsContext
+                                ? Theme.of(context).colorScheme.secondary
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withOpacity(0.6),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _shouldSaveAsContext = !_shouldSaveAsContext;
+                            });
+                          },
+                          tooltip: _shouldSaveAsContext
+                              ? 'Saving as context'
+                              : 'Save as temporary chat',
+                        ),
+                        if (!_shouldSaveAsContext)
+                          IconButton(
+                            icon: Icon(
+                              Icons.image,
+                              color: _shouldSaveAsContext
+                                  ? Theme.of(context).colorScheme.secondary
+                                  : Theme.of(context).colorScheme.primary,
+                            ),
+                            onPressed: _handleImageSelection,
+                            tooltip: 'Add image',
+                          ),
+                      ],
                     ),
                     IconButton(
                       icon: Icon(
                         Icons.send,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: _shouldSaveAsContext
+                            ? Theme.of(context).colorScheme.secondary
+                            : Theme.of(context).colorScheme.primary,
                       ),
                       onPressed: _handleSubmit,
                       tooltip: 'Send message',

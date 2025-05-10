@@ -73,7 +73,7 @@ class ApiService {
       if (response.statusCode == 401) {
         final newSession = await supabase.auth.refreshSession();
         if (newSession != null) {
-          return sendChatMessage(prompt);
+          return memorizeChat(prompt);
         }
         throw Exception('Authentication failed');
       }

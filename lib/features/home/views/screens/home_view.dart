@@ -34,7 +34,7 @@ class HomeView extends ConsumerWidget {
             );
           },
           child: state.messages.isEmpty
-              ? _buildEmptyChatView(context, viewModel)
+              ? _buildEmptyChatView(context, state, viewModel)
               : _buildChatView(context, state, viewModel, ref),
         ),
       ),
@@ -47,7 +47,8 @@ class HomeView extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyChatView(BuildContext context, HomeViewModel viewModel) {
+  Widget _buildEmptyChatView(
+      BuildContext context, HomeViewState state, HomeViewModel viewModel) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -83,10 +84,16 @@ class HomeView extends ConsumerWidget {
               ],
             ),
             child: ChatInput(
+              shouldSaveAsContext: state.isSaveMode,
+              onSaveModeToggle: () => viewModel.onSaveModeToggle(),
               onSubmit: (text, images) {
                 if (text.isNotEmpty) {
                   viewModel.textController.text = text;
-                  viewModel.handleSubmit();
+                  if (state.isSaveMode) {
+                    viewModel.handleMemorize(context);
+                  } else {
+                    viewModel.handleChatSubmit();
+                  }
                 }
               },
               onChanged: (_) => viewModel.scrollToBottom(),
@@ -137,12 +144,18 @@ class HomeView extends ConsumerWidget {
           ),
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: ChatInput(
+            shouldSaveAsContext: state.isSaveMode,
+            onSaveModeToggle: () => viewModel.onSaveModeToggle(),
             controller: viewModel.textController,
             onChanged: (_) => viewModel.scrollToBottom(),
             onSubmit: (text, images) {
               if (text.isNotEmpty) {
                 viewModel.textController.text = text;
-                viewModel.handleSubmit();
+                if (state.isSaveMode) {
+                  viewModel.handleMemorize(context);
+                } else {
+                  viewModel.handleChatSubmit();
+                }
               }
             },
             isDisabled: state.isProcessing,

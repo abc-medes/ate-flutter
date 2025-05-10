@@ -1,5 +1,5 @@
-import 'package:ate_project/core/constants/ai_messages.dart';
 import 'package:ate_project/core/services/api_service.dart';
+import 'package:ate_project/core/theme/app_theme.dart';
 import 'package:ate_project/core/widgets/%5Bdeprecated%5D_ai_response_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,11 +17,12 @@ class HomeViewState {
   final List<BasicUserData> missingBasicData;
   final List<ChatMessage> messages;
   final bool isProcessing;
-
+  final bool isSaveMode;
   HomeViewState({
     this.missingBasicData = const [],
     this.messages = const [],
     this.isProcessing = false,
+    this.isSaveMode = false,
   });
 
   HomeViewState copyWith({
@@ -29,11 +30,13 @@ class HomeViewState {
     List<BasicUserData>? missingBasicData,
     List<ChatMessage>? messages,
     bool? isProcessing,
+    bool? isSaveMode,
   }) {
     return HomeViewState(
       missingBasicData: missingBasicData ?? this.missingBasicData,
       messages: messages ?? this.messages,
       isProcessing: isProcessing ?? this.isProcessing,
+      isSaveMode: isSaveMode ?? this.isSaveMode,
     );
   }
 }
@@ -68,6 +71,10 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     }
   }
 
+  void onSaveModeToggle() {
+    state = state.copyWith(isSaveMode: !state.isSaveMode);
+  }
+
   // Public method to scroll to bottom of chat
   void scrollToBottom() {
     // Use a small delay to ensure layout is complete
@@ -91,7 +98,7 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     state = state.copyWith(missingBasicData: missingFields);
   }
 
-  void handleSubmit() async {
+  void handleChatSubmit() async {
     final text = textController.text.trim();
     if (text.isEmpty) return;
     if (state.isProcessing) return;
@@ -149,7 +156,7 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     }
   }
 
-  void handleMemorize() async {
+  void handleMemorize(BuildContext context) async {
     final text = textController.text.trim();
     if (text.isEmpty) return;
     if (state.isProcessing) return;
@@ -166,26 +173,46 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     try {
       final response = await ApiService().memorizeChat(text);
 
-      final aiMessage = ChatMessage(
-        text:
-            response['response'] ?? 'Sorry, I could not process your request.',
-        isUser: false,
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          // SnackBar(
+          //   content: const Text('Memory updated successfully'),
+          //   action: SnackBarAction(
+          //     label: 'View Memories',
+          //     onPressed: () {
+          //       // context.go(RouteNames.memories);
+          //     },
+          //   ),
+          //   duration: const Duration(seconds: 3),
+          //   behavior: SnackBarBehavior.floating,
+          // ),
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: AppColors.surface),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Memory updated successfully',
+                    style: TextStyle(color: AppColors.surface),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.primary,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            margin: const EdgeInsets.all(8),
+          ),
+        );
+      }
 
       state = state.copyWith(
-        messages: [...state.messages, aiMessage],
         isProcessing: false,
       );
-
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (scrollController.hasClients) {
-          scrollController.animateTo(
-            scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
-      });
     } catch (e) {
       final errorMessage = ChatMessage(
         text:

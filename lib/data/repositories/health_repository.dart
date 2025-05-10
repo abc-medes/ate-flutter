@@ -60,6 +60,8 @@ class HealthRepository {
         return 'sleep_quality';
       case UserInputField.activityData:
         return 'activity_data';
+      case UserInputField.memorizedData:
+        return 'memorized_data';
     }
   }
 
@@ -133,16 +135,13 @@ class HealthRepository {
 
   Future<void> saveHeightAndWeight(int height, int weight) async {
     try {
-      // Get existing health metrics if available
       final healthMetrics = await _getExistingHealthMetrics();
 
-      // Update with new height and weight
       final updatedUserInputData = healthMetrics.userInputData.copyWith(
         height: height.toDouble(),
         weight: weight.toDouble(),
       );
 
-      // Create updated health metrics
       final updatedHealthMetrics = healthMetrics.copyWith(
         userInputData: updatedUserInputData,
       );
@@ -150,9 +149,28 @@ class HealthRepository {
       await _saveHealthMetricsToStorage(updatedHealthMetrics);
 
       await _saveHealthMetricsToDatabase(updatedHealthMetrics);
-      // Save to local storage
     } catch (e) {
       print('Error saving height and weight: $e');
+    }
+  }
+
+  Future<void> saveMemorizedData(String data) async {
+    try {
+      final healthMetrics = await _getExistingHealthMetrics();
+
+      final updatedUserInputData = healthMetrics.userInputData.copyWith(
+        memorizedData: data,
+      );
+
+      final updatedHealthMetrics = healthMetrics.copyWith(
+        userInputData: updatedUserInputData,
+      );
+
+      await _saveHealthMetricsToStorage(updatedHealthMetrics);
+
+      await _saveHealthMetricsToDatabase(updatedHealthMetrics);
+    } catch (e) {
+      print('Error saving memorized data: $e');
     }
   }
 

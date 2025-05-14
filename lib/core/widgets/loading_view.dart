@@ -143,7 +143,7 @@ class _LoadingScreenState extends State<LoadingScreen>
     return Material(
       type: MaterialType.transparency,
       child: Container(
-        color: Colors.black.withOpacity(0.7),
+        color: Colors.black.withOpacity(0.1),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,

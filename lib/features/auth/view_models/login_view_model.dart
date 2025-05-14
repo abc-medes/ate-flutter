@@ -19,7 +19,6 @@ class LoginState {
   final bool isPasswordVisible;
   final bool isLoading;
   final String? error;
-  final bool showEmailOption;
 
   LoginState({
     required this.emailController,
@@ -29,7 +28,6 @@ class LoginState {
     this.isPasswordVisible = false,
     this.isLoading = false,
     this.error,
-    this.showEmailOption = false,
   });
 
   LoginState copyWith({
@@ -41,7 +39,6 @@ class LoginState {
     bool? isLoading,
     String? error,
     bool clearError = false,
-    bool? showEmailOption,
   }) {
     return LoginState(
       emailController: emailController ?? this.emailController,
@@ -51,7 +48,6 @@ class LoginState {
       isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible,
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : error ?? this.error,
-      showEmailOption: showEmailOption ?? this.showEmailOption,
     );
   }
 }
@@ -199,11 +195,6 @@ class LoginViewModel extends StateNotifier<LoginState> {
 
   void redirectToSignup(BuildContext context) {
     context.push(RouteNames.signup, extra: state.emailController.text);
-  }
-
-  void toggleEmailOption() {
-    if (_isDisposed) return;
-    state = state.copyWith(showEmailOption: true);
   }
 }
 

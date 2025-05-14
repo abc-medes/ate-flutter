@@ -10,7 +10,7 @@ class AppColors {
   static const primaryDark = Color(0xFF087F23);
 
   // Secondary Colors
-  static const secondary = Color(0xFF03A9F4); // Sky blue for freshness
+  static const secondary = Color(0xFFFF9800);
   static const secondaryLight = Color(0xFF67DAFF);
   static const secondaryDark = Color(0xFF007AC1);
 
@@ -64,6 +64,16 @@ class AppTheme {
 
       // Typography
       textTheme: const TextTheme(
+        headlineMedium: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primary,
+        ),
+        headlineSmall: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primary,
+        ),
         displayLarge: TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,

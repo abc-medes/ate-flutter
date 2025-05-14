@@ -5,6 +5,8 @@ class ChatInput extends StatefulWidget {
   final Function(String)? onChanged;
   final bool isDisabled;
   final TextEditingController? controller;
+  final bool shouldSaveAsContext;
+  final VoidCallback? onSaveModeToggle;
 
   const ChatInput({
     super.key,
@@ -12,6 +14,8 @@ class ChatInput extends StatefulWidget {
     this.onChanged,
     this.controller,
     this.isDisabled = false,
+    this.shouldSaveAsContext = false,
+    this.onSaveModeToggle,
   });
 
   @override
@@ -127,7 +131,9 @@ class _ChatInputState extends State<ChatInput> {
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: Theme.of(context).colorScheme.primary,
+              color: widget.shouldSaveAsContext
+                  ? Theme.of(context).colorScheme.secondary
+                  : Theme.of(context).colorScheme.primary,
               width: 2.0,
             ),
           ),
@@ -142,11 +148,17 @@ class _ChatInputState extends State<ChatInput> {
                   focusNode: _chatFocusNode,
                   maxLines: 5,
                   minLines: 1,
+                  cursorColor: widget.shouldSaveAsContext
+                      ? Theme.of(context).colorScheme.secondary
+                      : Theme.of(context).colorScheme.primary,
                   decoration: InputDecoration(
-                    hintText: 'Ask a health question...',
-                    hintStyle: TextStyle(color: Theme.of(context).hintColor),
+                    hintText: widget.shouldSaveAsContext
+                        ? 'Tell me what you want to remember...'
+                        : 'How was your health day?',
+                    hintStyle: TextStyle(
+                      color: Theme.of(context).hintColor,
+                    ),
                     contentPadding: EdgeInsets.zero,
-                    // Remove all borders
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
@@ -164,18 +176,44 @@ class _ChatInputState extends State<ChatInput> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.image,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      onPressed: _handleImageSelection,
-                      tooltip: 'Add image',
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            widget.shouldSaveAsContext
+                                ? Icons.save
+                                : Icons.save_outlined,
+                            color: widget.shouldSaveAsContext
+                                ? Theme.of(context).colorScheme.secondary
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withOpacity(0.6),
+                          ),
+                          onPressed: widget.onSaveModeToggle,
+                          tooltip: widget.shouldSaveAsContext
+                              ? 'Saving as context'
+                              : 'Save as temporary chat',
+                        ),
+                        if (!widget.shouldSaveAsContext)
+                          IconButton(
+                            icon: Icon(
+                              Icons.image,
+                              color: widget.shouldSaveAsContext
+                                  ? Theme.of(context).colorScheme.secondary
+                                  : Theme.of(context).colorScheme.primary,
+                            ),
+                            onPressed: _handleImageSelection,
+                            tooltip: 'Add image',
+                          ),
+                      ],
                     ),
                     IconButton(
                       icon: Icon(
                         Icons.send,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: widget.shouldSaveAsContext
+                            ? Theme.of(context).colorScheme.secondary
+                            : Theme.of(context).colorScheme.primary,
                       ),
                       onPressed: _handleSubmit,
                       tooltip: 'Send message',

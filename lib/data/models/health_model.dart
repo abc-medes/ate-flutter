@@ -32,6 +32,7 @@ enum UserInputField {
   preExistingConditions,
   medications,
   allergies,
+  memorizedData,
 
   nutritionData,
   moodData,
@@ -45,9 +46,6 @@ enum BasicUserData {
   weight,
   dateOfBirth,
   gender,
-  preExistingConditions,
-  medications,
-  allergies
 }
 
 // Extension to convert between BasicUserData and UserInputField
@@ -62,12 +60,6 @@ extension BasicUserDataExtension on BasicUserData {
         return UserInputField.dateOfBirth;
       case BasicUserData.gender:
         return UserInputField.gender;
-      case BasicUserData.preExistingConditions:
-        return UserInputField.preExistingConditions;
-      case BasicUserData.medications:
-        return UserInputField.medications;
-      case BasicUserData.allergies:
-        return UserInputField.allergies;
     }
   }
 }
@@ -108,7 +100,8 @@ extension UserInputFieldExtension on UserInputField {
         this == UserInputField.gender ||
         this == UserInputField.preExistingConditions ||
         this == UserInputField.medications ||
-        this == UserInputField.allergies;
+        this == UserInputField.allergies ||
+        this == UserInputField.memorizedData;
   }
 
   bool get isDailyUserData {
@@ -116,7 +109,8 @@ extension UserInputFieldExtension on UserInputField {
         this == UserInputField.moodData ||
         this == UserInputField.symptoms ||
         this == UserInputField.sleepQuality ||
-        this == UserInputField.activityData;
+        this == UserInputField.activityData ||
+        this == UserInputField.memorizedData;
   }
 
   BasicUserData? toBasicUserData() {
@@ -131,12 +125,6 @@ extension UserInputFieldExtension on UserInputField {
         return BasicUserData.dateOfBirth;
       case UserInputField.gender:
         return BasicUserData.gender;
-      case UserInputField.preExistingConditions:
-        return BasicUserData.preExistingConditions;
-      case UserInputField.medications:
-        return BasicUserData.medications;
-      case UserInputField.allergies:
-        return BasicUserData.allergies;
       default:
         return null;
     }
@@ -349,7 +337,7 @@ class UserInputData {
       _data[UserInputField.medications] as List<Medication>?;
   List<Allergy>? get allergies =>
       _data[UserInputField.allergies] as List<Allergy>?;
-
+  String? get memorizedData => _data[UserInputField.memorizedData] as String?;
   // HIGH PRIORITY - daily tracking
   NutritionData? get nutritionData =>
       _data[UserInputField.nutritionData] as NutritionData?;
@@ -370,6 +358,7 @@ class UserInputData {
     MoodData? moodData,
     SymptomData? symptoms,
     SleepQualityData? sleepQuality,
+    String? memorizedData,
   }) {
     if (height != null) {
       _data[UserInputField.height] = height;
@@ -403,6 +392,9 @@ class UserInputData {
     }
     if (sleepQuality != null) {
       _data[UserInputField.sleepQuality] = sleepQuality;
+    }
+    if (memorizedData != null) {
+      _data[UserInputField.memorizedData] = memorizedData;
     }
   }
 
@@ -438,6 +430,7 @@ class UserInputData {
       sleepQuality: json['sleep_quality'] != null
           ? SleepQualityData.fromJson(json['sleep_quality'])
           : null,
+      memorizedData: json['memorized_data'],
     );
   }
 
@@ -479,6 +472,9 @@ class UserInputData {
     if (_data.containsKey(UserInputField.sleepQuality)) {
       jsonMap['sleep_quality'] = sleepQuality?.toJson();
     }
+    if (_data.containsKey(UserInputField.memorizedData)) {
+      jsonMap['memorized_data'] = memorizedData;
+    }
 
     return jsonMap;
   }
@@ -510,6 +506,7 @@ class UserInputData {
     MoodData? moodData,
     SymptomData? symptoms,
     SleepQualityData? sleepQuality,
+    String? memorizedData,
   }) {
     final newData = UserInputData();
 
@@ -551,7 +548,9 @@ class UserInputData {
     if (sleepQuality != null) {
       newData._data[UserInputField.sleepQuality] = sleepQuality;
     }
-
+    if (memorizedData != null) {
+      newData._data[UserInputField.memorizedData] = memorizedData;
+    }
     return newData;
   }
 }

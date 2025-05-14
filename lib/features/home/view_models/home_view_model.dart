@@ -1,4 +1,5 @@
-import 'package:ate_project/core/constants/ai_messages.dart';
+import 'package:ate_project/core/services/api_service.dart';
+import 'package:ate_project/core/theme/app_theme.dart';
 import 'package:ate_project/core/widgets/%5Bdeprecated%5D_ai_response_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,11 +17,12 @@ class HomeViewState {
   final List<BasicUserData> missingBasicData;
   final List<ChatMessage> messages;
   final bool isProcessing;
-
+  final bool isSaveMode;
   HomeViewState({
     this.missingBasicData = const [],
     this.messages = const [],
     this.isProcessing = false,
+    this.isSaveMode = false,
   });
 
   HomeViewState copyWith({
@@ -28,11 +30,13 @@ class HomeViewState {
     List<BasicUserData>? missingBasicData,
     List<ChatMessage>? messages,
     bool? isProcessing,
+    bool? isSaveMode,
   }) {
     return HomeViewState(
       missingBasicData: missingBasicData ?? this.missingBasicData,
       messages: messages ?? this.messages,
       isProcessing: isProcessing ?? this.isProcessing,
+      isSaveMode: isSaveMode ?? this.isSaveMode,
     );
   }
 }
@@ -67,6 +71,10 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     }
   }
 
+  void onSaveModeToggle() {
+    state = state.copyWith(isSaveMode: !state.isSaveMode);
+  }
+
   // Public method to scroll to bottom of chat
   void scrollToBottom() {
     // Use a small delay to ensure layout is complete
@@ -90,7 +98,7 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     state = state.copyWith(missingBasicData: missingFields);
   }
 
-  void handleSubmit() {
+  void handleChatSubmit() async {
     final text = textController.text.trim();
     if (text.isEmpty) return;
     if (state.isProcessing) return;
@@ -102,7 +110,6 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
       return;
     }
 
-    // Add user message
     final updatedMessages = [
       ...state.messages,
       ChatMessage(text: text, isUser: true)
@@ -110,18 +117,21 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     state = state.copyWith(messages: updatedMessages);
     textController.clear();
 
-    // Simulate AI thinking time
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    try {
+      final response = await ApiService().sendChatMessage(text);
+
       final aiMessage = ChatMessage(
-        text: _generateAIResponse(text),
+        text:
+            response['response'] ?? 'Sorry, I could not process your request.',
         isUser: false,
       );
 
       state = state.copyWith(
         messages: [...state.messages, aiMessage],
-        isProcessing: false, // Set processing to false when done
+        isProcessing: false,
       );
 
+      // Scroll to bottom after response
       Future.delayed(const Duration(milliseconds: 100), () {
         if (scrollController.hasClients) {
           scrollController.animateTo(
@@ -131,17 +141,89 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
           );
         }
       });
-    });
+    } catch (e) {
+      // Handle error
+      final errorMessage = ChatMessage(
+        text:
+            'Sorry, there was an error processing your request. Please try again.',
+        isUser: false,
+      );
+
+      state = state.copyWith(
+        messages: [...state.messages, errorMessage],
+        isProcessing: false,
+      );
+    }
   }
 
-  String _generateAIResponse(String question) {
+  void handleMemorize(BuildContext context) async {
+    final text = textController.text.trim();
+    if (text.isEmpty) return;
+    if (state.isProcessing) return;
+
+    state = state.copyWith(isProcessing: true);
+
     if (!_isAuthenticated) {
-      return AIMessages.requireLogin;
+      state = state.copyWith(showLoginPrompt: true);
+      return;
     }
-    if (question.toLowerCase().contains('hamburger')) {
-      return 'Based on general health guidelines, an occasional hamburger can be part of a balanced diet. Consider choosing leaner meats, whole grain buns, and plenty of vegetable toppings. Pair with a side salad instead of fries for a healthier meal.';
-    } else {
-      return 'Thank you for your health question. Everyone\'s health needs are different, and it\'s important to maintain a balanced diet, regular physical activity, and adequate sleep. For personalized advice, please consult a healthcare professional.';
+
+    textController.clear();
+
+    try {
+      final response = await ApiService().memorizeChat(text);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          // SnackBar(
+          //   content: const Text('Memory updated successfully'),
+          //   action: SnackBarAction(
+          //     label: 'View Memories',
+          //     onPressed: () {
+          //       // context.go(RouteNames.memories);
+          //     },
+          //   ),
+          //   duration: const Duration(seconds: 3),
+          //   behavior: SnackBarBehavior.floating,
+          // ),
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: AppColors.surface),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Memory updated successfully',
+                    style: TextStyle(color: AppColors.surface),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.primary,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            margin: const EdgeInsets.all(8),
+          ),
+        );
+      }
+
+      state = state.copyWith(
+        isProcessing: false,
+      );
+    } catch (e) {
+      final errorMessage = ChatMessage(
+        text:
+            'Sorry, there was an error processing your request. Please try again.',
+        isUser: false,
+      );
+
+      state = state.copyWith(
+        messages: [...state.messages, errorMessage],
+        isProcessing: false,
+      );
     }
   }
 
@@ -164,12 +246,12 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
         return 'Date of Birth';
       case BasicUserData.gender:
         return 'Gender';
-      case BasicUserData.preExistingConditions:
-        return 'Health Conditions';
-      case BasicUserData.medications:
-        return 'Medications';
-      case BasicUserData.allergies:
-        return 'Allergies';
+      // case BasicUserData.preExistingConditions:
+      //   return 'Health Conditions';
+      // case BasicUserData.medications:
+      //   return 'Medications';
+      // case BasicUserData.allergies:
+      //   return 'Allergies';
     }
   }
 
@@ -183,12 +265,12 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
         return Icons.cake;
       case BasicUserData.gender:
         return Icons.person;
-      case BasicUserData.preExistingConditions:
-        return Icons.medical_information;
-      case BasicUserData.medications:
-        return Icons.medication;
-      case BasicUserData.allergies:
-        return Icons.coronavirus;
+      // case BasicUserData.preExistingConditions:
+      //   return Icons.medical_information;
+      // case BasicUserData.medications:
+      //   return Icons.medication;
+      // case BasicUserData.allergies:
+      //   return Icons.coronavirus;
     }
   }
 

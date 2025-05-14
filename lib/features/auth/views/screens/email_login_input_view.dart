@@ -32,7 +32,7 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
       final isCurrentlyLoading = viewState.isLoading;
 
       if (isCurrentlyLoading) {
-        LoadingScreen.show(context, message: 'Creating your account...');
+        LoadingScreen.show(context, message: 'Logging in...');
       } else {
         LoadingScreen.dismiss(context);
       }

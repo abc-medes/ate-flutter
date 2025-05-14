@@ -9,7 +9,11 @@ import 'package:ate_project/core/routes/route_names.dart';
 final appRoutes = [
   GoRoute(
     path: '/',
-    builder: (context, state) => const HomeView(),
+    pageBuilder: (context, state) => _buildBottomTransitionPage(
+      context,
+      state,
+      const HomeView(),
+    ),
   ),
   GoRoute(
     path: '/debug',
@@ -122,5 +126,26 @@ Widget _buildPlaceholderScreen(BuildContext context, String title) {
         ],
       ),
     ),
+  );
+}
+
+Page<dynamic> _buildBottomTransitionPage(
+    BuildContext context, GoRouterState state, Widget child) {
+  return CustomTransitionPage<dynamic>(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      const begin = Offset(0.0, 1.0); // Start from bottom
+      const end = Offset.zero;
+      const curve = Curves.easeInOut;
+
+      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+      var offsetAnimation = animation.drive(tween);
+
+      return SlideTransition(
+        position: offsetAnimation,
+        child: child,
+      );
+    },
   );
 }

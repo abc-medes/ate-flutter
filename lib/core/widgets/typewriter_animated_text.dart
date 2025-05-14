@@ -5,6 +5,7 @@ class TypewriterAnimatedText extends StatefulWidget {
   final TextStyle textStyle;
   final Duration typingSpeed;
   final Duration pauseBetween;
+  final bool loop;
 
   const TypewriterAnimatedText(
     this.texts, {
@@ -12,6 +13,7 @@ class TypewriterAnimatedText extends StatefulWidget {
     required this.textStyle,
     this.typingSpeed = const Duration(milliseconds: 50),
     this.pauseBetween = const Duration(milliseconds: 1500),
+    this.loop = true,
   });
 
   @override
@@ -25,6 +27,7 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText> {
   int _textPosition = 0;
   bool _isTyping = true;
   bool _isPaused = false;
+  bool _isCompleted = false;
 
   @override
   void initState() {
@@ -44,7 +47,6 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText> {
     if (!mounted) return;
 
     if (_isTyping) {
-      // Still typing the current text
       if (_textPosition < _currentText.length) {
         setState(() {
           _displayText = _currentText.substring(0, _textPosition + 1);
@@ -52,7 +54,6 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText> {
         });
         Future.delayed(widget.typingSpeed, _animateText);
       } else {
-        // Finished typing, now pause
         setState(() {
           _isTyping = false;
           _isPaused = true;
@@ -60,7 +61,13 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText> {
         Future.delayed(widget.pauseBetween, _animateText);
       }
     } else if (_isPaused) {
-      // Pause completed, prepare for next text
+      if (!widget.loop && _currentIndex == widget.texts.length - 1) {
+        setState(() {
+          _isCompleted = true;
+        });
+        return;
+      }
+
       _currentIndex = (_currentIndex + 1) % widget.texts.length;
       _currentText = widget.texts[_currentIndex];
       setState(() {

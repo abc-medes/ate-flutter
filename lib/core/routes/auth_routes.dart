@@ -1,3 +1,4 @@
+import 'package:ate_project/features/auth/views/screens/email_login_input_view.dart';
 import 'package:ate_project/features/auth/views/screens/login_view.dart';
 import 'package:ate_project/features/auth/views/screens/signup_view.dart';
 import 'package:ate_project/features/onboarding/views/screens/onboarding_view.dart';
@@ -13,6 +14,12 @@ final authRoutes = [
     builder: (context, state) {
       final email = state.extra is String ? state.extra as String : '';
       return SignupView(email: email);
+    },
+  ),
+  GoRoute(
+    path: '/auth/email-login-input',
+    builder: (context, state) {
+      return EmailLoginInputView();
     },
   ),
   GoRoute(

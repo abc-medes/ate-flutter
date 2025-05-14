@@ -38,12 +38,12 @@ class HomeView extends ConsumerWidget {
               : _buildChatView(context, state, viewModel, ref),
         ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     context.go(RouteNames.settings);
-      //   },
-      //   child: const Icon(Icons.bug_report),
-      // ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.go(RouteNames.settings);
+        },
+        child: const Icon(Icons.bug_report),
+      ),
     );
   }
 

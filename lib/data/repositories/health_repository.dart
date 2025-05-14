@@ -72,15 +72,8 @@ class HealthRepository {
   Future<List<UserInputField>> getMissingUserInputFields() async {
     final missingFields = <UserInputField>[];
 
-    final importantFields = [
-      UserInputField.height,
-      UserInputField.weight,
-      UserInputField.dateOfBirth,
-      UserInputField.gender,
-      // UserInputField.preExistingConditions,
-      // UserInputField.medications,
-      // UserInputField.allergies,
-    ];
+    final importantFields =
+        BasicUserData.values.map((field) => field.toUserInputField()).toList();
 
     for (final field in importantFields) {
       final isSaved = await isUserInputFieldSaved(field);

@@ -49,9 +49,7 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
   final FocusNode chatFocusNode = FocusNode();
 
   HomeViewModel(this._isAuthenticated) : super(HomeViewState()) {
-    _init();
-
-    // Add listener to textController to scroll when text changes
+    // _init();
     textController.addListener(_onTextChange);
   }
 
@@ -89,26 +87,12 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     });
   }
 
-  void _init() async {
-    await _checkMissingHealthData();
-  }
-
-  Future<void> _checkMissingHealthData() async {
-    final missingFields = await HealthRepository().getMissingBasicUserData();
-    state = state.copyWith(missingBasicData: missingFields);
-  }
-
   void handleChatSubmit() async {
     final text = textController.text.trim();
     if (text.isEmpty) return;
     if (state.isProcessing) return;
 
     state = state.copyWith(isProcessing: true);
-
-    if (!_isAuthenticated) {
-      state = state.copyWith(showLoginPrompt: true);
-      return;
-    }
 
     final updatedMessages = [
       ...state.messages,

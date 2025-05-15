@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
 import 'package:ate_project/features/auth/view_models/login_view_model.dart';
 import 'package:ate_project/features/auth/views/widgets/social_login_button.dart';
 import 'package:flutter/cupertino.dart';
@@ -53,7 +54,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
         }
       }
 
-      // Check for errors from either authState or viewState
       final error = viewState.error;
       print('Error: $error');
       if (error != null && !isLoading && !isAuthLoading) {
@@ -91,40 +91,40 @@ class _LoginViewState extends ConsumerState<LoginView> {
         elevation: 0,
         automaticallyImplyLeading: false,
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: IconButton(
-              icon: Icon(
-                Icons.close,
-                color: AppColors.textSecondary,
-              ),
-              onPressed: () {
-                // Show a Cupertino dialog explaining limited features
-                showCupertinoDialog(
-                  context: context,
-                  builder: (context) => CupertinoAlertDialog(
-                    title: const Text('Continue as Guest'),
-                    content: const Text(
-                        'You can use our app with limited features without signing in. Some personalized features will not be available.'),
-                    actions: [
-                      CupertinoDialogAction(
-                        child: const Text('Cancel'),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      CupertinoDialogAction(
-                        isDefaultAction: true,
-                        child: const Text('Continue'),
-                        onPressed: () {
-                          Navigator.pop(context);
-                          context.go(RouteNames.home);
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.only(right: 8.0),
+          //   child: IconButton(
+          //     icon: Icon(
+          //       Icons.close,
+          //       color: AppColors.textSecondary,
+          //     ),
+          //     onPressed: () {
+          //       // Show a Cupertino dialog explaining limited features
+          //       showCupertinoDialog(
+          //         context: context,
+          //         builder: (context) => CupertinoAlertDialog(
+          //           title: const Text('Continue as Guest'),
+          //           content: const Text(
+          //               'You can use our app with limited features without signing in. Some personalized features will not be available.'),
+          //           actions: [
+          //             CupertinoDialogAction(
+          //               child: const Text('Cancel'),
+          //               onPressed: () => Navigator.pop(context),
+          //             ),
+          //             CupertinoDialogAction(
+          //               isDefaultAction: true,
+          //               child: const Text('Continue'),
+          //               onPressed: () {
+          //                 Navigator.pop(context);
+          //                 context.go(RouteNames.home);
+          //               },
+          //             ),
+          //           ],
+          //         ),
+          //       );
+          //     },
+          //   ),
+          // ),
         ],
       ),
       body: Column(
@@ -132,10 +132,14 @@ class _LoginViewState extends ConsumerState<LoginView> {
         children: [
           Expanded(
             child: Center(
-              child: Text(
-                'Welcome back',
-                style: TextStyle(
-                  fontSize: 40,
+              child: const TypewriterAnimatedText(
+                [
+                  "AI-Powered Health Intelligence",
+                  "Personal Health Assistant",
+                  "Get Smart Insights",
+                ],
+                textStyle: TextStyle(
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),

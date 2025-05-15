@@ -55,9 +55,10 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.pop();
+            Navigator.pop(context);
           },
         ),
+        title: const Text('Log In'),
       ),
       body: SafeArea(
         child: Padding(

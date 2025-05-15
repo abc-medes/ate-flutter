@@ -148,23 +148,23 @@ class _LoadingScreenState extends State<LoadingScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (widget.showLogo) ...[
-                _buildAnimatedLogo(),
-                const SizedBox(height: 32),
-              ],
+              // if (widget.showLogo) ...[
+              //   _buildAnimatedLogo(),
+              //   const SizedBox(height: 32),
+              // ],
               _buildLoadingIndicator(),
-              if (widget.message != null) ...[
-                const SizedBox(height: 24),
-                Text(
-                  widget.message!,
-                  style: TextStyle(
-                    color: AppColors.surface,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+              // if (widget.message != null) ...[
+              //   const SizedBox(height: 24),
+              //   Text(
+              //     widget.message!,
+              //     style: TextStyle(
+              //       color: AppColors.surface,
+              //       fontSize: 16,
+              //       fontWeight: FontWeight.w500,
+              //     ),
+              //     textAlign: TextAlign.center,
+              //   ),
+              // ],
             ],
           ),
         ),

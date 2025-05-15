@@ -86,181 +86,150 @@ class _LoginViewState extends ConsumerState<LoginView> {
     final bool isIOS = Platform.isIOS;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        actions: [
-          // Padding(
-          //   padding: const EdgeInsets.only(right: 8.0),
-          //   child: IconButton(
-          //     icon: Icon(
-          //       Icons.close,
-          //       color: AppColors.textSecondary,
-          //     ),
-          //     onPressed: () {
-          //       // Show a Cupertino dialog explaining limited features
-          //       showCupertinoDialog(
-          //         context: context,
-          //         builder: (context) => CupertinoAlertDialog(
-          //           title: const Text('Continue as Guest'),
-          //           content: const Text(
-          //               'You can use our app with limited features without signing in. Some personalized features will not be available.'),
-          //           actions: [
-          //             CupertinoDialogAction(
-          //               child: const Text('Cancel'),
-          //               onPressed: () => Navigator.pop(context),
-          //             ),
-          //             CupertinoDialogAction(
-          //               isDefaultAction: true,
-          //               child: const Text('Continue'),
-          //               onPressed: () {
-          //                 Navigator.pop(context);
-          //                 context.go(RouteNames.home);
-          //               },
-          //             ),
-          //           ],
-          //         ),
-          //       );
-          //     },
-          //   ),
-          // ),
-        ],
-      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Center(
-              child: const TypewriterAnimatedText(
+              child: TypewriterAnimatedText(
                 [
                   "AI-Powered Health Intelligence",
                   "Personal Health Assistant",
                   "Get Smart Insights",
                 ],
-                textStyle: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+                textStyle: AppTheme.lightTheme.textTheme.headlineMedium!,
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48),
-            constraints: const BoxConstraints(minHeight: 400),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(36),
-              border: Border.all(color: AppColors.divider),
-            ),
-            child: Center(
-              child: Column(
-                children: [
-                  SocialAuthButton(
-                    ref: ref,
-                    text: 'Continue with Google',
-                    icon: Icons.g_mobiledata_rounded,
-                    iconColor: AppColors.textPrimary,
-                    onPressed: () {
-                      if (!isLoading) {
-                        _handleSocialLogin(
-                            context, ref, viewModel.handleGoogleSignIn);
-                      }
-                    },
+          Material(
+            color: Color(0xFFF5E9C8),
+            elevation: 2,
+            borderRadius: BorderRadius.circular(36),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48),
+              constraints: const BoxConstraints(minHeight: 400),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(36),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
                   ),
-                  if ((isIOS || !isAndroid)) ...[
-                    const SizedBox(height: 12),
+                ],
+              ),
+              child: Center(
+                child: Column(
+                  children: [
                     SocialAuthButton(
                       ref: ref,
-                      text: 'Continue with Apple',
-                      icon: Icons.apple,
+                      text: 'Continue with Google',
+                      icon: Icons.g_mobiledata_rounded,
                       iconColor: AppColors.textPrimary,
                       onPressed: () {
                         if (!isLoading) {
                           _handleSocialLogin(
-                              context, ref, viewModel.handleAppleSignIn);
+                              context, ref, viewModel.handleGoogleSignIn);
                         }
                       },
                     ),
-                  ],
-                  const SizedBox(height: 32),
-                  Row(
-                    children: [
-                      Expanded(
-                          child: Divider(
-                              color: AppColors.textTertiary.withAlpha(128))),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'or',
+                    if ((isIOS || !isAndroid)) ...[
+                      const SizedBox(height: 12),
+                      SocialAuthButton(
+                        ref: ref,
+                        text: 'Continue with Apple',
+                        icon: Icons.apple,
+                        iconColor: AppColors.textPrimary,
+                        onPressed: () {
+                          if (!isLoading) {
+                            _handleSocialLogin(
+                                context, ref, viewModel.handleAppleSignIn);
+                          }
+                        },
+                      ),
+                    ],
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(
+                            child: Divider(
+                                color: AppColors.textTertiary.withAlpha(128))),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            'or',
+                            style: TextStyle(
+                              color: AppColors.textTertiary,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                            child: Divider(
+                                color: AppColors.textTertiary.withAlpha(128))),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: OutlinedButton(
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                context.push(RouteNames.emailLoginInput,
+                                    extra: viewState
+                                            .emailController.text.isNotEmpty
+                                        ? viewState.emailController.text
+                                        : null);
+                              },
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: AppColors.surface,
+                          side: BorderSide(
+                              color: AppColors.textTertiary.withAlpha(128)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Sign in with Email',
                           style: TextStyle(
-                            color: AppColors.textTertiary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
-                      Expanded(
-                          child: Divider(
-                              color: AppColors.textTertiary.withAlpha(128))),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: OutlinedButton(
-                      onPressed: isLoading
-                          ? null
-                          : () {
-                              context.push(RouteNames.emailLoginInput,
+                    ),
+                    const SizedBox(height: 24),
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Don't have an account? ",
+                            style: TextStyle(color: AppColors.textSecondary),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              context.push(RouteNames.signup,
                                   extra:
                                       viewState.emailController.text.isNotEmpty
                                           ? viewState.emailController.text
                                           : null);
                             },
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(
-                            color: AppColors.textTertiary.withAlpha(128)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Sign in with Email',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Don't have an account? ",
-                          style: TextStyle(color: AppColors.textSecondary),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            context.push(RouteNames.signup,
-                                extra: viewState.emailController.text.isNotEmpty
-                                    ? viewState.emailController.text
-                                    : null);
-                          },
-                          child: Text(
-                            'Sign Up',
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
+                            child: Text(
+                              'Sign Up',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

@@ -91,13 +91,17 @@ class _LoginViewState extends ConsumerState<LoginView> {
         children: [
           Expanded(
             child: Center(
-              child: TypewriterAnimatedText(
-                [
-                  "AI-Powered Health Intelligence",
-                  "Personal Health Assistant",
-                  "Get Smart Insights",
-                ],
-                textStyle: AppTheme.lightTheme.textTheme.headlineMedium!,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.85,
+                height: 40,
+                child: TypewriterAnimatedText(
+                  [
+                    "AI-Powered Health Intelligence",
+                    "Personal Health Assistant",
+                    "Get Smart Insights",
+                  ],
+                  textStyle: AppTheme.lightTheme.textTheme.headlineMedium!,
+                ),
               ),
             ),
           ),

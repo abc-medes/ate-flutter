@@ -1,4 +1,5 @@
 import 'package:ate_project/core/routes/route_names.dart';
+import 'package:ate_project/core/theme/app_theme.dart';
 import 'package:ate_project/core/widgets/chat_input.dart';
 import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
 import 'package:ate_project/features/home/view_models/home_view_model.dart';
@@ -56,16 +57,14 @@ class HomeView extends ConsumerWidget {
           // Animated typing text
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.85,
-            child: const TypewriterAnimatedText(
+            height: 40,
+            child: TypewriterAnimatedText(
               [
                 "AI-Powered Health Intelligence",
                 "Personal Health Assistant",
                 "Get Smart Insights",
               ],
-              textStyle: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              textStyle: AppTheme.lightTheme.textTheme.headlineMedium!,
             ),
           ),
 

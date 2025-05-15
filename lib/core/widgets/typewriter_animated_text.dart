@@ -39,22 +39,13 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
   bool _isTyping = true;
   bool _isPaused = false;
   bool _isCompleted = false;
-
-  late AnimationController _cursorController;
+  bool _isErasing = false;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = 0;
     _currentText = widget.texts[_currentIndex];
-
-    _cursorController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-
-    // Don't start blinking immediately
-    _cursorController.value = 1.0;
 
     _startTyping();
   }
@@ -69,10 +60,6 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
     if (!mounted) return;
 
     if (_isTyping) {
-      // Stop cursor blinking while typing
-      _cursorController.stop();
-      _cursorController.value = 1.0;
-
       if (_textPosition < _currentText.length) {
         setState(() {
           _displayText = _currentText.substring(0, _textPosition + 1);
@@ -80,20 +67,33 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
         });
 
         if (widget.enableVibration) {
-          HapticFeedback.lightImpact(); // Light vibration
+          HapticFeedback.lightImpact();
         }
 
         Future.delayed(widget.typingSpeed, _animateText);
       } else {
         setState(() {
           _isTyping = false;
+          _isErasing = true;
+        });
+
+        Future.delayed(widget.pauseBetween, _animateText);
+      }
+    } else if (_isErasing) {
+      if (_textPosition > 0) {
+        setState(() {
+          _textPosition--;
+          _displayText = _currentText.substring(0, _textPosition);
+        });
+
+        Future.delayed(widget.typingSpeed ~/ 2, _animateText); // faster erase
+      } else {
+        setState(() {
+          _isErasing = false;
           _isPaused = true;
         });
 
-        // Start cursor blinking when typing is done
-        _cursorController.repeat(reverse: true);
-
-        Future.delayed(widget.pauseBetween, _animateText);
+        Future.delayed(const Duration(milliseconds: 300), _animateText);
       }
     } else if (_isPaused) {
       if (!widget.loop && _currentIndex == widget.texts.length - 1) {
@@ -102,10 +102,6 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
         });
         return;
       }
-
-      // Stop blinking when moving to the next text
-      _cursorController.stop();
-      _cursorController.value = 1.0;
 
       _currentIndex = (_currentIndex + 1) % widget.texts.length;
       _currentText = widget.texts[_currentIndex];
@@ -121,7 +117,6 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
 
   @override
   void dispose() {
-    _cursorController.dispose();
     super.dispose();
   }
 
@@ -131,12 +126,7 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
       textAlign: TextAlign.center,
       text: TextSpan(
         children: [
-          TextSpan(
-            text: _displayText,
-            style: widget.textStyle.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
+          TextSpan(text: _displayText, style: widget.textStyle),
           const WidgetSpan(
             child: SizedBox(
               width: 5,
@@ -144,18 +134,10 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
             ),
           ),
           WidgetSpan(
-            child: AnimatedBuilder(
-              animation: _cursorController,
-              builder: (context, child) {
-                return Opacity(
-                  opacity: _cursorController.value,
-                  child: SvgPicture.string(
-                    svgString,
-                    width: 22,
-                    height: 22,
-                  ),
-                );
-              },
+            child: SvgPicture.string(
+              svgString,
+              width: widget.textStyle.fontSize,
+              height: widget.textStyle.fontSize,
             ),
           ),
         ],

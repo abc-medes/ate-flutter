@@ -11,13 +11,15 @@ class HealthOnboardingState {
   final DateTime selectedBirthDate;
   final Gender selectedGender;
   final bool isSaving;
+  final int currentPage;
 
   HealthOnboardingState({
     this.selectedHeight = 170,
     this.selectedWeight = 70,
     DateTime? selectedBirthDate,
-    this.selectedGender = Gender.preferNotToSay,
+    this.selectedGender = Gender.male,
     this.isSaving = false,
+    this.currentPage = 0,
   }) : selectedBirthDate = selectedBirthDate ??
             DateTime.now().subtract(const Duration(days: 365 * 30));
 
@@ -27,6 +29,7 @@ class HealthOnboardingState {
     DateTime? selectedBirthDate,
     Gender? selectedGender,
     bool? isSaving,
+    int? currentPage,
   }) {
     return HealthOnboardingState(
       selectedHeight: selectedHeight ?? this.selectedHeight,
@@ -34,6 +37,7 @@ class HealthOnboardingState {
       selectedBirthDate: selectedBirthDate ?? this.selectedBirthDate,
       selectedGender: selectedGender ?? this.selectedGender,
       isSaving: isSaving ?? this.isSaving,
+      currentPage: currentPage ?? this.currentPage,
     );
   }
 }
@@ -44,6 +48,10 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
 
   HealthOnboardingViewModel(this._healthRepository, this._userService)
       : super(HealthOnboardingState());
+
+  void updateCurrentPage(int page) {
+    state = state.copyWith(currentPage: page);
+  }
 
   void updateHeight(int height) {
     state = state.copyWith(selectedHeight: height);

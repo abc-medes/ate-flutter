@@ -77,7 +77,7 @@ class AppTheme {
           color: AppColors.primary,
         ),
         headlineSmall: TextStyle(
-          fontSize: 16,
+          fontSize: 18,
           fontWeight: FontWeight.bold,
           color: AppColors.primary,
         ),
@@ -97,17 +97,22 @@ class AppTheme {
           color: AppColors.textPrimary,
         ),
         bodyLarge: TextStyle(
-          fontSize: 16,
+          fontSize: 18,
           color: AppColors.textPrimary,
+          fontWeight: FontWeight.w600,
         ),
         bodyMedium: TextStyle(
-          fontSize: 14,
+          fontSize: 16,
           color: AppColors.textSecondary,
         ),
         labelLarge: TextStyle(
-          fontSize: 16,
+          fontSize: 18,
           fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
+          color: AppColors.primary,
+        ),
+        labelSmall: TextStyle(
+          fontSize: 14,
+          color: AppColors.error,
         ),
       ),
 

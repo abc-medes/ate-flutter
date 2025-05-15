@@ -93,7 +93,6 @@ class HealthRepository {
     for (final field in BasicUserData.values) {
       final isSaved = await isBasicUserDataSaved(field);
 
-      // TODO: Remove this once we have a way to save allergies and medications
       if (!isSaved) {
         missingFields.add(field);
       }

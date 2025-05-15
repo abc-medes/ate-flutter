@@ -68,22 +68,47 @@ class _SignupViewState extends ConsumerState<SignupView> {
             }
           },
         ),
-        title: const Text('Create Account'),
+        title: const Text('Sign Up'),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: () {
-              switch (viewState.currentStep) {
-                case SignupStep.detailsInput:
-                  return _buildDetailsStep(context, viewModel, viewState);
-                case SignupStep.emailSent:
-                  return _buildEmailSentStep(context, viewModel, viewState);
-                // default:
-                //   return _buildDetailsStep(context, viewModel, viewState);
-              }
-            }(),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              if (viewState.currentStep == SignupStep.detailsInput)
+                Expanded(
+                    child: _buildDetailsStep(context, viewModel, viewState)),
+              if (viewState.currentStep == SignupStep.emailSent)
+                Expanded(
+                    child: _buildEmailSentStep(context, viewModel, viewState)),
+              // _buildEmailSentStep(context, viewModel, viewState),
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: viewState.isLoading
+                      ? null
+                      : () async {
+                          await viewModel.signUp();
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.surface,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Continue',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -98,23 +123,6 @@ class _SignupViewState extends ConsumerState<SignupView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Sign Up',
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Create your account with the details below',
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 16,
-          ),
-        ),
-        const SizedBox(height: 32),
-
         // Email field
         _buildInputField(
           hintText: 'Email',
@@ -192,32 +200,6 @@ class _SignupViewState extends ConsumerState<SignupView> {
         const SizedBox(height: 40),
 
         // Continue button
-        SizedBox(
-          width: double.infinity,
-          height: 54,
-          child: ElevatedButton(
-            onPressed: viewState.isLoading
-                ? null
-                : () async {
-                    await viewModel.signUp();
-                  },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.surface,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text(
-              'Continue',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }

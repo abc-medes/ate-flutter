@@ -80,6 +80,14 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
         Future.delayed(widget.pauseBetween, _animateText);
       }
     } else if (_isErasing) {
+      if (!widget.loop && _currentIndex == widget.texts.length - 1) {
+        setState(() {
+          _isErasing = false;
+          _isPaused = true;
+        });
+        Future.delayed(const Duration(milliseconds: 300), _animateText);
+        return;
+      }
       if (_textPosition > 0) {
         setState(() {
           _textPosition--;
@@ -98,11 +106,13 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
     } else if (_isPaused) {
       if (!widget.loop && _currentIndex == widget.texts.length - 1) {
         setState(() {
+          _isErasing = false;
+          _isPaused = true;
           _isCompleted = true;
         });
+        Future.delayed(const Duration(milliseconds: 300), _animateText);
         return;
       }
-
       _currentIndex = (_currentIndex + 1) % widget.texts.length;
       _currentText = widget.texts[_currentIndex];
       setState(() {
@@ -134,12 +144,13 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
             ),
           ),
           WidgetSpan(
-            child: SvgPicture.string(
-              svgString,
-              width: widget.textStyle.fontSize,
-              height: widget.textStyle.fontSize,
-            ),
-          ),
+              child: !_isCompleted
+                  ? SvgPicture.string(
+                      svgString,
+                      width: widget.textStyle.fontSize,
+                      height: widget.textStyle.fontSize,
+                    )
+                  : const SizedBox.shrink()),
         ],
       ),
     );

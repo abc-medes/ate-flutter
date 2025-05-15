@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ate_project/core/widgets/loading_view.dart';
 import 'package:ate_project/core/widgets/error_snackbar.dart';
+import 'package:ate_project/core/widgets/customed_text_input.dart';
 
 class EmailLoginInputView extends ConsumerStatefulWidget {
   const EmailLoginInputView({super.key});
@@ -65,58 +66,26 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
-              // Email Input
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TextField(
-                  controller: viewState.emailController,
-                  decoration: InputDecoration(
-                    hintText: 'Email',
-                    hintStyle: TextStyle(color: AppColors.textTertiary),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 18),
-                    border: InputBorder.none,
-                    errorStyle: const TextStyle(height: 0, fontSize: 0),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  onChanged: (_) => viewModel.onEmailChanged(),
-                  enabled: !viewState.isLoading,
-                ),
-              ),
-
-              if (!viewState.isEmailValid)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0, left: 4.0),
-                  child: Text(
-                    'Please enter a valid email',
-                    style: TextStyle(
-                      color: AppColors.error,
-                      fontSize: 12,
+              Expanded(
+                child: Column(
+                  children: [
+                    CustomedTextInput(
+                      controller: viewState.emailController,
+                      hintText: 'Email',
+                      keyboardType: TextInputType.emailAddress,
+                      onChanged: (_) => viewModel.onEmailChanged(),
+                      enabled: !viewState.isLoading,
+                      errorText: !viewState.isEmailValid
+                          ? 'Please enter a valid email'
+                          : null,
                     ),
-                  ),
-                ),
 
-              const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-              // Password Input - Show when needed
-              if (viewState.currentStep == LoginStep.passwordInput)
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: TextField(
-                    controller: viewState.passwordController,
-                    obscureText: !viewState.isPasswordVisible,
-                    decoration: InputDecoration(
+                    CustomedTextInput(
+                      controller: viewState.passwordController,
                       hintText: 'Password',
-                      hintStyle: TextStyle(color: AppColors.textTertiary),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 18),
-                      border: InputBorder.none,
+                      obscureText: !viewState.isPasswordVisible,
                       suffixIcon: IconButton(
                         icon: Icon(
                           viewState.isPasswordVisible
@@ -127,12 +96,27 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
                         onPressed: viewModel.togglePasswordVisibility,
                       ),
                     ),
-                  ),
+
+                    const SizedBox(height: 16),
+
+                    // Forgot password link
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12.0),
+                      child: Center(
+                        child: GestureDetector(
+                          onTap: () {},
+                          child: Text(
+                            'Forgot your password?',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-
-              const SizedBox(height: 16),
-
-              // Continue/Login button for Email/Password
+              ),
               SizedBox(
                 width: double.infinity,
                 height: 54,
@@ -141,28 +125,13 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
                       ? null
                       : () async {
                           try {
-                            switch (viewState.currentStep) {
-                              case LoginStep.emailInput:
-                                final emailExists =
-                                    await viewModel.checkEmailAndContinue();
-                                if (!emailExists && context.mounted) {
-                                  // Show dialog asking if they want to sign up
-                                  _showSignupDialog(context, viewModel);
-                                }
-                                break;
+                            await viewModel.handlePasswordLogin();
 
-                              case LoginStep.passwordInput:
-                                await viewModel.handlePasswordLogin();
-                                break;
-                            }
-
-                            // Force dismiss loading screen
                             if (mounted) {
                               LoadingScreen.dismiss(context);
                             }
                           } catch (e) {
                             print("Login error: $e");
-                            // Safety net to ensure loading is dismissed on any error
                             if (mounted) {
                               LoadingScreen.dismiss(context);
                             }
@@ -177,9 +146,7 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
                     ),
                   ),
                   child: Text(
-                    viewState.currentStep == LoginStep.emailInput
-                        ? 'Continue'
-                        : 'Login',
+                    'Login',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -187,23 +154,6 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
                   ),
                 ),
               ),
-
-              // Forgot password link
-              if (viewState.currentStep == LoginStep.passwordInput)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12.0),
-                  child: Center(
-                    child: GestureDetector(
-                      onTap: () {},
-                      child: Text(
-                        'Forgot your password?',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
         ),

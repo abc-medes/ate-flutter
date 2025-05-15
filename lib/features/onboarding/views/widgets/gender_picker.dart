@@ -3,8 +3,6 @@ import 'package:flutter/cupertino.dart';
 enum Gender {
   male,
   female,
-  nonBinary,
-  preferNotToSay,
 }
 
 extension GenderExtension on Gender {
@@ -14,15 +12,10 @@ extension GenderExtension on Gender {
         return 'Male';
       case Gender.female:
         return 'Female';
-      case Gender.nonBinary:
-        return 'Non-binary';
-      case Gender.preferNotToSay:
-        return 'Prefer not to say';
     }
   }
 }
 
-// Option 1: CupertinoPicker style (matching height and weight pickers)
 class GenderPickerWidget extends StatelessWidget {
   final Gender selectedGender;
   final Function(Gender) onGenderChanged;
@@ -53,7 +46,6 @@ class GenderPickerWidget extends StatelessWidget {
               return Center(
                 child: Text(
                   gender.displayName,
-                  style: const TextStyle(fontSize: 18),
                 ),
               );
             }).toList(),

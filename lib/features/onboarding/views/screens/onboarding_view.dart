@@ -60,6 +60,7 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
         break;
       case 2:
         await viewModel.saveHeightandWeightData();
+        await viewModel.createChatRoom();
         break;
     }
   }
@@ -133,7 +134,7 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
             child: TypewriterAnimatedText(
               [
                 "Your body shape completes the picture.",
-                "Let’s understand how you carry your energy."
+                "Let's understand how you carry your energy."
               ],
               textStyle: Theme.of(context).textTheme.headlineMedium!,
               loop: false,
@@ -272,7 +273,7 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
         SizedBox(
           height: 80,
           child: TypewriterAnimatedText(
-            ["We’ll tune your insights with care.", "As uniquely as you are."],
+            ["We'll tune your insights with care.", "As uniquely as you are."],
             textStyle: Theme.of(context).textTheme.headlineMedium!,
             loop: false,
           ),
@@ -311,13 +312,20 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
   }
 
   Widget _buildRedirectPage() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.go(RouteNames.home);
+    final viewModel = ref.read(healthOnboardingProvider.notifier);
+    final state = ref.watch(healthOnboardingProvider);
+
+    if (state.isSaving) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (mounted && context.mounted) {
+        context.go(RouteNames.home);
+      }
     });
 
-    return const Center(
-      child: CircularProgressIndicator(),
-    );
+    return const Center(child: CircularProgressIndicator());
   }
 
   Widget _buildNavigationHint(HealthOnboardingState state) {

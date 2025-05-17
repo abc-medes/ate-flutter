@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:ate_project/core/services/api_service.dart';
 import 'package:ate_project/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ate_project/data/models/health_model.dart';
@@ -119,6 +120,10 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
 
   Future<List<BasicUserData>> getMissingHealthData() async {
     return await _healthRepository.getMissingBasicUserData();
+  }
+
+  Future<void> createChatRoom() async {
+    await ApiService().createChatRoom();
   }
 }
 

@@ -30,16 +30,14 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
     final viewState = ref.watch(loginViewModelProvider);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final isCurrentlyLoading = viewState.isLoading;
-
-      if (isCurrentlyLoading) {
-        LoadingScreen.show(context, message: 'Logging in...');
-      } else {
-        LoadingScreen.dismiss(context);
-      }
+      if (!mounted) return;
 
       if (viewState.error != null) {
-        LoadingScreen.dismiss(context);
+        try {
+          LoadingScreen.dismiss(context);
+        } catch (e) {
+          print('Error dismissing loading screen on error: $e');
+        }
 
         ErrorSnackbar.showSignupError(
           context: context,
@@ -126,15 +124,8 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
                       : () async {
                           try {
                             await viewModel.handlePasswordLogin();
-
-                            if (mounted) {
-                              LoadingScreen.dismiss(context);
-                            }
                           } catch (e) {
                             print("Login error: $e");
-                            if (mounted) {
-                              LoadingScreen.dismiss(context);
-                            }
                           }
                         },
                   style: ElevatedButton.styleFrom(

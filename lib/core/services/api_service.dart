@@ -87,6 +87,42 @@ class ApiService {
       throw Exception('Error sending message: $e');
     }
   }
+
+  Future<Map<String, dynamic>> createChatRoom() async {
+    try {
+      final session = supabase.auth.currentSession;
+
+      if (session == null) {
+        throw Exception('Not authenticated');
+      }
+
+      final accessToken = session.accessToken;
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/create-room'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 401) {
+        final newSession = await supabase.auth.refreshSession();
+        if (newSession != null) {
+          return createChatRoom();
+        }
+        throw Exception('Authentication failed');
+      }
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to create chat room: ${response.body}');
+      }
+
+      return jsonDecode(response.body);
+    } catch (e) {
+      throw Exception('Error creating chat room: $e');
+    }
+  }
 }
 
 final apiServiceProvider = Provider<ApiService>((ref) => ApiService());

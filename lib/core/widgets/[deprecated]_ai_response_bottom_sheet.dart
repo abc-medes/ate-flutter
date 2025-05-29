@@ -1,3 +1,4 @@
+import 'package:ate_project/data/models/chat_model.dart';
 import 'package:flutter/material.dart';
 
 class AIResponseBottomSheet {
@@ -17,18 +18,6 @@ class AIResponseBottomSheet {
       builder: (context) => AIResponseChatView(initialQuestion: userQuestion),
     );
   }
-}
-
-class ChatMessage {
-  final String text;
-  final bool isUser;
-  final DateTime timestamp;
-
-  ChatMessage({
-    required this.text,
-    required this.isUser,
-    DateTime? timestamp,
-  }) : timestamp = timestamp ?? DateTime.now();
 }
 
 class AIResponseChatView extends StatefulWidget {

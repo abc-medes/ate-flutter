@@ -1,11 +1,9 @@
-import 'package:ate_project/core/routes/route_names.dart';
 import 'package:ate_project/core/theme/app_theme.dart';
 import 'package:ate_project/core/widgets/chat_input.dart';
 import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
 import 'package:ate_project/features/home/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 class HomeView extends ConsumerWidget {
   const HomeView({super.key});
@@ -39,12 +37,12 @@ class HomeView extends ConsumerWidget {
               : _buildChatView(context, state, viewModel, ref),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.go(RouteNames.settings);
-        },
-        child: const Icon(Icons.bug_report),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     context.go(RouteNames.settings);
+      //   },
+      //   child: const Icon(Icons.bug_report),
+      // ),
     );
   }
 
@@ -116,9 +114,7 @@ class HomeView extends ConsumerWidget {
           child: ListView.builder(
             controller: viewModel.scrollController,
             padding: const EdgeInsets.all(16),
-            itemCount: state.isProcessing
-                ? state.messages.length + 1 // +1 for typing indicator
-                : state.messages.length,
+            itemCount: state.messages.length,
             itemBuilder: (context, index) {
               if (state.isProcessing && index == state.messages.length) {
                 return Padding(
@@ -127,10 +123,23 @@ class HomeView extends ConsumerWidget {
                 );
               }
               final message = state.messages[index];
+              bool isLatestUserMessage = message.isUser &&
+                  index ==
+                      state.messages.length -
+                          2 && // User message before AI placeholder
+                  state.messages.length >
+                      1 && // Ensure there's at least a user and AI placeholder
+                  !state.messages.last.isUser;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: message.isUser
-                    ? _buildUserMessage(context, message.text)
+                    ? _buildUserMessage(
+                        context,
+                        message.text,
+                        isLatestUserMessage
+                            ? viewModel.userCurrentMessageKey
+                            : null,
+                      )
                     : _buildAIMessage(context, message.text),
               );
             },
@@ -164,9 +173,10 @@ class HomeView extends ConsumerWidget {
     );
   }
 
-  Widget _buildUserMessage(BuildContext context, String text) {
+  Widget _buildUserMessage(BuildContext context, String text, Key? messageKey) {
     return Align(
       alignment: Alignment.centerRight,
+      key: messageKey,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(

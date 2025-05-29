@@ -1,6 +1,7 @@
 import 'package:ate_project/core/services/api_service.dart';
 import 'package:ate_project/core/theme/app_theme.dart';
-import 'package:ate_project/core/widgets/%5Bdeprecated%5D_ai_response_bottom_sheet.dart';
+// import 'package:ate_project/core/widgets/%5Bdeprecated%5D_ai_response_bottom_sheet.dart';
+import 'package:ate_project/data/models/chat_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ate_project/core/services/auth_service.dart';
@@ -47,6 +48,8 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
   final TextEditingController textController = TextEditingController();
   final ScrollController scrollController = ScrollController();
   final FocusNode chatFocusNode = FocusNode();
+  final GlobalKey _userCurrentMessageKey = GlobalKey();
+  GlobalKey get userCurrentMessageKey => _userCurrentMessageKey;
 
   HomeViewModel(this._isAuthenticated) : super(HomeViewState()) {
     // _init();
@@ -94,49 +97,54 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
 
     state = state.copyWith(isProcessing: true);
 
-    final updatedMessages = [
-      ...state.messages,
-      ChatMessage(text: text, isUser: true)
-    ];
-    state = state.copyWith(messages: updatedMessages);
+    final userMessage = ChatMessage(text: text, isUser: true);
+    state = state.copyWith(messages: [...state.messages, userMessage]);
     textController.clear();
 
+    final aiMessagePlaceholder = ChatMessage(text: '', isUser: false);
+    state = state.copyWith(messages: [...state.messages, aiMessagePlaceholder]);
+
+    final aiMessageIndex = state.messages.length - 1;
+
     try {
-      final response = await ApiService().sendChatMessage(text);
+      final stream = ApiService().sendChatMessage(text);
+      StringBuffer bufferedResponse = StringBuffer();
 
-      final aiMessage = ChatMessage(
-        text:
-            response['response'] ?? 'Sorry, I could not process your request.',
-        isUser: false,
-      );
+      await for (final chunk in stream) {
+        bufferedResponse.write(chunk);
+        final updatedAIMessage = state.messages[aiMessageIndex]
+            .copyWith(text: bufferedResponse.toString());
 
-      state = state.copyWith(
-        messages: [...state.messages, aiMessage],
-        isProcessing: false,
-      );
+        final newMessages = List<ChatMessage>.from(state.messages);
+        newMessages[aiMessageIndex] = updatedAIMessage;
+        state = state.copyWith(messages: newMessages);
+        scrollToBottom();
+      }
 
-      // Scroll to bottom after response
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (scrollController.hasClients) {
-          scrollController.animateTo(
-            scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
-      });
+      state = state.copyWith(isProcessing: false);
     } catch (e) {
-      // Handle error
-      final errorMessage = ChatMessage(
-        text:
-            'Sorry, there was an error processing your request. Please try again.',
-        isUser: false,
-      );
+      final errorMessageText =
+          'Sorry, there was an error: ${e.toString().replaceFirst("Exception: ", "")}';
 
-      state = state.copyWith(
-        messages: [...state.messages, errorMessage],
-        isProcessing: false,
-      );
+      if (aiMessageIndex < state.messages.length &&
+          state.messages[aiMessageIndex] == aiMessagePlaceholder) {
+        final updatedAIMessage =
+            state.messages[aiMessageIndex].copyWith(text: errorMessageText);
+        final newMessages = List<ChatMessage>.from(state.messages);
+        newMessages[aiMessageIndex] = updatedAIMessage;
+        state = state.copyWith(
+          messages: newMessages,
+          isProcessing: false,
+        );
+      } else {
+        final errorChatMessage =
+            ChatMessage(text: errorMessageText, isUser: false);
+        state = state.copyWith(
+          messages: [...state.messages, errorChatMessage],
+          isProcessing: false,
+        );
+      }
+      scrollToBottom();
     }
   }
 
@@ -213,6 +221,18 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
 
   void dismissLoginPrompt() {
     state = state.copyWith(showLoginPrompt: false);
+  }
+
+  void scrollUserMessageToTop() {
+    final context = _userCurrentMessageKey.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        alignment: 0.0, // 0.0 = 위쪽
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   // Health data helper methods

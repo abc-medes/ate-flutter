@@ -1,3 +1,4 @@
+import 'package:ate_project/data/models/body_simulator_model.dart';
 import 'package:flutter/material.dart';
 
 /**
@@ -210,11 +211,13 @@ class HealthMetrics {
   final AutoDetectedData autoDetectedData;
 
   final EnvironmentalData environmentalData;
+  final BodySimulatorData bodySimulatorData;
 
   HealthMetrics({
     required this.userInputData,
     required this.autoDetectedData,
     required this.environmentalData,
+    required this.bodySimulatorData,
   });
 
   // Calculate BMI if height and weight are available
@@ -291,11 +294,15 @@ class HealthMetrics {
 
   factory HealthMetrics.fromJson(Map<String, dynamic> json) {
     return HealthMetrics(
-      userInputData: UserInputData.fromJson(json['user_input_data'] ?? {}),
-      autoDetectedData:
-          AutoDetectedData.fromJson(json['auto_detected_data'] ?? {}),
-      environmentalData:
-          EnvironmentalData.fromJson(json['environmental_data'] ?? {}),
+      userInputData: UserInputData.fromJson(
+          json['user_input_data'] as Map<String, dynamic>? ?? {}),
+      autoDetectedData: AutoDetectedData.fromJson(
+          json['auto_detected_data'] as Map<String, dynamic>? ?? {}),
+      environmentalData: EnvironmentalData.fromJson(
+          json['environmental_data'] as Map<String, dynamic>? ?? {}),
+      bodySimulatorData: BodySimulatorData.fromJson(
+          json['body_simulator_data'] as Map<String, dynamic>? ??
+              BodySimulatorData.empty().toJson()),
     );
   }
 
@@ -304,6 +311,7 @@ class HealthMetrics {
       'user_input_data': userInputData.toJson(),
       'auto_detected_data': autoDetectedData.toJson(),
       'environmental_data': environmentalData.toJson(),
+      'body_simulator_data': bodySimulatorData.toJson(),
     };
   }
 
@@ -311,11 +319,13 @@ class HealthMetrics {
     UserInputData? userInputData,
     AutoDetectedData? autoDetectedData,
     EnvironmentalData? environmentalData,
+    BodySimulatorData? bodySimulatorData,
   }) {
     return HealthMetrics(
       userInputData: userInputData ?? this.userInputData,
       autoDetectedData: autoDetectedData ?? this.autoDetectedData,
       environmentalData: environmentalData ?? this.environmentalData,
+      bodySimulatorData: bodySimulatorData ?? this.bodySimulatorData,
     );
   }
 }
@@ -1818,7 +1828,8 @@ void demonstrateEnumBasedApproach() {
   final healthMetrics = HealthMetrics(
       userInputData: userData,
       autoDetectedData: AutoDetectedData(),
-      environmentalData: envData);
+      environmentalData: envData,
+      bodySimulatorData: BodySimulatorData.empty());
 
   // Convert to JSON and back
   final json = healthMetrics.toJson();

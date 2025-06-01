@@ -1,9 +1,11 @@
+import 'package:ate_project/core/routes/route_names.dart';
 import 'package:ate_project/core/theme/app_theme.dart';
 import 'package:ate_project/core/widgets/chat_input.dart';
 import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
 import 'package:ate_project/features/home/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeView extends ConsumerWidget {
   const HomeView({super.key});
@@ -145,6 +147,30 @@ class HomeView extends ConsumerWidget {
             },
           ),
         ),
+
+        if (state.messages.isNotEmpty &&
+            !state.messages.last.isUser &&
+            !state.isProcessing)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                16.0, 8.0, 16.0, 8.0), // Added padding
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                foregroundColor: Theme.of(context).colorScheme.onSecondary,
+                minimumSize: const Size(double.infinity, 48), // Full width
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 2,
+              ),
+              onPressed: () {
+                context.go(RouteNames.bodySimulator);
+              },
+              child: const Text('Check Body Simulator',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ),
 
         Container(
           decoration: BoxDecoration(

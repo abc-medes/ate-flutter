@@ -1,6 +1,7 @@
 class RouteNames {
   // Auth Routes
   static const login = '/auth/login';
+  static const emailLoginInput = '/auth/email-login-input';
   static const signup = '/auth/signup';
   static const onboarding = '/auth/onboarding';
   static const checkingEmail = '/auth/checking-email';

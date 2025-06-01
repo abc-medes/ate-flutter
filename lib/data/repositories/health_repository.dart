@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:ate_project/data/models/body_simulator_model.dart';
 import 'package:ate_project/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ate_project/data/models/health_model.dart';
@@ -93,7 +94,6 @@ class HealthRepository {
     for (final field in BasicUserData.values) {
       final isSaved = await isBasicUserDataSaved(field);
 
-      // TODO: Remove this once we have a way to save allergies and medications
       if (!isSaved) {
         missingFields.add(field);
       }
@@ -123,6 +123,7 @@ class HealthRepository {
       userInputData: UserInputData(),
       autoDetectedData: AutoDetectedData(),
       environmentalData: EnvironmentalData(),
+      bodySimulatorData: BodySimulatorData.empty(),
     );
   }
 

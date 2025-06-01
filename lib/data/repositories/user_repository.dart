@@ -1,6 +1,7 @@
 // lib/data/repositories/user_repository.dart
 import 'dart:convert';
 
+import 'package:ate_project/data/models/body_simulator_model.dart';
 import 'package:ate_project/data/models/health_model.dart';
 import 'package:ate_project/data/models/user_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -56,6 +57,7 @@ class UserRepository {
         userInputData: UserInputData(),
         autoDetectedData: AutoDetectedData(),
         environmentalData: EnvironmentalData(),
+        bodySimulatorData: BodySimulatorData.empty(),
       );
 
       // Create the database record

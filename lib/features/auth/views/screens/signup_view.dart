@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ate_project/core/widgets/loading_view.dart';
 import 'package:ate_project/core/widgets/error_snackbar.dart';
+import 'package:ate_project/core/widgets/customed_text_input.dart';
 
 class SignupView extends ConsumerStatefulWidget {
   final String email;
@@ -68,22 +69,46 @@ class _SignupViewState extends ConsumerState<SignupView> {
             }
           },
         ),
-        title: const Text('Create Account'),
+        title: const Text('Sign Up'),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: () {
-              switch (viewState.currentStep) {
-                case SignupStep.detailsInput:
-                  return _buildDetailsStep(context, viewModel, viewState);
-                case SignupStep.emailSent:
-                  return _buildEmailSentStep(context, viewModel, viewState);
-                // default:
-                //   return _buildDetailsStep(context, viewModel, viewState);
-              }
-            }(),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              if (viewState.currentStep == SignupStep.detailsInput)
+                Expanded(
+                    child: _buildDetailsStep(context, viewModel, viewState)),
+              if (viewState.currentStep == SignupStep.emailSent)
+                Expanded(
+                    child: _buildEmailSentStep(context, viewModel, viewState)),
+              // _buildEmailSentStep(context, viewModel, viewState),
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: viewState.isLoading
+                      ? null
+                      : () async {
+                          await viewModel.signUp();
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.surface,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Continue',
+                    style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                          color: AppColors.surface,
+                        ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -98,126 +123,69 @@ class _SignupViewState extends ConsumerState<SignupView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Sign Up',
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Create your account with the details below',
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 16,
-          ),
-        ),
-        const SizedBox(height: 32),
-
         // Email field
-        _buildInputField(
-          hintText: 'Email',
+        CustomedTextInput(
           controller: viewState.emailController,
+          hintText: 'Email',
           isRequired: true,
           keyboardType: TextInputType.emailAddress,
           onChanged: (_) => viewModel.validateEmail(),
+          errorText: !viewState.isEmailValid
+              ? 'Please enter a valid email address'
+              : null,
         ),
-
-        // Email validation error
-        if (!viewState.isEmailValid)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0, left: 4.0),
-            child: Text(
-              'Please enter a valid email address',
-              style: TextStyle(
-                color: AppColors.error,
-                fontSize: 12,
-              ),
-            ),
-          ),
         const SizedBox(height: 24),
 
         // Name field
-        _buildInputField(
-          hintText: 'Full Name',
+        CustomedTextInput(
           controller: viewState.nameController,
+          hintText: 'Full Name',
           isRequired: true,
         ),
         const SizedBox(height: 24),
 
         // Password field
-        _buildPasswordField(
-          hintText: 'Password',
+        CustomedTextInput(
           controller: viewState.passwordController,
-          isVisible: viewState.isPasswordVisible,
-          toggleVisibility: viewModel.togglePasswordVisibility,
+          hintText: 'Password',
+          isRequired: true,
+          obscureText: !viewState.isPasswordVisible,
           onChanged: (_) => viewModel.validatePassword(),
-        ),
-
-        if (!viewState.isPasswordValid)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0, left: 4.0),
-            child: Text(
-              'Password must be at least 8 characters with at least 1 number',
-              style: TextStyle(
-                color: AppColors.error,
-                fontSize: 12,
-              ),
+          errorText: !viewState.isPasswordValid
+              ? 'Password must be at least 8 characters with at least 1 number'
+              : null,
+          suffixIcon: IconButton(
+            icon: Icon(
+              viewState.isPasswordVisible
+                  ? Icons.visibility_off
+                  : Icons.visibility,
+              color: AppColors.textTertiary,
             ),
+            onPressed: viewModel.togglePasswordVisibility,
           ),
+        ),
         const SizedBox(height: 24),
 
         // Confirm Password field
-        _buildPasswordField(
-          hintText: 'Confirm Password',
+        CustomedTextInput(
           controller: viewState.confirmPasswordController,
-          isVisible: viewState.isConfirmPasswordVisible,
-          toggleVisibility: viewModel.toggleConfirmPasswordVisibility,
+          hintText: 'Confirm Password',
+          isRequired: true,
+          obscureText: !viewState.isConfirmPasswordVisible,
           onChanged: (_) => viewModel.validatePasswordsMatch(),
-        ),
-
-        // Password match error
-        if (!viewState.doPasswordsMatch)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0, left: 4.0),
-            child: Text(
-              'Passwords do not match',
-              style: TextStyle(
-                color: AppColors.error,
-                fontSize: 12,
-              ),
+          errorText:
+              !viewState.doPasswordsMatch ? 'Passwords do not match' : null,
+          suffixIcon: IconButton(
+            icon: Icon(
+              viewState.isConfirmPasswordVisible
+                  ? Icons.visibility_off
+                  : Icons.visibility,
+              color: AppColors.textTertiary,
             ),
+            onPressed: viewModel.toggleConfirmPasswordVisibility,
           ),
+        ),
         const SizedBox(height: 40),
-
-        // Continue button
-        SizedBox(
-          width: double.infinity,
-          height: 54,
-          child: ElevatedButton(
-            onPressed: viewState.isLoading
-                ? null
-                : () async {
-                    await viewModel.signUp();
-                  },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.surface,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text(
-              'Continue',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -354,68 +322,6 @@ class _SignupViewState extends ConsumerState<SignupView> {
           ),
         ),
       ],
-    );
-  }
-
-  // Helper methods for UI components
-  Widget _buildInputField({
-    required String hintText,
-    required TextEditingController controller,
-    bool isRequired = false,
-    TextInputType keyboardType = TextInputType.text,
-    Function(String)? onChanged,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          hintText: isRequired ? '$hintText *' : hintText,
-          hintStyle: TextStyle(color: AppColors.textTertiary),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-          border: InputBorder.none,
-        ),
-        keyboardType: keyboardType,
-        onChanged: onChanged,
-      ),
-    );
-  }
-
-  Widget _buildPasswordField({
-    required String hintText,
-    required TextEditingController controller,
-    required bool isVisible,
-    required VoidCallback toggleVisibility,
-    Function(String)? onChanged,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: !isVisible,
-        decoration: InputDecoration(
-          hintText: '$hintText *',
-          hintStyle: TextStyle(color: AppColors.textTertiary),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-          border: InputBorder.none,
-          suffixIcon: IconButton(
-            icon: Icon(
-              isVisible ? Icons.visibility_off : Icons.visibility,
-              color: AppColors.textTertiary,
-            ),
-            onPressed: toggleVisibility,
-          ),
-        ),
-        onChanged: onChanged,
-      ),
     );
   }
 }

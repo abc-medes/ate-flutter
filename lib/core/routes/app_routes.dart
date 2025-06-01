@@ -9,11 +9,12 @@ import 'package:ate_project/core/routes/route_names.dart';
 final appRoutes = [
   GoRoute(
     path: '/',
-    pageBuilder: (context, state) => _buildBottomTransitionPage(
-      context,
-      state,
-      const HomeView(),
-    ),
+    builder: (context, state) => const HomeView(),
+    // pageBuilder: (context, state) => _buildBottomTransitionPage(
+    //   context,
+    //   state,
+    //   const HomeView(),
+    // ),
   ),
   GoRoute(
     path: '/debug',

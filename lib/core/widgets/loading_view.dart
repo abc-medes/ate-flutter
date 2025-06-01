@@ -22,6 +22,12 @@ class LoadingScreen extends StatefulWidget {
 
   static void show(BuildContext context, {String? message}) {
     try {
+      // If already showing, just update the message
+      if (_isOverlayShown && _currentOverlayEntry != null) {
+        print('Loading screen already shown, updating message: $message');
+        return;
+      }
+
       dismiss(context);
 
       if (!context.mounted) return;
@@ -63,12 +69,20 @@ class LoadingScreen extends StatefulWidget {
       if (_isOverlayShown && _currentOverlayEntry != null) {
         // Use a post-frame callback to ensure UI isn't being built
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          try {
-            _currentOverlayEntry?.remove();
-            print('Loading screen dismissed via direct overlay entry');
-          } catch (e) {
-            print('Error removing overlay entry in post-frame: $e');
-          } finally {
+          if (context.mounted) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              try {
+                _currentOverlayEntry?.remove();
+                print('Loading screen dismissed via direct overlay entry');
+              } catch (e) {
+                print('Error removing overlay entry in post-frame: $e');
+              } finally {
+                _currentOverlayEntry = null;
+                _isOverlayShown = false;
+              }
+            });
+          } else {
+            // If context is not valid, just clean up the state
             _currentOverlayEntry = null;
             _isOverlayShown = false;
           }
@@ -143,28 +157,28 @@ class _LoadingScreenState extends State<LoadingScreen>
     return Material(
       type: MaterialType.transparency,
       child: Container(
-        color: Colors.black.withOpacity(0.7),
+        color: Colors.black.withOpacity(0.1),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (widget.showLogo) ...[
-                _buildAnimatedLogo(),
-                const SizedBox(height: 32),
-              ],
+              // if (widget.showLogo) ...[
+              //   _buildAnimatedLogo(),
+              //   const SizedBox(height: 32),
+              // ],
               _buildLoadingIndicator(),
-              if (widget.message != null) ...[
-                const SizedBox(height: 24),
-                Text(
-                  widget.message!,
-                  style: TextStyle(
-                    color: AppColors.surface,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+              // if (widget.message != null) ...[
+              //   const SizedBox(height: 24),
+              //   Text(
+              //     widget.message!,
+              //     style: TextStyle(
+              //       color: AppColors.surface,
+              //       fontSize: 16,
+              //       fontWeight: FontWeight.w500,
+              //     ),
+              //     textAlign: TextAlign.center,
+              //   ),
+              // ],
             ],
           ),
         ),

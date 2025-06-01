@@ -18,7 +18,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             : RouteNames.login;
       }
 
-      if (!userService.isBasicHealthDataComplete) {
+      if (authState.isAuthenticated && !userService.isBasicHealthDataComplete) {
         return RouteNames.onboarding;
       }
 

@@ -1,4 +1,5 @@
 import 'package:ate_project/core/services/auth_service.dart';
+import 'package:ate_project/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,9 +24,10 @@ class SocialAuthButton extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       height: 54,
-      child: ElevatedButton(
+      child: OutlinedButton(
         onPressed: ref.watch(authProvider).isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(color: AppColors.textTertiary.withAlpha(128)),
           backgroundColor: Colors.white,
           foregroundColor: Colors.black87,
           elevation: 0,
@@ -51,10 +53,9 @@ class SocialAuthButton extends StatelessWidget {
             Center(
               child: Text(
                 text,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
               ),
             ),
           ],

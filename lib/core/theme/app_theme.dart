@@ -4,31 +4,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 final themeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
 
 class AppColors {
-  // Primary Colors
-  static const primary = Color(0xFF4CAF50); // A fresh, natural green
-  static const primaryLight = Color(0xFF80E27E);
-  static const primaryDark = Color(0xFF087F23);
+  // Primary Colors (ICE CREAM - Deep Green)
+  static const primary =
+      Color(0xFF05804C); // deep vintage green (ICE CREAM text)
+  static const primaryLight =
+      Color(0xFF90C3A4); // minty green (ice cream character)
+  static const primaryDark = Color(0xFF2B5A3D); // darkened version for contrast
 
-  // Secondary Colors
-  static const secondary = Color(0xFFFF9800);
-  static const secondaryLight = Color(0xFF67DAFF);
-  static const secondaryDark = Color(0xFF007AC1);
+  // Secondary Colors (BORCELLE - Coral Red)
+  static const secondary = Color(0xFFFF5757); // coral red (BORCELLE text)
+  static const secondaryLight = Color(0xFFFFA29E); // lighter coral
+  static const secondaryDark = Color(0xFFB44B44); // dark coral/red
 
-  // Tertiary Colors (for additional accent and UI elements)
-  static const tertiary = Color(0xFF1976D2); // Deep blue
+  // Tertiary Colors (optional accent colors retained or can be themed later)
+  static const tertiary = Color(0xFF1976D2);
   static const tertiaryLight = Color(0xFF63A4FF);
   static const tertiaryDark = Color(0xFF004BA0);
 
   // Additional UI colors
-  static const bodySimulator = Color(0xFF1976D2); // Blue for body simulator
-  static const healthLogs = Color(0xFF388E3C); // Green for health logs
-  static const activity = Color(0xFFFF9800); // Orange for activity
-  static const nutrition = Color(0xFFE91E63); // Pink for nutrition
-  static const sleep = Color(0xFF673AB7); // Purple for sleep
-  static const mood = Color(0xFFFFEB3B); // Yellow for mood tracking
+  static const bodySimulator = Color(0xFF1976D2);
+  static const healthLogs = Color(0xFF388E3C);
+  static const activity = Color(0xFFFF9800);
+  static const nutrition = Color(0xFFE91E63);
+  static const sleep = Color(0xFF673AB7);
+  static const mood = Color(0xFFFFEB3B);
 
   // Neutral Colors
-  static const background = Color(0xFFF5F5F5);
+  static const background =
+      Color(0xFFFDF8e7); // creamy vanilla background like the image
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF212121);
   static const textSecondary = Color(0xFF757575);
@@ -46,6 +49,10 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
+      scaffoldBackgroundColor: AppColors.background,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.background,
+      ),
       brightness: Brightness.light,
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
@@ -70,7 +77,7 @@ class AppTheme {
           color: AppColors.primary,
         ),
         headlineSmall: TextStyle(
-          fontSize: 16,
+          fontSize: 18,
           fontWeight: FontWeight.bold,
           color: AppColors.primary,
         ),
@@ -90,17 +97,22 @@ class AppTheme {
           color: AppColors.textPrimary,
         ),
         bodyLarge: TextStyle(
-          fontSize: 16,
+          fontSize: 18,
           color: AppColors.textPrimary,
+          fontWeight: FontWeight.w600,
         ),
         bodyMedium: TextStyle(
-          fontSize: 14,
+          fontSize: 16,
           color: AppColors.textSecondary,
         ),
         labelLarge: TextStyle(
-          fontSize: 16,
+          fontSize: 18,
           fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
+          color: AppColors.primary,
+        ),
+        labelSmall: TextStyle(
+          fontSize: 14,
+          color: AppColors.error,
         ),
       ),
 

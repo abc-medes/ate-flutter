@@ -60,7 +60,7 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
         break;
       case 2:
         await viewModel.saveHeightandWeightData();
-        await viewModel.createChatRoom();
+        await viewModel.initializeBodySimulatorState();
         break;
     }
   }

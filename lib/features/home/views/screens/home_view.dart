@@ -6,6 +6,7 @@ import 'package:ate_project/features/home/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeView extends ConsumerWidget {
   const HomeView({super.key});
@@ -39,12 +40,14 @@ class HomeView extends ConsumerWidget {
               : _buildChatView(context, state, viewModel, ref),
         ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     context.go(RouteNames.settings);
-      //   },
-      //   child: const Icon(Icons.bug_report),
-      // ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.remove('health_metrics');
+          // context.go(RouteNames.settings);
+        },
+        child: const Icon(Icons.bug_report),
+      ),
     );
   }
 

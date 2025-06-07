@@ -122,8 +122,16 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
     return await _healthRepository.getMissingBasicUserData();
   }
 
-  Future<void> createChatRoom() async {
-    await ApiService().createChatRoom();
+  Future<bool> initializeBodySimulatorState() async {
+    state = state.copyWith(isSaving: true);
+    try {
+      await ApiService.initializeBodySimulatorState();
+      return true;
+    } catch (e) {
+      return false;
+    } finally {
+      state = state.copyWith(isSaving: false);
+    }
   }
 }
 

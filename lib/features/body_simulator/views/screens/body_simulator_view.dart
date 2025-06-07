@@ -1,8 +1,12 @@
+import 'package:ate_project/core/routes/route_names.dart';
+import 'package:ate_project/core/widgets/chat_input.dart';
 import 'package:ate_project/features/body_simulator/view_models/body_simulator_view_model.dart';
+import 'package:ate_project/features/home/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:ate_project/data/models/health_model.dart';
 import 'package:ate_project/data/models/body_simulator_model.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // Ensure this path and model are correct
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class BodySimulatorView extends ConsumerStatefulWidget {
   // Constructor no longer needs healthMetrics directly
@@ -13,55 +17,117 @@ class BodySimulatorView extends ConsumerStatefulWidget {
 }
 
 class _BodySimulatorViewState extends ConsumerState<BodySimulatorView> {
+  final TextEditingController _chatController = TextEditingController();
+  bool _isSaveMode = false;
+
+  @override
+  void dispose() {
+    _chatController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final asyncHealthMetrics = ref.watch(bodySimulatorViewModelProvider);
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         title: const Text('Body Simulator'),
       ),
-      body: asyncHealthMetrics.when(
-        data: (healthMetrics) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                _buildSectionTitle('Overall Health Summary'),
-                _buildOverallSummary(healthMetrics),
-                const SizedBox(height: 20),
-                _buildSectionTitle('User Provided Data'),
-                _buildUserInputDataSection(healthMetrics.userInputData),
-                const SizedBox(height: 20),
-                _buildSectionTitle('Automatically Detected Data'),
-                _buildAutoDetectedDataSection(healthMetrics.autoDetectedData),
-                const SizedBox(height: 20),
-                _buildSectionTitle('Environmental Factors'),
-                _buildEnvironmentalDataSection(healthMetrics.environmentalData),
-                const SizedBox(height: 20),
-                _buildSectionTitle('Body Simulation Insights'),
-                _buildBodySimulatorDataSection(
-                    context, healthMetrics.bodySimulatorData),
+      body: Column(
+        children: [
+          Expanded(
+            child: asyncHealthMetrics.when(
+              data: (healthMetrics) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      _buildSectionTitle('Overall Health Summary'),
+                      _buildOverallSummary(healthMetrics),
+                      const SizedBox(height: 20),
+                      _buildSectionTitle('User Provided Data'),
+                      _buildUserInputDataSection(healthMetrics.userInputData),
+                      const SizedBox(height: 20),
+                      _buildSectionTitle('Automatically Detected Data'),
+                      _buildAutoDetectedDataSection(
+                          healthMetrics.autoDetectedData),
+                      const SizedBox(height: 20),
+                      _buildSectionTitle('Environmental Factors'),
+                      _buildEnvironmentalDataSection(
+                          healthMetrics.environmentalData),
+                      const SizedBox(height: 20),
+                      _buildSectionTitle('Body Simulation Insights'),
+                      _buildBodySimulatorDataSection(
+                          context, healthMetrics.bodySimulatorData),
+                    ],
+                  ),
+                );
+              },
+              loading: () {
+                return const Center(child: CircularProgressIndicator());
+              },
+              error: (error, stackTrace) {
+                debugPrint('Error in BodySimulatorView: $error\n$stackTrace');
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      'Failed to load health data. Please try again later.\nError: $error',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).shadowColor.withOpacity(0.05),
+                  blurRadius: 3,
+                  offset: const Offset(0, -1),
+                ),
               ],
             ),
-          );
-        },
-        loading: () {
-          return const Center(child: CircularProgressIndicator());
-        },
-        error: (error, stackTrace) {
-          debugPrint('Error in BodySimulatorView: $error\n$stackTrace');
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Failed to load health data. Please try again later.\nError: $error',
-                textAlign: TextAlign.center,
-              ),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: ChatInput(
+              controller: _chatController,
+              shouldSaveAsContext: _isSaveMode,
+              onSaveModeToggle: () {
+                setState(() {
+                  _isSaveMode = !_isSaveMode;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Save mode toggled: $_isSaveMode')),
+                );
+              },
+              onSubmit: (text, images) {
+                if (text.isNotEmpty) {
+                  final homeViewModel =
+                      ref.read(homeViewModelProvider.notifier);
+
+                  homeViewModel.textController.text = text;
+
+                  if (_isSaveMode) {
+                    homeViewModel.handleMemorize(context);
+                  } else {
+                    homeViewModel.handleChatSubmit();
+                  }
+
+                  _chatController.clear();
+
+                  context.go(RouteNames.home);
+                }
+              },
+              // isDisabled: asyncHealthMetrics.isLoading, // Optionally disable while loading
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }

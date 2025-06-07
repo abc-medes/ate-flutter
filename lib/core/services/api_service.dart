@@ -6,27 +6,27 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ApiService {
-  final String baseUrl = 'http://localhost:8080/api';
-  final SupabaseClient supabase = Supabase.instance.client;
+  static const String _baseUrl = 'http://localhost:8080/api';
+  static final SupabaseClient _supabase = Supabase.instance.client;
 
-  Stream<String> sendChatMessage(String prompt) async* {
+  static Stream<String> sendChatMessage(String prompt) async* {
     final client = http.Client();
     try {
       Future<http.StreamedResponse> _executeSendRequest(String token) async {
         final request =
-            http.Request('POST', Uri.parse('$baseUrl/generate/health'))
+            http.Request('POST', Uri.parse('$_baseUrl/generate/health'))
               ..headers.addAll({
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer $token',
               })
               ..body = jsonEncode({
                 'prompt': prompt,
-                'user_id': supabase.auth.currentUser!.id,
+                'user_id': _supabase.auth.currentUser!.id,
               });
         return client.send(request);
       }
 
-      final initialSession = supabase.auth.currentSession;
+      final initialSession = _supabase.auth.currentSession;
       if (initialSession == null) {
         throw Exception('Not authenticated: No active session.');
       }
@@ -37,7 +37,7 @@ class ApiService {
       if (streamedResponse.statusCode == 401) {
         print('API token expired or invalid, attempting refresh...');
         final authResponse =
-            await supabase.auth.refreshSession(); // AuthResponse
+            await _supabase.auth.refreshSession(); // AuthResponse
 
         if (authResponse.session == null ||
             authResponse.session!.accessToken.isEmpty) {
@@ -73,9 +73,9 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> memorizeChat(String prompt) async {
+  static Future<Map<String, dynamic>> memorizeChat(String prompt) async {
     try {
-      final session = supabase.auth.currentSession;
+      final session = _supabase.auth.currentSession;
 
       if (session == null) {
         throw Exception('Not authenticated');
@@ -84,7 +84,7 @@ class ApiService {
       final accessToken = session.accessToken;
 
       final response = await http.post(
-        Uri.parse('$baseUrl/generate/memory'),
+        Uri.parse('$_baseUrl/generate/memory'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -96,9 +96,11 @@ class ApiService {
       );
 
       if (response.statusCode == 401) {
-        final newSession = await supabase.auth.refreshSession();
-        if (newSession != null) {
-          return memorizeChat(prompt);
+        final newSession = await _supabase.auth.refreshSession();
+        // The refreshed session is automatically stored by the Supabase client.
+        // We can just retry the request.
+        if (newSession.session != null) {
+          return memorizeChat(prompt); // Retry with the new session
         }
         throw Exception('Authentication failed');
       }
@@ -113,39 +115,60 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> createChatRoom() async {
+  static Future<void> initializeBodySimulatorState() async {
     try {
-      final session = supabase.auth.currentSession;
-
+      final session = _supabase.auth.currentSession;
       if (session == null) {
-        throw Exception('Not authenticated');
+        throw Exception('Not authenticated: No active session.');
+      }
+      String accessToken = session.accessToken;
+
+      Future<http.Response> _executeRequest(String token) async {
+        final localTimestamp = DateTime.now().toIso8601String();
+        final uri = Uri.parse(
+            '$_baseUrl/initialize/body-simulator?local_timestamp_str=$localTimestamp');
+
+        return await http.post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode({}),
+        );
       }
 
-      final accessToken = session.accessToken;
-
-      final response = await http.post(
-        Uri.parse('$baseUrl/create-room'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
-      );
+      var response = await _executeRequest(accessToken);
 
       if (response.statusCode == 401) {
-        final newSession = await supabase.auth.refreshSession();
-        if (newSession != null) {
-          return createChatRoom();
+        print('API token expired or invalid, attempting refresh...');
+        final authResponse = await _supabase.auth.refreshSession();
+
+        if (authResponse.session == null ||
+            authResponse.session!.accessToken.isEmpty) {
+          throw Exception('Authentication failed: Unable to refresh session.');
         }
-        throw Exception('Authentication failed');
+        accessToken = authResponse.session!.accessToken;
+        print('Token refreshed. Retrying request with new token...');
+        response = await _executeRequest(accessToken);
       }
 
       if (response.statusCode != 200) {
-        throw Exception('Failed to create chat room: ${response.body}');
+        throw Exception(
+            'Failed to initialize body simulator: Status ${response.statusCode} - Body: ${response.body}');
       }
 
-      return jsonDecode(response.body);
+      final responseBody = jsonDecode(response.body);
+      print(
+          'Body simulator initialized successfully: ${responseBody['message']}');
     } catch (e) {
-      throw Exception('Error creating chat room: $e');
+      if (e is Exception) {
+        final errorMessage = e.toString();
+        throw Exception(
+            'Error initializing body simulator: ${errorMessage.startsWith("Exception: ") ? errorMessage.substring("Exception: ".length) : errorMessage}');
+      } else {
+        throw Exception('Error initializing body simulator: $e');
+      }
     }
   }
 }

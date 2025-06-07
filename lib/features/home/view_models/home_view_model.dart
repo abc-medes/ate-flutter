@@ -107,7 +107,7 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     final aiMessageIndex = state.messages.length - 1;
 
     try {
-      final stream = ApiService().sendChatMessage(text);
+      final stream = ApiService.sendChatMessage(text);
       StringBuffer bufferedResponse = StringBuffer();
 
       await for (final chunk in stream) {
@@ -163,7 +163,7 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     textController.clear();
 
     try {
-      final response = await ApiService().memorizeChat(text);
+      final response = await ApiService.memorizeChat(text);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

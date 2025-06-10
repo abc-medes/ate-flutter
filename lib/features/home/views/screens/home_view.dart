@@ -40,14 +40,14 @@ class HomeView extends ConsumerWidget {
               : _buildChatView(context, state, viewModel, ref),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.remove('health_metrics');
-          // context.go(RouteNames.settings);
-        },
-        child: const Icon(Icons.bug_report),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () async {
+      //     final prefs = await SharedPreferences.getInstance();
+      //     await prefs.remove('health_metrics');
+      //     // context.go(RouteNames.settings);
+      //   },
+      //   child: const Icon(Icons.bug_report),
+      // ),
     );
   }
 

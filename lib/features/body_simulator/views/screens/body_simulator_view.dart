@@ -1,6 +1,7 @@
 import 'package:ate_project/core/routes/route_names.dart';
 import 'package:ate_project/core/widgets/chat_input.dart';
 import 'package:ate_project/features/body_simulator/view_models/body_simulator_view_model.dart';
+import 'package:ate_project/features/body_simulator/views/widgets/heart_painter.dart';
 import 'package:ate_project/features/home/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:ate_project/data/models/health_model.dart';
@@ -45,6 +46,7 @@ class _BodySimulatorViewState extends ConsumerState<BodySimulatorView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
+                      const HeartHealthScreen(),
                       _buildSectionTitle('Overall Health Summary'),
                       _buildOverallSummary(healthMetrics),
                       const SizedBox(height: 20),

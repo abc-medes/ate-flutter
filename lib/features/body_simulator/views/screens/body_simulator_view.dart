@@ -8,6 +8,8 @@ import 'package:ate_project/data/models/health_model.dart';
 import 'package:ate_project/data/models/body_simulator_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lottie/lottie.dart';
 
 class BodySimulatorView extends ConsumerStatefulWidget {
   // Constructor no longer needs healthMetrics directly
@@ -20,6 +22,13 @@ class BodySimulatorView extends ConsumerStatefulWidget {
 class _BodySimulatorViewState extends ConsumerState<BodySimulatorView> {
   final TextEditingController _chatController = TextEditingController();
   bool _isSaveMode = false;
+  late final Future<LottieComposition> _composition;
+
+  @override
+  void initState() {
+    super.initState();
+    _composition = AssetLottie('assets/organs/lottie/kidney.json').load();
+  }
 
   @override
   void dispose() {
@@ -46,6 +55,38 @@ class _BodySimulatorViewState extends ConsumerState<BodySimulatorView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
+                      SizedBox(
+                        width: 128,
+                        height: 128,
+                        child: Lottie.asset(
+                          'assets/organs/beating_pixel_heart.json',
+                          fit: BoxFit.fill,
+                          filterQuality: FilterQuality.none,
+                        ),
+                      ),
+
+                      // SVG render placeholder for testing
+                      SizedBox(
+                        height: 120,
+                        child: SvgPicture.string(
+                          '''<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="grey" stroke-width="12">
+                                      <path d="M 251 55 L 247 59 L 246 229 L 225 237 L 223 236 L 225 193 L 230 167 L 229 149 L 220 131 L 211 123 L 201 119 L 181 119 L 165 122 L 151 127 L 128 140 L 98 170 L 78 208 L 69 249 L 69 438 L 72 450 L 78 461 L 88 471 L 97 476 L 115 478 L 127 474 L 206 413 L 220 398 L 227 384 L 231 368 L 224 251 L 226 251 L 226 254 L 228 250 L 227 245 L 250 236 L 278 247 L 271 368 L 276 387 L 288 406 L 375 474 L 383 477 L 397 478 L 409 474 L 423 462 L 429 452 L 433 438 L 433 251 L 427 218 L 419 196 L 410 179 L 395 159 L 368 136 L 340 123 L 321 119 L 301 119 L 291 123 L 280 133 L 272 154 L 264 156 L 258 166 L 258 171 L 263 180 L 275 182 L 278 208 L 278 236 L 276 237 L 256 229 L 255 60 Z"/>
+                                    </svg>''',
+                          width: 100,
+                          height: 100,
+                        ),
+                      ),
+                      // PNG image render box for testing
+                      SizedBox(
+                        height: 120,
+                        child: Image.asset(
+                          'assets/organs/brain.png',
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                       const HeartHealthScreen(),
                       _buildSectionTitle('Overall Health Summary'),
                       _buildOverallSummary(healthMetrics),

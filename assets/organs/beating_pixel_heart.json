@@ -1,0 +1,251 @@
+{
+  "v": "5.7.4",
+  "fr": 20,
+  "ip": 0,
+  "op": 20,
+  "w": 32,
+  "h": 32,
+  "nm": "Beating Pixel Heart",
+  "ddd": 0,
+  "assets": [
+    {
+      "id": "img_0",
+      "w": 32,
+      "h": 32,
+      "u": "",
+      "p": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACc0lEQVR4nO2WzW7TQBSFv2sKgihULADROInY1uVNWCWl8AbwdHF5GGQjhAAlsbNBKCVRaUuby2I8seM6sZ2C2PRI0Uys+J5zf+Zk4Ba3+M+QmwboNluqKACj+aR2PGcb0k5zT+0HAf+gjYgsBXWbLf2nAgB8rw0ioAoKKDxtPFbfc1GUqiJqlcwG9T2XBXAYRhzvu2hBoH4QMZzHpfF36pCrYAgFHE33AqsiFOaXZ5XiVm9BQm4JesHYkCbltysKbz9PeLBzbzkPm9pRqQXt5jMVcVIBW6D/ccLw5/gaX6UKODnyXhCRTUmhPJXFovBx6Qzcdxrq5zMXRRIh/oELag4DKJJR8vLDN86vLpJ3ihWWVuBJ41HBSw6HYYwjYnqPKcBvNSfD4q5zh+n5iUzPT2R6Ni1UsLECneaeHnur2feCCN9rZZ4YBZcqvAljVn5fXPVcMjXQCyIG+y1MvmlCChyFEXmx71906O5uNqQSASlJLxgz8FwcAUnqbuxXcIDjxAHJjGcv044tBVjyiIHXTgxHQMXM1NJ9zOhZQRZVju1mAWJ77iYEmWHW7Kpp3pL7fhMBo1nq5VmbLdguH4hapX9BQHXIcrFTIAr9MCqlKBUwmsfSDyIUTcwGcvVPV7UdsUdzUWi/tQQAK4OWzD+64nrZXYrFGvu9FroKus2WDrz8VBsRmllBePdpzJfTX0wvit0vi8ozMJzHcpj7E7qetfA6jPl+JTgVI9cawuE8lldBhMm8+KipwHAWy4813p/HVrfizsOWDvZdJHcZ64djRrN6N+OtjuFoZtqRJT8KJ7XJYcsKWDzfdVWSS+HXkuN2i3X4A0HeAUkUjDwSAAAAAElFTkSuQmCC",
+      "e": 1
+    },
+    {
+      "id": "img_1",
+      "w": 32,
+      "h": 32,
+      "u": "",
+      "p": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAClElEQVR4nO2Wz27TQBDGf2MKgipUHABRu4m41vAmnJJQeAN4uqQ8DLIRQoCS2LkglJKotKXNcNh1/KeOYwckDvSTLG823plvZme+XbjB/w75UwOdlquKAjBeTBvb22m6oN3a19yEwNA/oB9EK0IAo0Vci4zTlAAYh4iYRxUUUHi8+1CHvoeiKyKbUDtlicGh77EE+qGJ+PjQQ0sM9YKoVhZqbUGn5aqKdSbgqBkDqBjnORIKi8uzOqZrboGkDlHoBpMk64gdJG8U3nyacm/nDp2Wq8lTYboaB60nKuKkBLZE78OU0Y/JNX8bM+AUnHeDiGI4CptDWS5Lpytr4K6zq8Ni5KKIJQIwfOaBmmYARTJMXrz/yvnVhV1XzrAyA492H5QscOiHMY4IjojZe0wCfmnaHQC3nVvMzk9kdn4is7NZKYO1GWi39vXYz0ffDSKGvlv40jC4VOF1GJNbU571QkD/GLUJdIOIwaGLSXY+mwochRHFjL173qazV62IFQRSJ91gwsD3cATEbrqIIGLIOMCxlWAyPdLN1MMWBBLnEQP/wKqdgIop6JUSGbJiSWWJ19GO9QQkKTrPGs90Ujaptv00sy73e1sC43l6kGQ1Pju85iSRZJHax9xf6gJZvbJnRC+MNrqo/He8iKUXRChqlQ7SuLUwNi+zI4k2LEv1vzYBIFdktv5RK7mp7GZHKZZr9P+a+U3otFwd+MWKTuikhNS2xduPEz6f/mR2US6/WdSqgdEiln7hFMw2nGRmX4Ux364Ep2Z11S7C0SKWl0GEUYOi5KRQgdE8lu9rDp8iGl+j2/ddHRx6yMp9aqIXThjPm13NG7fheG62o3gmHIXTxs5hiwwkeLrnmYuQvZV+2dBuN1iH3+YhB1cs4GUuAAAAAElFTkSuQmCC",
+      "e": 1
+    },
+    {
+      "id": "img_2",
+      "w": 32,
+      "h": 32,
+      "u": "",
+      "p": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACkUlEQVR4nO2XzW7TQBSFv2sKgipULADROInYxuVNWDml8AbwdEl4GGQjhAAlsbNBKCURtKXNZTEe/BM3sRsquuBII9tjzb3n/swZG/7jH0O2WdxpNBVAUQDGi2lte842BP4GahNoN/bVDgQQGBy0EDHBdxpNtZm5FgIAA68FIqCaDEDh8e5DHXguilKVROWaWYMDz2UJHIYRw64LxveKoV4QMVrEG+3vVHWuAsOuiwo4mt7bKHIkFBbnJ1VMVyxB4twa94OJcahmkLmi8PrjlHs7d/70w7pybExRq/FERZyUwBXRez8FYPR9kvO5MQNOwbkfRBTDUdgcynJpRgFre+Cus6uDYuRidp8fRAwO0rJoIkmSYfL83RdOL86SdeUM12bg0e6DkgUOh2GMI5L2ACYBv9TsDovbzi1mp8cyOz2W2clMZiezFRaXZqDd2Nehl4/eDyIGXjMzkxbjXIVXYUxuzWrGSwKqCD+I6HebYOWvQOMojCgSfvusTWdvvSDd5LMgjdIPJvQ9F0dAkqIb7TfDAYaJBGfL4mf64QoErPOIvtdK1E5AxTS0lT4xZCVHyqCKdlxOQGzTuYnxzE7SzDX3RWD964pW1CYwnqcHSVbjS25zk6KW7ZYE6iE9lWxSRKEXRhtdrH07XsTSCyIUTZQO8vkvzKmtiHk+1+WK9tciAOSaLOl/tCC5ZJ6ys8sS7S81vwmdRlP7XrGjUxKWkCZb482HCZ9+/GR2tiq9RVTqgdEilsPCKSil98LLMObrheBU7K7KTThaxPIiiDCRX77NVGA0j+VbycGzFYHrQu0fifb9pva7LlLyKdoLJ4zn9X5OamdgPDf9UHR+FE5rO2fFSg083XNVMp/Fnzfs9xuL3yyZCyQuTwy6AAAAAElFTkSuQmCC",
+      "e": 1
+    }
+  ],
+  "layers": [
+    {
+      "ddd": 0,
+      "ind": 1,
+      "ty": 2,
+      "nm": "Heart Frame 1",
+      "refId": "img_0",
+      "ks": {
+        "o": {
+          "a": 1,
+          "k": [
+            {
+              "t": 0,
+              "s": [
+                100
+              ]
+            },
+            {
+              "t": 5,
+              "s": [
+                0
+              ]
+            },
+            {
+              "t": 10,
+              "s": [
+                0
+              ]
+            },
+            {
+              "t": 15,
+              "s": [
+                100
+              ]
+            }
+          ]
+        },
+        "r": {
+          "a": 0,
+          "k": 0
+        },
+        "p": {
+          "a": 0,
+          "k": [
+            16,
+            16,
+            0
+          ]
+        },
+        "a": {
+          "a": 0,
+          "k": [
+            16,
+            16,
+            0
+          ]
+        },
+        "s": {
+          "a": 0,
+          "k": [
+            100,
+            100,
+            100
+          ]
+        }
+      },
+      "ao": 0,
+      "ip": 0,
+      "op": 20,
+      "st": 0,
+      "bm": 0
+    },
+    {
+      "ddd": 0,
+      "ind": 2,
+      "ty": 2,
+      "nm": "Heart Frame 2",
+      "refId": "img_1",
+      "ks": {
+        "o": {
+          "a": 1,
+          "k": [
+            {
+              "t": 0,
+              "s": [
+                0
+              ]
+            },
+            {
+              "t": 5,
+              "s": [
+                100
+              ]
+            },
+            {
+              "t": 10,
+              "s": [
+                0
+              ]
+            },
+            {
+              "t": 15,
+              "s": [
+                0
+              ]
+            }
+          ]
+        },
+        "r": {
+          "a": 0,
+          "k": 0
+        },
+        "p": {
+          "a": 0,
+          "k": [
+            16,
+            16,
+            0
+          ]
+        },
+        "a": {
+          "a": 0,
+          "k": [
+            16,
+            16,
+            0
+          ]
+        },
+        "s": {
+          "a": 0,
+          "k": [
+            100,
+            100,
+            100
+          ]
+        }
+      },
+      "ao": 0,
+      "ip": 0,
+      "op": 20,
+      "st": 0,
+      "bm": 0
+    },
+    {
+      "ddd": 0,
+      "ind": 3,
+      "ty": 2,
+      "nm": "Heart Frame 3",
+      "refId": "img_2",
+      "ks": {
+        "o": {
+          "a": 1,
+          "k": [
+            {
+              "t": 0,
+              "s": [
+                0
+              ]
+            },
+            {
+              "t": 5,
+              "s": [
+                0
+              ]
+            },
+            {
+              "t": 10,
+              "s": [
+                100
+              ]
+            },
+            {
+              "t": 15,
+              "s": [
+                0
+              ]
+            }
+          ]
+        },
+        "r": {
+          "a": 0,
+          "k": 0
+        },
+        "p": {
+          "a": 0,
+          "k": [
+            16,
+            16,
+            0
+          ]
+        },
+        "a": {
+          "a": 0,
+          "k": [
+            16,
+            16,
+            0
+          ]
+        },
+        "s": {
+          "a": 0,
+          "k": [
+            100,
+            100,
+            100
+          ]
+        }
+      },
+      "ao": 0,
+      "ip": 0,
+      "op": 20,
+      "st": 0,
+      "bm": 0
+    }
+  ]
+}

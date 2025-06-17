@@ -73,6 +73,27 @@ class HomeView extends ConsumerWidget {
 
           const SizedBox(height: 40),
 
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                16.0, 8.0, 16.0, 8.0), // Added padding
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                foregroundColor: Theme.of(context).colorScheme.onSecondary,
+                minimumSize: const Size(double.infinity, 48), // Full width
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 2,
+              ),
+              onPressed: () {
+                context.go(RouteNames.bodySimulator);
+              },
+              child: const Text('Check Body Simulator',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ),
+
           Container(
             width: MediaQuery.of(context).size.width * 0.85,
             decoration: BoxDecoration(

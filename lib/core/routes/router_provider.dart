@@ -22,8 +22,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         return RouteNames.onboarding;
       }
 
-      return null;
+      return RouteNames.onboarding;
     },
-    routes: [...authRoutes, ...appRoutes],
+    routes: [...authRoutes],
   );
 });

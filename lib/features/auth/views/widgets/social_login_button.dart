@@ -1,6 +1,5 @@
+import 'package:ate_project/common_libs.dart';
 import 'package:ate_project/core/services/auth_service.dart';
-import 'package:ate_project/core/theme/app_theme.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SocialAuthButton extends StatelessWidget {

@@ -1,5 +1,6 @@
+import 'package:ate_project/common_libs.dart';
 import 'package:ate_project/core/routes/route_names.dart';
-import 'package:ate_project/core/theme/app_theme.dart';
+import 'package:ate_project/theme/app_theme.dart';
 import 'package:ate_project/core/widgets/chat_input.dart';
 import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
 import 'package:ate_project/features/home/view_models/home_view_model.dart';
@@ -67,7 +68,7 @@ class HomeView extends ConsumerWidget {
                 "Personal Health Assistant",
                 "Get Smart Insights",
               ],
-              textStyle: AppTheme.lightTheme.textTheme.headlineMedium!,
+              textStyle: $styles.text.body,
             ),
           ),
 

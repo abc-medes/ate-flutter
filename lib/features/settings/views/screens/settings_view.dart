@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ate_project/core/services/auth_service.dart';
-import 'package:ate_project/core/theme/app_theme.dart';
+import 'package:ate_project/theme/app_theme.dart';
 import 'package:ate_project/core/routes/route_names.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';

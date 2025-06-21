@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:ate_project/core/theme/app_theme.dart';
+import 'package:ate_project/common_libs.dart';
 
 class CustomedTextInput extends StatelessWidget {
   final TextEditingController controller;

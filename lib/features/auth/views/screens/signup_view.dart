@@ -1,5 +1,6 @@
+import 'package:ate_project/common_libs.dart';
 import 'package:ate_project/core/routes/route_names.dart';
-import 'package:ate_project/core/theme/app_theme.dart';
+import 'package:ate_project/theme/app_theme.dart';
 import 'package:ate_project/features/auth/view_models/signup_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

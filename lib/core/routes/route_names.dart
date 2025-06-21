@@ -5,6 +5,7 @@ class RouteNames {
   static const signup = '/auth/signup';
   static const onboarding = '/auth/onboarding';
   static const checkingEmail = '/auth/checking-email';
+  static const bodySimulator = '/body-simulator';
 
   // Main Routes
   static const home = '/';

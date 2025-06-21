@@ -1,11 +1,12 @@
 import 'dart:io';
+import 'package:ate_project/common_libs.dart';
 import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
 import 'package:ate_project/features/auth/view_models/login_view_model.dart';
 import 'package:ate_project/features/auth/views/widgets/social_login_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ate_project/core/theme/app_theme.dart';
+import 'package:ate_project/theme/app_theme.dart';
 import 'package:ate_project/core/services/auth_service.dart';
 import 'package:ate_project/core/routes/route_names.dart';
 import 'package:go_router/go_router.dart';
@@ -100,7 +101,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                     "Personal Health Assistant",
                     "Get Smart Insights",
                   ],
-                  textStyle: AppTheme.lightTheme.textTheme.headlineMedium!,
+                  textStyle: $styles.text.body,
                 ),
               ),
             ),

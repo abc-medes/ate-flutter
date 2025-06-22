@@ -19,11 +19,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       if (authState.isAuthenticated && !userService.isBasicHealthDataComplete) {
-        return RouteNames.onboarding;
+        return RouteNames.settings;
       }
 
-      return RouteNames.onboarding;
+      return RouteNames.settings;
     },
-    routes: [...authRoutes],
+    routes: [...authRoutes, ...appRoutes],
   );
 });

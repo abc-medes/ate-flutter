@@ -3,13 +3,9 @@ import 'package:ate_project/common_libs.dart';
 import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
 import 'package:ate_project/features/auth/view_models/login_view_model.dart';
 import 'package:ate_project/features/auth/views/widgets/social_login_button.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ate_project/theme/app_theme.dart';
 import 'package:ate_project/core/services/auth_service.dart';
 import 'package:ate_project/core/routes/route_names.dart';
-import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ate_project/core/widgets/loading_view.dart';
 import 'package:ate_project/core/widgets/error_snackbar.dart';
@@ -86,156 +82,164 @@ class _LoginViewState extends ConsumerState<LoginView> {
     final bool isAndroid = Platform.isAndroid;
     final bool isIOS = Platform.isIOS;
 
-    return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Center(
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.85,
-                height: 40,
-                child: TypewriterAnimatedText(
-                  [
-                    "AI-Powered Health Intelligence",
-                    "Personal Health Assistant",
-                    "Get Smart Insights",
-                  ],
-                  textStyle: $styles.text.body,
+    return DefaultTextColor(
+      color: $styles.colors.offWhite,
+      child: ColoredBox(
+        color: $styles.colors.background,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Center(
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.85,
+                  height: 100,
+                  child: TypewriterAnimatedText(
+                    [
+                      "It is Private",
+                      "It is all Free!",
+                      "Get Smart Insights",
+                    ],
+                    textStyle: $styles.text.h2.copyWith(
+                      color: $styles.colors.accent1,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-          Material(
-            color: Color(0xFFF5E9C8),
-            elevation: 2,
-            borderRadius: BorderRadius.circular(36),
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48),
-              constraints: const BoxConstraints(minHeight: 400),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(36),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Column(
-                  children: [
-                    SocialAuthButton(
-                      ref: ref,
-                      text: 'Continue with Google',
-                      icon: Icons.g_mobiledata_rounded,
-                      iconColor: AppColors.textPrimary,
-                      onPressed: () {
-                        if (!isLoading) {
-                          _handleSocialLogin(
-                              context, ref, viewModel.handleGoogleSignIn);
-                        }
-                      },
+            Material(
+              color: Color(0xFFF5E9C8),
+              elevation: 2,
+              borderRadius: BorderRadius.circular(36),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48),
+                constraints: const BoxConstraints(minHeight: 400),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(36),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, -2),
                     ),
-                    if ((isIOS || !isAndroid)) ...[
-                      const SizedBox(height: 12),
+                  ],
+                ),
+                child: Center(
+                  child: Column(
+                    children: [
                       SocialAuthButton(
                         ref: ref,
-                        text: 'Continue with Apple',
-                        icon: Icons.apple,
+                        text: 'Continue with Google',
+                        icon: Icons.g_mobiledata_rounded,
                         iconColor: AppColors.textPrimary,
                         onPressed: () {
                           if (!isLoading) {
                             _handleSocialLogin(
-                                context, ref, viewModel.handleAppleSignIn);
+                                context, ref, viewModel.handleGoogleSignIn);
                           }
                         },
                       ),
-                    ],
-                    const SizedBox(height: 32),
-                    Row(
-                      children: [
-                        Expanded(
-                            child: Divider(
-                                color: AppColors.textTertiary.withAlpha(128))),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            'or',
-                            style: TextStyle(
-                              color: AppColors.textTertiary,
+                      if ((isIOS || !isAndroid)) ...[
+                        const SizedBox(height: 12),
+                        SocialAuthButton(
+                          ref: ref,
+                          text: 'Continue with Apple',
+                          icon: Icons.apple,
+                          iconColor: AppColors.textPrimary,
+                          onPressed: () {
+                            if (!isLoading) {
+                              _handleSocialLogin(
+                                  context, ref, viewModel.handleAppleSignIn);
+                            }
+                          },
+                        ),
+                      ],
+                      const SizedBox(height: 32),
+                      Row(
+                        children: [
+                          Expanded(
+                              child: Divider(
+                                  color:
+                                      AppColors.textTertiary.withAlpha(128))),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'or',
+                              style: TextStyle(
+                                color: AppColors.textTertiary,
+                              ),
                             ),
                           ),
+                          Expanded(
+                              child: Divider(
+                                  color:
+                                      AppColors.textTertiary.withAlpha(128))),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: OutlinedButton(
+                          onPressed: isLoading
+                              ? null
+                              : () {
+                                  context.push(RouteNames.emailLoginInput,
+                                      extra: viewState
+                                              .emailController.text.isNotEmpty
+                                          ? viewState.emailController.text
+                                          : null);
+                                },
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: AppColors.surface,
+                            side: BorderSide(
+                                color: AppColors.textTertiary.withAlpha(128)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            'Sign in with Email',
+                            style: Theme.of(context).textTheme.labelLarge,
+                          ),
                         ),
-                        Expanded(
-                            child: Divider(
-                                color: AppColors.textTertiary.withAlpha(128))),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 54,
-                      child: OutlinedButton(
-                        onPressed: isLoading
-                            ? null
-                            : () {
-                                context.push(RouteNames.emailLoginInput,
+                      ),
+                      const SizedBox(height: 24),
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Don't have an account? ",
+                              style: TextStyle(color: AppColors.textSecondary),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                context.push(RouteNames.signup,
                                     extra: viewState
                                             .emailController.text.isNotEmpty
                                         ? viewState.emailController.text
                                         : null);
                               },
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: AppColors.surface,
-                          side: BorderSide(
-                              color: AppColors.textTertiary.withAlpha(128)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'Sign in with Email',
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Don't have an account? ",
-                            style: TextStyle(color: AppColors.textSecondary),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              context.push(RouteNames.signup,
-                                  extra:
-                                      viewState.emailController.text.isNotEmpty
-                                          ? viewState.emailController.text
-                                          : null);
-                            },
-                            child: Text(
-                              'Sign Up',
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
+                              child: Text(
+                                'Sign Up',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

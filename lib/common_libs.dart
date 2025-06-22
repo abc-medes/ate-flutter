@@ -19,6 +19,7 @@ export 'package:sized_context/sized_context.dart';
 export 'package:ate_project/theme/styles.dart';
 export 'package:ate_project/core/widgets/app_scaffold.dart';
 export 'package:get_it_mixin/get_it_mixin.dart';
+export 'package:ate_project/features/_common/themed_text.dart';
 
 // export 'package:ate_project/styles/styles.dart';
 // export 'package:ate_project/ui/app_scaffold.dart';

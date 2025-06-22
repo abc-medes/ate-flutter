@@ -1,4 +1,5 @@
 import 'package:ate_project/common_libs.dart';
+import 'package:ate_project/core/utils/app_logic.dart';
 import 'package:ate_project/l10n/l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -17,7 +18,7 @@ Future<void> main() async {
     anonKey: Env.supabaseAnonKey,
   );
 
-  // await appLogic.bootstrap();
+  await appLogic.bootstrap();
 
   runApp(ProviderScope(child: MomntApp()));
 }
@@ -42,11 +43,13 @@ class MomntApp extends ConsumerWidget {
 }
 
 void registerSingletons() {
+  GetIt.I.registerSingleton<AppLogic>(AppLogic());
   GetIt.I.registerSingleton<LocaleLogic>(LocaleLogic());
   GetIt.I.registerSingleton<SettingsLogic>(SettingsLogic());
 }
 
 // AppLogic get appLogic => GetIt.I.get<AppLogic>();
+AppLogic get appLogic => GetIt.I.get<AppLogic>();
 LocaleLogic get localeLogic => GetIt.I.get<LocaleLogic>();
 SettingsLogic get settingsLogic => GetIt.I.get<SettingsLogic>();
 

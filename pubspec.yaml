@@ -52,6 +52,7 @@ dependencies:
   get_it_mixin: ^4.2.2
   internet_connection_checker: ^1.0.0+1
   sized_context: ^1.0.0+1
+  flutter_displaymode: ^0.6.0
 
 
 dev_dependencies:
@@ -78,6 +79,16 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  fonts:
+  - family: NanumGothic         
+    fonts:
+      - asset: assets/fonts/NanumGothic/NanumGothic-Regular.ttf
+        weight: 400
+      - asset: assets/fonts/NanumGothic/NanumGothic-Bold.ttf
+        weight: 700
+      - asset: assets/fonts/NanumGothic/NanumGothic-ExtraBold.ttf
+        weight: 800
 
   # To add assets to your application, add an assets section, like this:
   # assets:

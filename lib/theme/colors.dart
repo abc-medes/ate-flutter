@@ -29,8 +29,8 @@ class AppColors {
   static const mood = Color(0xFFFFEB3B);
 
   // Neutral Colors
-  static const background =
-      Color(0xFFFDF8e7); // creamy vanilla background like the image
+  // static const background =
+  //     Color(0xFFFDF8e7); // creamy vanilla background like the image
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF212121);
   static const textSecondary = Color(0xFF757575);
@@ -45,7 +45,7 @@ class AppColors {
   // TODO: for temporary use, will be removed later------------------------------------------------
 
   /// Common
-  final Color accent1 = Color(0xFFE4935D);
+  final Color accent1 = Color(0xFF05804C);
   final Color accent2 = Color(0xFFBEABA1);
   final Color accent3 = Color(0xFFC47642);
   final Color offWhite = Color(0xFFF8ECE5);
@@ -58,6 +58,7 @@ class AppColors {
   // - web/manifest.json
   // - web/index.html -
   final Color black = const Color(0xFF1E1B18);
+  final Color background = const Color(0xFFFDF8e7);
 
   final bool isDark = false;
 

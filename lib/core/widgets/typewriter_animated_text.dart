@@ -136,7 +136,10 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
       textAlign: TextAlign.center,
       text: TextSpan(
         children: [
-          TextSpan(text: _displayText, style: widget.textStyle),
+          TextSpan(
+            text: _displayText.isEmpty ? '\u200B' : _displayText,
+            style: widget.textStyle,
+          ),
           const WidgetSpan(
             child: SizedBox(
               width: 5,
@@ -144,6 +147,7 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
             ),
           ),
           WidgetSpan(
+              // alignment: PlaceholderAlignment.middle,
               child: !_isCompleted
                   ? SvgPicture.string(
                       svgString,

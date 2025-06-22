@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 const String svgString = '''
-<svg width="8" height="20" viewBox="0 0 8 20" xmlns="http://www.w3.org/2000/svg">
+          <svg width="8" height="20" viewBox="0 0 8 20" xmlns="http://www.w3.org/2000/svg">
             <rect width="8" height="20" rx="3" fill="#05804C"/>
           </svg>
 ''';

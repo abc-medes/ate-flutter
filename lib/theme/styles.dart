@@ -67,15 +67,17 @@ class _Text {
 
   final Map<String, TextStyle> _titleFonts = {
     'en': TextStyle(fontFamily: 'Tenor'),
+    'ko': TextStyle(fontFamily: 'NanumGothic'),
   };
 
   final Map<String, TextStyle> _monoTitleFonts = {
     'en': TextStyle(fontFamily: 'B612Mono'),
+    'ko': TextStyle(fontFamily: 'NanumGothic'),
   };
 
   final Map<String, TextStyle> _quoteFonts = {
     'en': TextStyle(fontFamily: 'Cinzel'),
-    'zh': TextStyle(fontFamily: 'MaShanZheng'),
+    'ko': TextStyle(fontFamily: 'NanumGothic'),
   };
 
   final Map<String, TextStyle> _wonderTitleFonts = {
@@ -86,6 +88,7 @@ class _Text {
     'en': TextStyle(fontFamily: 'Raleway', fontFeatures: const [
       FontFeature.enable('kern'),
     ]),
+    'ko': TextStyle(fontFamily: 'NanumGothic'),
   };
 
   TextStyle _getFontForLocale(Map<String, TextStyle> fonts) {

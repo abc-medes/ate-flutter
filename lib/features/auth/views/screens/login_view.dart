@@ -94,14 +94,18 @@ class _LoginViewState extends ConsumerState<LoginView> {
               child: Center(
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width * 0.85,
-                  height: 150,
+                  height: 180,
                   child: Column(
                     children: [
-                      InsLogo(),
+                      InsLogo(size: $styles.insets.offset),
                       Gap($styles.insets.xs),
                       TypewriterAnimatedText(
                         loop: false,
-                        ["Visualize the invisible,", "Own yourself."],
+                        [
+                          $strings.appIntroduce_1,
+                          $strings.appIntroduce_2,
+                          $strings.appIntroduce_3,
+                        ],
                         textStyle: $styles.text.h2.copyWith(
                           color: $styles.colors.accent1,
                         ),

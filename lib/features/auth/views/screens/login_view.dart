@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:ate_project/common_libs.dart';
 import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
+import 'package:ate_project/features/_common/ins_logo.dart';
 import 'package:ate_project/features/auth/view_models/login_view_model.dart';
 import 'package:ate_project/features/auth/views/widgets/social_login_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -93,16 +94,19 @@ class _LoginViewState extends ConsumerState<LoginView> {
               child: Center(
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width * 0.85,
-                  height: 100,
-                  child: TypewriterAnimatedText(
-                    [
-                      "It is Private",
-                      "It is all Free!",
-                      "Get Smart Insights",
+                  height: 150,
+                  child: Column(
+                    children: [
+                      InsLogo(),
+                      Gap($styles.insets.xs),
+                      TypewriterAnimatedText(
+                        loop: false,
+                        ["Visualize the invisible,", "Own yourself."],
+                        textStyle: $styles.text.h2.copyWith(
+                          color: $styles.colors.accent1,
+                        ),
+                      ),
                     ],
-                    textStyle: $styles.text.h2.copyWith(
-                      color: $styles.colors.accent1,
-                    ),
                   ),
                 ),
               ),

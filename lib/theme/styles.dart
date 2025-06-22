@@ -111,8 +111,10 @@ class _Text {
   late final TextStyle wonderTitle =
       _createFont(wonderTitleFont, sizePx: 64, heightPx: 56);
 
-  late final TextStyle h1 = _createFont(titleFont, sizePx: 64, heightPx: 62);
-  late final TextStyle h2 = _createFont(titleFont, sizePx: 32, heightPx: 46);
+  late final TextStyle h1 =
+      _createFont(titleFont, sizePx: 64, heightPx: 62, weight: FontWeight.w600);
+  late final TextStyle h2 =
+      _createFont(titleFont, sizePx: 32, heightPx: 46, weight: FontWeight.w600);
   late final TextStyle h3 =
       _createFont(titleFont, sizePx: 24, heightPx: 36, weight: FontWeight.w600);
   late final TextStyle h4 = _createFont(contentFont,

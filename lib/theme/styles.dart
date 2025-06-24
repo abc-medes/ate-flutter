@@ -129,13 +129,13 @@ class _Text {
       _createFont(titleFont, sizePx: 14, heightPx: 16.38);
 
   late final TextStyle body =
-      _createFont(contentFont, sizePx: 16, heightPx: 26);
+      _createFont(contentFont, sizePx: 20, heightPx: 26);
   late final TextStyle bodyBold = _createFont(contentFont,
-      sizePx: 16, heightPx: 26, weight: FontWeight.w600);
+      sizePx: 18, heightPx: 26, weight: FontWeight.w600);
   late final TextStyle bodySmall =
-      _createFont(contentFont, sizePx: 14, heightPx: 23);
+      _createFont(contentFont, sizePx: 16, heightPx: 23);
   late final TextStyle bodySmallBold = _createFont(contentFont,
-      sizePx: 14, heightPx: 23, weight: FontWeight.w600);
+      sizePx: 16, heightPx: 23, weight: FontWeight.w600);
 
   late final TextStyle quote1 = _createFont(quoteFont,
       sizePx: 32, heightPx: 40, weight: FontWeight.w600, spacingPc: -3);

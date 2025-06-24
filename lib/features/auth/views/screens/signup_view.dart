@@ -70,7 +70,8 @@ class _SignupViewState extends ConsumerState<SignupView> {
             }
           },
         ),
-        title: const Text('Sign Up'),
+        title: Text($strings.signUp,
+            style: $styles.text.h3.copyWith(color: $styles.colors.accent1)),
       ),
       body: SafeArea(
         child: Padding(

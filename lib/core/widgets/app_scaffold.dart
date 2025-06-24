@@ -1,5 +1,4 @@
 import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/theme/styles.dart';
 
 class AppScaffold extends StatelessWidget {
   const AppScaffold({super.key, required this.child});
@@ -20,7 +19,7 @@ class AppScaffold extends StatelessWidget {
       child: Theme(
         data: $styles.colors.toThemeData(),
         child: DefaultTextStyle(
-          style: $styles.text.body,
+          style: $styles.text.h1,
           child: child,
         ),
       ),

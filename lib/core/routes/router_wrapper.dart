@@ -9,10 +9,13 @@ class AppRoute extends GoRoute {
           path: path,
           routes: routes,
           pageBuilder: (context, state) {
-            final pageContent = Scaffold(
-              body: builder(state),
-              resizeToAvoidBottomInset: false,
+            final Widget pageContent = AppScaffold(
+              child: builder(state),
             );
+            // final pageContent = Scaffold(
+            //   body: builder(state),
+            //   resizeToAvoidBottomInset: false,
+            // );
             if (useFade || $styles.disableAnimations) {
               return CustomTransitionPage(
                 key: state.pageKey,

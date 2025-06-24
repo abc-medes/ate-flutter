@@ -59,6 +59,7 @@ class AppColors {
   // - web/index.html -
   final Color black = const Color(0xFF1E1B18);
   final Color background = const Color(0xFFFDF8e7);
+  final Color backgroundDark = Color(0xFFF5E9C8);
 
   final bool isDark = false;
 

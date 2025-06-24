@@ -1,7 +1,11 @@
 {
-    "appName": "Ins",
-    "appLongName": "Insert Inside",
-    "appIntroduce_1": "Insert Inside",
-    "appIntroduce_2": "Visualize\n the invisible",
-    "appIntroduce_3": "Own yourself."
+        "appName": "Ins",
+        "appLongName": "Insert Inside",
+        "appIntroduce_1": "Insert Inside",
+        "appIntroduce_2": "Visualize\n the invisible",
+        "appIntroduce_3": "Own yourself.",
+        "or": "or",
+        "signInWithEmail": "Sign in with Email",
+        "askingIsMember": "Don't have account? ",
+        "signUp": "Sign up"
 } 

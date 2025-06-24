@@ -1,7 +1,11 @@
 {
-    "appName": "인스",
-    "appLongName": "인서트 인사이드",
-    "appIntroduce_1": "눌러봐, 인사이드",
-    "appIntroduce_2": "눈에 보이지 않던 모든 것\n 이제 당신의 시선으로",
-    "appIntroduce_3": "스스로를 완성하다."
+        "appName": "인스",
+        "appLongName": "인서트 인사이드",
+        "appIntroduce_1": "눌러봐, 인사이드",
+        "appIntroduce_2": "눈에 보이지 않던 모든 것\n 이제 당신의 시선으로",
+        "appIntroduce_3": "스스로를 완성하다.",
+        "or": "또는",
+        "signInWithEmail": "이메일 로그인",
+        "askingIsMember": "아직 회원이 아니신가요?",
+        "signUp": "Sign up"
 }

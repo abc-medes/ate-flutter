@@ -167,7 +167,7 @@ class _LoadingScreenState extends State<LoadingScreen>
               //   _buildAnimatedLogo(),
               //   const SizedBox(height: 32),
               // ],
-              _buildLoadingIndicator(),
+              _buildLoadingDots(),
               // if (widget.message != null) ...[
               //   const SizedBox(height: 24),
               //   Text(

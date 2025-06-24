@@ -7,14 +7,14 @@ class SocialAuthButton extends StatelessWidget {
     super.key,
     required this.ref,
     required this.text,
-    required this.icon,
     required this.iconColor,
+    this.icon,
     required this.onPressed,
   });
 
   final WidgetRef ref;
   final String text;
-  final IconData icon;
+  final IconData? icon;
   final Color iconColor;
   final VoidCallback onPressed;
 
@@ -45,17 +45,15 @@ class SocialAuthButton extends StatelessWidget {
                 child: Icon(
                   icon,
                   color: iconColor,
-                  size: 24,
+                  size: $styles.text.quote2.fontSize,
                 ),
               ),
             ),
             Center(
-              child: Text(
-                text,
-                style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                      color: AppColors.textPrimary,
-                    ),
-              ),
+              child: Text(text,
+                  style: $styles.text.body.copyWith(
+                    color: AppColors.textPrimary,
+                  )),
             ),
           ],
         ),

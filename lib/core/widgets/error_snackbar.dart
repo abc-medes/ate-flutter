@@ -1,7 +1,6 @@
 import 'package:ate_project/common_libs.dart';
 import 'package:flutter/material.dart';
 import 'package:ate_project/theme/app_theme.dart';
-import 'package:ate_project/core/utils/auth_error_helper.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ate_project/core/routes/route_names.dart';
 
@@ -16,7 +15,8 @@ class ErrorSnackbar {
   }) {
     // Ensure we have a valid context
     if (!context.mounted) return;
-
+    final reg_message =
+        message.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
     final ScaffoldMessengerState scaffoldMessenger =
         ScaffoldMessenger.of(context);
 
@@ -50,7 +50,7 @@ class ErrorSnackbar {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      message,
+                      reg_message,
                       style: TextStyle(color: AppColors.surface),
                     ),
                   ),
@@ -72,7 +72,7 @@ class ErrorSnackbar {
                       textColor: AppColors.surface,
                       onPressed: () {
                         if (allActions.length > 1) {
-                          _showActionSheet(context, message, allActions);
+                          _showActionSheet(context, reg_message, allActions);
                         } else {
                           allActions.first.onPressed();
                         }
@@ -82,7 +82,7 @@ class ErrorSnackbar {
           );
 
           // Log for debugging
-          print('Error snackbar shown: $message');
+          print('Error snackbar shown: $reg_message');
         } catch (e) {
           print('Error showing snackbar: $e');
         }
@@ -92,7 +92,7 @@ class ErrorSnackbar {
 
   /// Shows a bottom sheet with all available actions for the error
   static void _showActionSheet(
-      BuildContext context, String message, List<ErrorAction> actions) {
+      BuildContext context, String reg_message, List<ErrorAction> actions) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -114,7 +114,7 @@ class ErrorSnackbar {
             ),
             const SizedBox(height: 8),
             Text(
-              message,
+              reg_message,
               style: TextStyle(
                 color: AppColors.textSecondary,
               ),

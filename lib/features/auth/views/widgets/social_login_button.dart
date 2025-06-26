@@ -1,5 +1,6 @@
 import 'package:ate_project/common_libs.dart';
 import 'package:ate_project/core/services/auth_service.dart';
+import 'package:ate_project/features/auth/view_models/login_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SocialAuthButton extends StatelessWidget {
@@ -24,7 +25,8 @@ class SocialAuthButton extends StatelessWidget {
       width: double.infinity,
       height: 54,
       child: OutlinedButton(
-        onPressed: ref.watch(authProvider).isLoading ? null : onPressed,
+        onPressed:
+            ref.watch(loginViewModelProvider).isLoading ? null : onPressed,
         style: OutlinedButton.styleFrom(
           side: BorderSide(color: AppColors.textTertiary.withAlpha(128)),
           backgroundColor: Colors.white,

@@ -1,11 +1,13 @@
+import 'package:ate_project/common_libs.dart';
+import 'package:ate_project/core/routes/route_names.dart';
+import 'package:ate_project/core/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ate_project/core/services/auth_service.dart';
-import 'package:ate_project/core/utils/auth_error_helper.dart';
 
 enum SignupStep {
   detailsInput,
-  // otpVerification, // Commented out - will be re-enabled later
+  otpVerification,
   emailSent,
 }
 
@@ -108,9 +110,10 @@ class SignupState {
 
 class SignupViewModel extends StateNotifier<SignupState> {
   final AuthService _authService;
+  final UserService _userService;
   bool _isDisposed = false;
 
-  SignupViewModel(this._authService, String email)
+  SignupViewModel(this._authService, this._userService, String email)
       : super(SignupState(
           email: email,
           emailController: TextEditingController(text: email),
@@ -178,52 +181,87 @@ class SignupViewModel extends StateNotifier<SignupState> {
     state = state.copyWith(currentStep: SignupStep.detailsInput);
   }
 
-  Future<bool> signUp() async {
-    if (_isDisposed) return false;
+  Future<void> signUp() async {
+    if (_isDisposed) return;
 
     if (!validateEmail()) {
-      state = state.copyWith(
-          error: "Please enter a valid email address", isLoading: false);
-      return false;
+      throw AuthException("Please enter a valid email address");
     }
 
     if (!validatePassword() || !validatePasswordsMatch()) {
-      state = state.copyWith(
-          error: "Please correct the errors in the form before continuing",
-          isLoading: false);
-      return false;
+      throw AuthException(
+          "Please correct the errors in the form before continuing");
     }
 
     if (!state.isFormValid) {
-      state = state.copyWith(
-          error: "Please fill in all required fields correctly",
-          isLoading: false);
-      return false;
+      throw AuthException("Please fill in all required fields correctly");
     }
 
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      await _authService.signUp(state.emailController.text,
-          state.passwordController.text, state.nameController.text);
+      if (_isDisposed) return;
 
-      if (_isDisposed) return true;
+      final res = await _authService.signUpWithEmail(
+          email: state.emailController.text,
+          password: state.passwordController.text,
+          name: state.nameController.text);
+
+      if (res.user == null) {
+        throw AuthException('User not found');
+      }
+
+      final bool userAlreadyExists = res.user?.identities?.isEmpty ?? false;
+
+      if (userAlreadyExists) {
+        throw AuthException('User already registered');
+      }
 
       state = state.copyWith(
         isLoading: false,
         currentStep: SignupStep.emailSent,
       );
-
-      return true;
-    } catch (e) {
-      if (_isDisposed) return false;
-
-      print('SIGNUP ERROR: $e');
+    } on AuthException catch (e) {
       state = state.copyWith(
-        isLoading: false, // Make sure loading is set to false on error
-        error: AuthErrorHelper.getSignupErrorMessage(e.toString()),
+        isLoading: false,
+        error: e.message,
       );
-      return false;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  Future<void> wrapUpEmailSignUp(BuildContext context) async {
+    state = state.copyWith(isLoading: true);
+
+    if (_isDisposed) return;
+
+    try {
+      final res = await _authService.signInWithEmail(
+          email: state.emailController.text,
+          password: state.passwordController.text);
+
+      await _userService.createProfile(
+          userId: res.user?.id ?? '',
+          email: state.emailController.text,
+          name: state.nameController.text);
+
+      await _userService.createEmptyUserHealthMetrics(res.user?.id ?? '');
+
+      state = state.copyWith(isLoading: false);
+    } on AuthException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.message,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
     }
   }
 }
@@ -232,6 +270,7 @@ final signupViewModelProvider = StateNotifierProvider.family
     .autoDispose<SignupViewModel, SignupState, String>(
   (ref, email) {
     final authService = ref.watch(authServiceProvider);
-    return SignupViewModel(authService, email);
+    final userService = ref.watch(userServiceProvider);
+    return SignupViewModel(authService, userService, email);
   },
 );

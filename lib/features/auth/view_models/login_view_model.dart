@@ -1,9 +1,9 @@
+import 'package:ate_project/common_libs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ate_project/core/services/auth_service.dart';
 import 'package:ate_project/core/routes/route_names.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ate_project/core/utils/auth_error_helper.dart';
 
 enum LoginStep {
   emailInput,
@@ -53,10 +53,9 @@ class LoginState {
 
 class LoginViewModel extends StateNotifier<LoginState> {
   final AuthService _authService;
-  final AuthNotifier _authNotifier;
   bool _isDisposed = false;
 
-  LoginViewModel(this._authService, this._authNotifier)
+  LoginViewModel(this._authService)
       : super(LoginState(
           emailController: TextEditingController(),
           passwordController: TextEditingController(),
@@ -110,84 +109,40 @@ class LoginViewModel extends StateNotifier<LoginState> {
   void clearError() {
     if (_isDisposed) return;
     state = state.copyWith(clearError: true);
-    _authNotifier.clearError();
-  }
-
-  Future<bool> checkEmailAndContinue() async {
-    if (_isDisposed || state.isLoading) return false;
-
-    if (!validateEmail()) {
-      state =
-          state.copyWith(error: "Please enter a valid email", isLoading: false);
-      return false;
-    }
-
-    final email = state.emailController.text.trim();
-
-    state = state.copyWith(isLoading: true, clearError: true);
-
-    try {
-      // Check if email exists
-      final emailExists = await _authService.isEmailAvailable(email);
-
-      if (_isDisposed) return false;
-
-      state = state.copyWith(
-        isLoading: false,
-        currentStep: LoginStep.passwordInput,
-      );
-
-      return emailExists;
-    } catch (e) {
-      if (_isDisposed) return false;
-
-      state = state.copyWith(
-        isLoading: false,
-        error: AuthErrorHelper.getLoginErrorMessage(e.toString()),
-      );
-      return false;
-    }
   }
 
   Future<void> handlePasswordLogin() async {
     if (_isDisposed || state.isLoading) return;
-
-    final email = state.emailController.text.trim();
-    final password = state.passwordController.text.trim();
-
-    if (password.isEmpty) {
-      state =
-          state.copyWith(error: "Please enter your password", isLoading: false);
-      return;
-    }
-
-    state = state.copyWith(isLoading: true, clearError: true);
-
     try {
-      await _authService.signIn(email, password);
-      if (_isDisposed) return;
+      final email = state.emailController.text.trim();
+      final password = state.passwordController.text.trim();
+
+      if (password.isEmpty) {
+        throw AuthException("Please enter your password");
+      }
+
+      state = state.copyWith(isLoading: true, clearError: true);
+      await _authService.signInWithEmail(email: email, password: password);
+
       state = state.copyWith(isLoading: false);
     } catch (e) {
-      if (_isDisposed) return;
-      state = state.copyWith(
-        isLoading: false,
-        error: AuthErrorHelper.getLoginErrorMessage(e.toString()),
-      );
+      if (e is AuthException) {
+        state = state.copyWith(
+          isLoading: false,
+          error: e.message,
+        );
+      }
     }
   }
 
   Future<void> handleGoogleSignIn() async {
-    try {
-      await _authNotifier.signInWithGoogle();
-    } catch (e) {
+    try {} catch (e) {
       // Error is handled in AuthNotifier
     }
   }
 
   Future<void> handleAppleSignIn() async {
-    try {
-      await _authNotifier.signInWithApple();
-    } catch (e) {
+    try {} catch (e) {
       // Error is handled in AuthNotifier
     }
   }
@@ -200,6 +155,5 @@ class LoginViewModel extends StateNotifier<LoginState> {
 final loginViewModelProvider =
     StateNotifierProvider.autoDispose<LoginViewModel, LoginState>((ref) {
   final authService = ref.watch(authServiceProvider);
-  final authNotifier = ref.watch(authProvider.notifier);
-  return LoginViewModel(authService, authNotifier);
+  return LoginViewModel(authService);
 });

@@ -90,6 +90,11 @@ class AppColors {
     var t =
         ThemeData.from(textTheme: txtTheme, colorScheme: colorScheme).copyWith(
       textSelectionTheme: TextSelectionThemeData(cursorColor: accent1),
+      scaffoldBackgroundColor: background,
+      appBarTheme: AppBarTheme(
+        backgroundColor: background,
+        elevation: 0,
+      ),
       highlightColor: accent1,
     );
 

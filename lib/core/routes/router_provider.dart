@@ -7,7 +7,7 @@ import 'auth_routes.dart';
 import 'app_routes.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  final authState = ref.watch(authServiceProvider);
   final userService = ref.watch(userServiceProvider);
 
   return GoRouter(

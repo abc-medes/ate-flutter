@@ -1,10 +1,7 @@
 import 'package:ate_project/common_libs.dart';
 import 'package:ate_project/core/routes/route_names.dart';
-import 'package:ate_project/theme/app_theme.dart';
 import 'package:ate_project/features/auth/view_models/signup_view_model.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ate_project/core/widgets/loading_view.dart';
 import 'package:ate_project/core/widgets/error_snackbar.dart';
 import 'package:ate_project/core/widgets/customed_text_input.dart';
@@ -57,17 +54,9 @@ class _SignupViewState extends ConsumerState<SignupView> {
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: $styles.colors.accent1),
           onPressed: () {
-            if (viewState.currentStep == SignupStep.emailSent) {
-              viewModel.goBackToDetails();
-              /* Comment out OTP verification step
-            } else if (viewState.currentStep == SignupStep.otpVerification) {
-              viewModel.goBackToDetails();
-            */
-            } else {
-              Navigator.pop(context);
-            }
+            Navigator.pop(context);
           },
         ),
         title: Text($strings.signUp,
@@ -92,7 +81,22 @@ class _SignupViewState extends ConsumerState<SignupView> {
                   onPressed: viewState.isLoading
                       ? null
                       : () async {
-                          await viewModel.signUp();
+                          switch (viewState.currentStep) {
+                            case SignupStep.detailsInput:
+                              await viewModel.signUp();
+                              break;
+                            case SignupStep.emailSent:
+                              await viewModel.wrapUpEmailSignUp(context);
+                              break;
+                            default:
+                              break;
+                          }
+
+                          // if (viewState.currentStep ==
+                          //     SignupStep.detailsInput) {
+                          //   await viewModel.signUp();
+                          // } else
+                          // await viewModel.finishSignUp(context);
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
@@ -292,12 +296,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
         // Resend email button
         Center(
           child: TextButton(
-            onPressed: viewState.isLoading
-                ? null
-                : () async {
-                    // Skip email verification for now and proceed to sign up directly
-                    await viewModel.signUp();
-                  },
+            onPressed: viewState.isLoading ? null : () async {},
             child: Text(
               'Didn\'t receive the email? Resend',
               style: TextStyle(

@@ -18,10 +18,7 @@ class AppScaffold extends StatelessWidget {
       key: ValueKey($styles.scale),
       child: Theme(
         data: $styles.colors.toThemeData(),
-        child: DefaultTextStyle(
-          style: $styles.text.h1,
-          child: child,
-        ),
+        child: child,
       ),
     );
   }

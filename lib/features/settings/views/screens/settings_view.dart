@@ -11,8 +11,8 @@ class SettingsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
-    final isAuthenticated = authState.isAuthenticated;
+    final authService = ref.watch(authServiceProvider);
+    final isAuthenticated = authService.isAuthenticated;
 
     return Scaffold(
       appBar: AppBar(
@@ -49,8 +49,7 @@ class SettingsView extends ConsumerWidget {
                 'Sign Out',
                 Icons.exit_to_app,
                 () async {
-                  final authNotifier = ref.read(authProvider.notifier);
-                  await authNotifier.signOut();
+                  await authService.signOut();
                   if (context.mounted) {
                     context.go(RouteNames.home);
                   }

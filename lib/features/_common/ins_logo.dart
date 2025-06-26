@@ -20,12 +20,12 @@ class InsLogo extends StatelessWidget {
         borderRadius: BorderRadius.circular(size * 0.23), // generous rounding
       ),
       child: Text(
-        'INS',
-        style: TextStyle(
+        'Bodi',
+        style: $styles.text.h2.copyWith(
           color: $styles.colors.offWhite,
           fontSize: size * 0.42,
           fontWeight: FontWeight.w800,
-          letterSpacing: -1,
+          letterSpacing: -5,
         ),
       ),
     );

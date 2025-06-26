@@ -1,8 +1,13 @@
+import 'package:ate_project/common_libs.dart';
+import 'package:ate_project/data/models/body_simulator_model.dart';
 import 'package:ate_project/data/models/health_model.dart';
 import 'package:ate_project/data/repositories/health_repository.dart';
+import 'package:ate_project/data/models/user_model.dart' as UM;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class UserService {
+  final SupabaseClient _client = Supabase.instance.client;
   final _healthRepository = healthRepository;
   List<BasicUserData> _missingBasicUserData = [];
   bool _initialized = false;
@@ -22,6 +27,69 @@ class UserService {
 
   Future<bool> isFieldComplete(BasicUserData field) async {
     return await _healthRepository.isBasicUserDataSaved(field);
+  }
+
+  Future<Map<String, dynamic>> fetchUserProfile(String userId) async {
+    final response =
+        await _client.from('profiles').select().eq('id', userId).single();
+
+    return response ?? {};
+  }
+
+  Future<void> updateUserProfile(
+      String userId, Map<String, dynamic> data) async {
+    await _client.from('profiles').update(data).eq('id', userId);
+  }
+
+  Future<void> createProfile({
+    required String userId,
+    required String email,
+    required String name,
+  }) async {
+    final existingProfile = await _client
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (existingProfile != null) {
+      final updatedUser = UM.User.newUser(
+        id: userId,
+        email: email,
+        name: name,
+      );
+
+      await _client
+          .from('profiles')
+          .update(updatedUser.toJson())
+          .eq('id', userId);
+    } else {
+      final newUser = UM.User.newUser(
+        id: userId,
+        email: email,
+        name: name,
+      );
+      await _client.from('profiles').insert(newUser.toJson());
+    }
+  }
+
+  Future<void> createEmptyUserHealthMetrics(String userId) async {
+    final emptyHealthMetrics = HealthMetrics(
+      userInputData: UserInputData(),
+      autoDetectedData: AutoDetectedData(),
+      environmentalData: EnvironmentalData(),
+      bodySimulatorData: BodySimulatorData.empty(),
+    );
+
+    final now = DateTime.now();
+    final healthData = {
+      'user_id': userId,
+      'created_at': now.toIso8601String(),
+      'updated_at': now.toIso8601String(),
+      'health_metrics': emptyHealthMetrics.toJson(),
+    };
+
+    await _client.from('health_metrics').insert(healthData);
   }
 }
 

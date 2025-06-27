@@ -4,10 +4,7 @@ import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
 import 'package:ate_project/features/_common/ins_logo.dart';
 import 'package:ate_project/features/auth/view_models/login_view_model.dart';
 import 'package:ate_project/features/auth/views/widgets/social_login_button.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ate_project/core/services/auth_service.dart';
 import 'package:ate_project/core/routes/route_names.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ate_project/core/widgets/loading_view.dart';
 import 'package:ate_project/core/widgets/error_snackbar.dart';
 
@@ -50,185 +47,184 @@ class _LoginViewState extends ConsumerState<LoginView> {
           print('Error dismissing loading screen: $e');
         }
       }
+    });
 
-      final error = viewState.error;
-      if (error != null && !isLoading && !isAuthLoading) {
-        LoadingScreen.dismiss(context);
+    if (viewState.error != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
 
+        final error = viewState.error;
         ErrorSnackbar.showLoginError(
           context: context,
-          errorMessage: error,
+          errorMessage: error!,
           clearError: () {
             viewModel.clearError();
           },
           onTryAgain: () {},
           onResetPassword: () {
-            // TODO: Implement reset password flow
+            viewModel.handleForgotPassword(context);
           },
           onCreateAccount: () {
             viewModel.redirectToSignup(context);
           },
         );
-      }
-    });
+        viewModel.clearError(); // Clear error immediately
+      });
+    }
 
     final bool isAndroid = Platform.isAndroid;
     final bool isIOS = Platform.isIOS;
 
     return Scaffold(
-      body: ColoredBox(
-        color: $styles.colors.background,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Center(
-                child: SizedBox(
-                  width: $styles.sizes.maxContentWidth1,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      InsLogo(size: $styles.sizes.maxContentWidth3 * 0.2),
-                      Gap($styles.insets.xs),
-                      TypewriterAnimatedText(
-                        loop: false,
-                        [
-                          $strings.appIntroduce_1,
-                          $strings.appIntroduce_2,
-                          $strings.appIntroduce_3,
-                        ],
-                        textStyle: $styles.text.h2.copyWith(
-                          color: $styles.colors.accent1,
-                        ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Center(
+              child: SizedBox(
+                width: $styles.sizes.maxContentWidth1,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    InsLogo(size: $styles.sizes.maxContentWidth3 * 0.5),
+                    Gap($styles.insets.xs),
+                    TypewriterAnimatedText(
+                      loop: false,
+                      [
+                        $strings.appIntroduce_1,
+                        $strings.appIntroduce_2,
+                        $strings.appIntroduce_3,
+                      ],
+                      textStyle: $styles.text.h2.copyWith(
+                        color: $styles.colors.accent1,
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Material(
-              textStyle: $styles.text.quote2Sub,
-              // color: Color(0xFFF5E9C8),
-              color: $styles.colors.backgroundDark,
-              elevation: 2,
-              borderRadius: BorderRadius.circular(36),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48),
-                constraints: const BoxConstraints(minHeight: 400),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(36),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, -2),
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Column(
-                    children: [
+              ),
+            ),
+          ),
+          Material(
+            textStyle: $styles.text.quote2Sub,
+            // color: Color(0xFFF5E9C8),
+            color: $styles.colors.backgroundDark,
+            elevation: 2,
+            borderRadius: BorderRadius.circular(36),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48),
+              constraints: const BoxConstraints(minHeight: 400),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(36),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Column(
+                  children: [
+                    SocialAuthButton(
+                      ref: ref,
+                      text: 'Continue with Google',
+                      icon: Icons.g_mobiledata_rounded,
+                      iconColor: $styles.colors.black,
+                      onPressed: () {
+                        if (!isLoading) {
+                          _handleSocialLogin(
+                              context, ref, viewModel.handleGoogleSignIn);
+                        }
+                      },
+                    ),
+                    if ((isIOS || !isAndroid)) ...[
+                      const SizedBox(height: 12),
                       SocialAuthButton(
                         ref: ref,
-                        text: 'Continue with Google',
-                        icon: Icons.g_mobiledata_rounded,
+                        text: 'Continue with Apple',
+                        icon: Icons.apple,
                         iconColor: $styles.colors.black,
                         onPressed: () {
                           if (!isLoading) {
                             _handleSocialLogin(
-                                context, ref, viewModel.handleGoogleSignIn);
+                                context, ref, viewModel.handleAppleSignIn);
                           }
                         },
                       ),
-                      if ((isIOS || !isAndroid)) ...[
-                        const SizedBox(height: 12),
-                        SocialAuthButton(
-                          ref: ref,
-                          text: 'Continue with Apple',
-                          icon: Icons.apple,
-                          iconColor: $styles.colors.black,
-                          onPressed: () {
-                            if (!isLoading) {
-                              _handleSocialLogin(
-                                  context, ref, viewModel.handleAppleSignIn);
-                            }
-                          },
+                    ],
+                    const SizedBox(height: 32),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            color: $styles.colors.greyMedium,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            $strings.or,
+                            style: TextStyle(
+                              height: 1,
+                              color: $styles.colors.greyMedium,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            color: $styles.colors.greyMedium,
+                          ),
                         ),
                       ],
-                      const SizedBox(height: 32),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                    ),
+                    const SizedBox(height: 24),
+                    SocialAuthButton(
+                      ref: ref,
+                      text: $strings.signInWithEmail,
+                      icon: null,
+                      iconColor: $styles.colors.black,
+                      onPressed: () {
+                        context.push(RouteNames.emailLoginInput);
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Expanded(
-                            child: Divider(
-                              color: $styles.colors.greyMedium,
-                            ),
+                          Text(
+                            $strings.askingIsMember,
+                            style: TextStyle(color: $styles.colors.greyMedium),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                          Gap($styles.insets.xs),
+                          GestureDetector(
+                            onTap: () {
+                              context.push(RouteNames.signup,
+                                  extra:
+                                      viewState.emailController.text.isNotEmpty
+                                          ? viewState.emailController.text
+                                          : null);
+                            },
                             child: Text(
-                              $strings.or,
+                              $strings.signUp,
                               style: TextStyle(
-                                height: 1,
-                                color: $styles.colors.greyMedium,
+                                color: $styles.colors.accent1,
+                                fontWeight: FontWeight.bold,
                               ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Divider(
-                              color: $styles.colors.greyMedium,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
-                      SocialAuthButton(
-                        ref: ref,
-                        text: $strings.signInWithEmail,
-                        icon: null,
-                        iconColor: $styles.colors.black,
-                        onPressed: () {
-                          context.push(RouteNames.emailLoginInput);
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              $strings.askingIsMember,
-                              style:
-                                  TextStyle(color: $styles.colors.greyMedium),
-                            ),
-                            Gap($styles.insets.xs),
-                            GestureDetector(
-                              onTap: () {
-                                context.push(RouteNames.signup,
-                                    extra: viewState
-                                            .emailController.text.isNotEmpty
-                                        ? viewState.emailController.text
-                                        : null);
-                              },
-                              child: Text(
-                                $strings.signUp,
-                                style: TextStyle(
-                                  color: $styles.colors.accent1,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

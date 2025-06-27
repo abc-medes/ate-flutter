@@ -7,5 +7,6 @@
         "or": "또는",
         "signInWithEmail": "이메일 로그인",
         "askingIsMember": "아직 회원이 아니신가요?",
-        "signUp": "Sign up"
+        "signUp": "Sign up",
+        "logIn": "Log in"
 }

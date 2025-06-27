@@ -191,9 +191,9 @@ class _Corners {
 
 // TODO: add, @immutable when design is solidified
 class _Sizes {
-  double get maxContentWidth1 => 800;
-  double get maxContentWidth2 => 600;
-  double get maxContentWidth3 => 500;
+  double get maxContentWidth1 => 400;
+  double get maxContentWidth2 => 300;
+  double get maxContentWidth3 => 250;
   final Size minAppSize = Size(380, 650);
 }
 

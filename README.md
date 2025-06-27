@@ -100,3 +100,6 @@ We use Riverpod’s StateNotifier for handling complex states efficiently.
 This ensures:
 • No unnecessary rebuilds
 • Predictable & testable state management
+
+
+TODO: signup 로직 확인

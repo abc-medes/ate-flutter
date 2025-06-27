@@ -1,9 +1,9 @@
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/core/routes/route_names.dart';
-import 'package:ate_project/theme/app_theme.dart';
-import 'package:ate_project/core/widgets/chat_input.dart';
-import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
-import 'package:ate_project/features/home/view_models/home_view_model.dart';
+import 'package:bodiapp/common_libs.dart';
+import 'package:bodiapp/core/routes/route_names.dart';
+import 'package:bodiapp/theme/app_theme.dart';
+import 'package:bodiapp/core/widgets/chat_input.dart';
+import 'package:bodiapp/core/widgets/typewriter_animated_text.dart';
+import 'package:bodiapp/features/home/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

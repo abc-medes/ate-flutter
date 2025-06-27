@@ -1,5 +1,5 @@
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/core/utils/color_utils.dart';
+import 'package:bodiapp/common_libs.dart';
+import 'package:bodiapp/core/utils/color_utils.dart';
 
 class AppColors {
   // TODO: for temporary use, will be removed later------------------------------------------------

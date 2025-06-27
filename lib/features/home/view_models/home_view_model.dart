@@ -1,11 +1,11 @@
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/core/services/api_service.dart';
-// import 'package:ate_project/theme/app_theme.dart';
-// import 'package:ate_project/core/widgets/%5Bdeprecated%5D_ai_response_bottom_sheet.dart';
-import 'package:ate_project/data/models/chat_model.dart';
+import 'package:bodiapp/common_libs.dart';
+import 'package:bodiapp/core/services/api_service.dart';
+// import 'package:bodiapp/theme/app_theme.dart';
+// import 'package:bodiapp/core/widgets/%5Bdeprecated%5D_ai_response_bottom_sheet.dart';
+import 'package:bodiapp/data/models/chat_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ate_project/core/services/auth_service.dart';
-import 'package:ate_project/data/models/health_model.dart';
+import 'package:bodiapp/core/services/auth_service.dart';
+import 'package:bodiapp/data/models/health_model.dart';
 
 final homeViewModelProvider =
     StateNotifierProvider<HomeViewModel, HomeViewState>((ref) {

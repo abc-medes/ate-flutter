@@ -1,10 +1,10 @@
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/core/routes/route_names.dart';
-import 'package:ate_project/features/auth/view_models/login_view_model.dart';
-import 'package:ate_project/core/widgets/loading_view.dart';
-import 'package:ate_project/core/widgets/error_snackbar.dart';
-import 'package:ate_project/core/widgets/customed_text_input.dart';
-import 'package:ate_project/features/auth/views/widgets/email_sent_step.dart';
+import 'package:bodiapp/common_libs.dart';
+import 'package:bodiapp/core/routes/route_names.dart';
+import 'package:bodiapp/features/auth/view_models/login_view_model.dart';
+import 'package:bodiapp/core/widgets/loading_view.dart';
+import 'package:bodiapp/core/widgets/error_snackbar.dart';
+import 'package:bodiapp/core/widgets/customed_text_input.dart';
+import 'package:bodiapp/features/auth/views/widgets/email_sent_step.dart';
 
 class EmailLoginInputView extends ConsumerStatefulWidget {
   const EmailLoginInputView({super.key});
@@ -34,6 +34,7 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
           icon: Icon(Icons.arrow_back),
           onPressed: () {
             ref.invalidate(loginViewModelProvider);
+
             Navigator.pop(context);
           },
         ),

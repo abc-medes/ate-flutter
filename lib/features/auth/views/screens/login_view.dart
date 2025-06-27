@@ -1,12 +1,12 @@
 import 'dart:io';
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
-import 'package:ate_project/features/_common/ins_logo.dart';
-import 'package:ate_project/features/auth/view_models/login_view_model.dart';
-import 'package:ate_project/features/auth/views/widgets/social_login_button.dart';
-import 'package:ate_project/core/routes/route_names.dart';
-import 'package:ate_project/core/widgets/loading_view.dart';
-import 'package:ate_project/core/widgets/error_snackbar.dart';
+import 'package:bodiapp/common_libs.dart';
+import 'package:bodiapp/core/widgets/typewriter_animated_text.dart';
+import 'package:bodiapp/features/_common/ins_logo.dart';
+import 'package:bodiapp/features/auth/view_models/login_view_model.dart';
+import 'package:bodiapp/features/auth/views/widgets/social_login_button.dart';
+import 'package:bodiapp/core/routes/route_names.dart';
+import 'package:bodiapp/core/widgets/loading_view.dart';
+import 'package:bodiapp/core/widgets/error_snackbar.dart';
 
 class LoginView extends ConsumerStatefulWidget {
   const LoginView({super.key});

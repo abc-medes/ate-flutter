@@ -1,6 +1,6 @@
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/core/services/auth_service.dart';
-import 'package:ate_project/core/routes/route_names.dart';
+import 'package:bodiapp/common_libs.dart';
+import 'package:bodiapp/core/services/auth_service.dart';
+import 'package:bodiapp/core/routes/route_names.dart';
 
 enum LoginStep {
   emailInput,

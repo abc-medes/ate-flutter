@@ -1,4 +1,4 @@
-import 'package:ate_project/core/constants/ai_messages.dart';
+import 'package:bodiapp/core/constants/ai_messages.dart';
 
 class AIMessageService {
   static String getAuthRequiredMessage() {

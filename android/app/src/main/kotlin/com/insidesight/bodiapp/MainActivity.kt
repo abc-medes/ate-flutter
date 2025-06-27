@@ -1,4 +1,4 @@
-package com.example.ate_project
+package com.insidesight.bodiapp
 
 import io.flutter.embedding.android.FlutterActivity
 

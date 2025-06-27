@@ -1,8 +1,8 @@
-import 'package:ate_project/common_libs.dart';
+import 'package:bodiapp/common_libs.dart';
 import 'package:flutter/material.dart';
-import 'package:ate_project/theme/app_theme.dart';
+import 'package:bodiapp/theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ate_project/core/routes/route_names.dart';
+import 'package:bodiapp/core/routes/route_names.dart';
 
 class ErrorSnackbar {
   static void show({

@@ -1,4 +1,4 @@
-import 'package:ate_project/common_libs.dart';
+import 'package:bodiapp/common_libs.dart';
 
 class InsLogo extends StatelessWidget {
   /// Optional: let callers pick a size or colour if they want.

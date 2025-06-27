@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:ate_project/common_libs.dart';
+import 'package:bodiapp/common_libs.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum AuthStatus {

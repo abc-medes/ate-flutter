@@ -1,6 +1,6 @@
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/core/common/platform_info.dart';
-import 'package:ate_project/core/common/save_load_mixin.dart';
+import 'package:bodiapp/common_libs.dart';
+import 'package:bodiapp/core/common/platform_info.dart';
+import 'package:bodiapp/core/common/save_load_mixin.dart';
 
 class SettingsLogic with ThrottledSaveLoadMixin {
   @override

@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'package:ate_project/core/services/api_service.dart';
-import 'package:ate_project/features/onboarding/views/widgets/gender_picker.dart';
+import 'package:bodiapp/core/services/api_service.dart';
+import 'package:bodiapp/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ate_project/data/models/health_model.dart';
-import 'package:ate_project/data/repositories/health_repository.dart';
-import 'package:ate_project/core/services/user_service.dart';
+import 'package:bodiapp/data/models/health_model.dart';
+import 'package:bodiapp/data/repositories/health_repository.dart';
+import 'package:bodiapp/core/services/user_service.dart';
 
 class HealthOnboardingState {
   final int selectedHeight;

@@ -1,10 +1,10 @@
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/core/routes/route_names.dart';
-import 'package:ate_project/core/routes/router_wrapper.dart';
-import 'package:ate_project/features/auth/views/screens/email_login_input_view.dart';
-import 'package:ate_project/features/auth/views/screens/login_view.dart';
-import 'package:ate_project/features/auth/views/screens/signup_view.dart';
-import 'package:ate_project/features/onboarding/views/screens/onboarding_view.dart';
+import 'package:bodiapp/common_libs.dart';
+import 'package:bodiapp/core/routes/route_names.dart';
+import 'package:bodiapp/core/routes/router_wrapper.dart';
+import 'package:bodiapp/features/auth/views/screens/email_login_input_view.dart';
+import 'package:bodiapp/features/auth/views/screens/login_view.dart';
+import 'package:bodiapp/features/auth/views/screens/signup_view.dart';
+import 'package:bodiapp/features/onboarding/views/screens/onboarding_view.dart';
 
 final authRoutes = [
   ShellRoute(

@@ -1,8 +1,8 @@
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/data/models/body_simulator_model.dart';
-import 'package:ate_project/data/models/health_model.dart';
-import 'package:ate_project/data/repositories/health_repository.dart';
-import 'package:ate_project/data/models/user_model.dart' as UM;
+import 'package:bodiapp/common_libs.dart';
+import 'package:bodiapp/data/models/body_simulator_model.dart';
+import 'package:bodiapp/data/models/health_model.dart';
+import 'package:bodiapp/data/repositories/health_repository.dart';
+import 'package:bodiapp/data/models/user_model.dart' as UM;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

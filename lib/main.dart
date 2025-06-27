@@ -1,9 +1,8 @@
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/core/utils/app_logic.dart';
-import 'package:ate_project/l10n/l10n.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:ate_project/core/config/env.dart';
+import 'package:bodiapp/common_libs.dart';
+import 'package:bodiapp/core/utils/app_logic.dart';
+import 'package:bodiapp/core/utils/deep_link_logic.dart';
+import 'package:bodiapp/l10n/l10n.dart';
+import 'package:bodiapp/core/config/env.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> main() async {
@@ -20,15 +19,31 @@ Future<void> main() async {
 
   await appLogic.bootstrap();
 
-  runApp(ProviderScope(child: MomntApp()));
+  runApp(ProviderScope(child: BodiApp()));
 }
 
-class MomntApp extends ConsumerWidget {
-  const MomntApp({super.key});
+class BodiApp extends ConsumerStatefulWidget {
+  const BodiApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // final locale = watchX((SettingsLogic s) => s.currentLocale);
+  ConsumerState<BodiApp> createState() => _BodiAppState();
+}
+
+class _BodiAppState extends ConsumerState<BodiApp> {
+  @override
+  void initState() {
+    super.initState();
+    GetIt.I.get<DeepLinkLogic>().init(context);
+  }
+
+  @override
+  void dispose() {
+    GetIt.I.get<DeepLinkLogic>().dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp.router(
       routerConfig: ref.watch(routerProvider),
       debugShowCheckedModeBanner: false,
@@ -46,6 +61,7 @@ void registerSingletons() {
   GetIt.I.registerSingleton<AppLogic>(AppLogic());
   GetIt.I.registerSingleton<LocaleLogic>(LocaleLogic());
   GetIt.I.registerSingleton<SettingsLogic>(SettingsLogic());
+  GetIt.I.registerSingleton<DeepLinkLogic>(DeepLinkLogic());
 }
 
 // AppLogic get appLogic => GetIt.I.get<AppLogic>();

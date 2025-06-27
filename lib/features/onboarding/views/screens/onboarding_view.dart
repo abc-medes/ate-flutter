@@ -1,13 +1,13 @@
-import 'package:ate_project/core/routes/route_names.dart';
-import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
-import 'package:ate_project/features/onboarding/view_models/onboarding_view_model.dart';
-import 'package:ate_project/features/onboarding/views/widgets/birth_date_picker.dart';
-import 'package:ate_project/features/onboarding/views/widgets/gender_picker.dart';
-import 'package:ate_project/features/onboarding/views/widgets/height_picker.dart';
-import 'package:ate_project/features/onboarding/views/widgets/weight_picker.dart';
+import 'package:bodiapp/core/routes/route_names.dart';
+import 'package:bodiapp/core/widgets/typewriter_animated_text.dart';
+import 'package:bodiapp/features/onboarding/view_models/onboarding_view_model.dart';
+import 'package:bodiapp/features/onboarding/views/widgets/birth_date_picker.dart';
+import 'package:bodiapp/features/onboarding/views/widgets/gender_picker.dart';
+import 'package:bodiapp/features/onboarding/views/widgets/height_picker.dart';
+import 'package:bodiapp/features/onboarding/views/widgets/weight_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ate_project/data/models/health_model.dart';
+import 'package:bodiapp/data/models/health_model.dart';
 import 'package:go_router/go_router.dart';
 
 final onboardingPageProvider = StateProvider<int>((ref) => 0);

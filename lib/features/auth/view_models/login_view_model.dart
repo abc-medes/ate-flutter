@@ -1,20 +1,17 @@
 import 'package:ate_project/common_libs.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ate_project/core/services/auth_service.dart';
 import 'package:ate_project/core/routes/route_names.dart';
-import 'package:go_router/go_router.dart';
 
 enum LoginStep {
   emailInput,
-  passwordInput,
+  resettingEmailSent,
 }
 
 class LoginState {
   final TextEditingController emailController;
   final TextEditingController passwordController;
   final bool isEmailValid;
-  final LoginStep currentStep;
+  LoginStep currentStep;
   final bool isPasswordVisible;
   final bool isLoading;
   final String? error;
@@ -64,8 +61,7 @@ class LoginViewModel extends StateNotifier<LoginState> {
   @override
   void dispose() {
     _isDisposed = true;
-    state.emailController.dispose();
-    state.passwordController.dispose();
+    reset();
     super.dispose();
   }
 
@@ -149,6 +145,28 @@ class LoginViewModel extends StateNotifier<LoginState> {
 
   void redirectToSignup(BuildContext context) {
     context.push(RouteNames.signup, extra: state.emailController.text);
+  }
+
+  void handleForgotPassword(BuildContext context) async {
+    if (_isDisposed) return;
+    state = state.copyWith(isLoading: true);
+    try {
+      await _authService.resetPassword(state.emailController.text);
+      state = state.copyWith(
+        currentStep: LoginStep.resettingEmailSent,
+        isLoading: false,
+      );
+    } on AuthException catch (e) {
+      state = state.copyWith(error: e.message, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), isLoading: false);
+    }
+  }
+
+  void reset() {
+    state.emailController.dispose();
+    state.passwordController.dispose();
+    state.currentStep = LoginStep.emailInput;
   }
 }
 

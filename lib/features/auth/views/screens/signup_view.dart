@@ -1,6 +1,7 @@
 import 'package:ate_project/common_libs.dart';
 import 'package:ate_project/core/routes/route_names.dart';
 import 'package:ate_project/features/auth/view_models/signup_view_model.dart';
+import 'package:ate_project/features/auth/views/widgets/email_sent_step.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ate_project/core/widgets/loading_view.dart';
 import 'package:ate_project/core/widgets/error_snackbar.dart';
@@ -72,7 +73,25 @@ class _SignupViewState extends ConsumerState<SignupView> {
                     child: _buildDetailsStep(context, viewModel, viewState)),
               if (viewState.currentStep == SignupStep.emailSent)
                 Expanded(
-                    child: _buildEmailSentStep(context, viewModel, viewState)),
+                  child: EmailSentStep(
+                    title: 'Verify Your Email',
+                    description:
+                        "We've sent an email to ${viewState.emailController.text} with a verification link. Please click the link in your email to complete your registration.",
+                    nextStepsTitle: 'Next steps:',
+                    nextSteps: [
+                      'Check your email inbox for a verification link from us',
+                      'Click on the link in the email to verify your account',
+                      'Return to the app to complete your registration',
+                    ],
+                    resendButtonText: "Didn't receive the email? Resend",
+                    onResend: viewState.isLoading
+                        ? null
+                        : () async {/* resend logic */},
+                    backToLoginText: 'Back to Login',
+                    onBackToLogin: () => context.go(RouteNames.login),
+                    isLoading: viewState.isLoading,
+                  ),
+                ),
               // _buildEmailSentStep(context, viewModel, viewState),
               SizedBox(
                 width: double.infinity,
@@ -192,136 +211,6 @@ class _SignupViewState extends ConsumerState<SignupView> {
           ),
         ),
         const SizedBox(height: 40),
-      ],
-    );
-  }
-
-  Widget _buildEmailSentStep(
-    BuildContext context,
-    SignupViewModel viewModel,
-    SignupState viewState,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Verify Your Email',
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'We\'ve sent an email to ${viewState.emailController.text} with a verification link. Please click the link in your email to complete your registration.',
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 16,
-          ),
-        ),
-        const SizedBox(height: 32),
-
-        // Email icon
-        Center(
-          child: Icon(
-            Icons.email_outlined,
-            size: 80,
-            color: AppColors.primary,
-          ),
-        ),
-        const SizedBox(height: 32),
-
-        // Instructions
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Next steps:',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('1. ', style: TextStyle(color: AppColors.textSecondary)),
-                  Expanded(
-                    child: Text(
-                      'Check your email inbox for a verification link from us',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('2. ', style: TextStyle(color: AppColors.textSecondary)),
-                  Expanded(
-                    child: Text(
-                      'Click on the link in the email to verify your account',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('3. ', style: TextStyle(color: AppColors.textSecondary)),
-                  Expanded(
-                    child: Text(
-                      'Return to the app to complete your registration',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 32),
-
-        // Resend email button
-        Center(
-          child: TextButton(
-            onPressed: viewState.isLoading ? null : () async {},
-            child: Text(
-              'Didn\'t receive the email? Resend',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        Center(
-          child: TextButton(
-            onPressed: () {
-              context.go(RouteNames.login);
-            },
-            child: Text(
-              'Back to Login',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }

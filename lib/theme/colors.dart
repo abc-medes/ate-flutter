@@ -92,8 +92,15 @@ class AppColors {
       textSelectionTheme: TextSelectionThemeData(cursorColor: accent1),
       scaffoldBackgroundColor: background,
       appBarTheme: AppBarTheme(
-        backgroundColor: background,
+        backgroundColor: background, // Your custom background
         elevation: 0,
+        iconTheme: IconThemeData(color: accent1), // Icon color
+        titleTextStyle: TextStyle(
+          color: accent1, // Title text color
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+        centerTitle: true, // Optional: center the title
       ),
       highlightColor: accent1,
     );

@@ -151,7 +151,9 @@ class LoginViewModel extends StateNotifier<LoginState> {
     if (_isDisposed) return;
     state = state.copyWith(isLoading: true);
     try {
-      await _authService.resetPassword(state.emailController.text);
+      await _authService.resetPassword(
+        state.emailController.text,
+      );
       state = state.copyWith(
         currentStep: LoginStep.resettingEmailSent,
         isLoading: false,

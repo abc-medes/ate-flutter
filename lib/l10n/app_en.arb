@@ -8,5 +8,8 @@
         "signInWithEmail": "Sign in with Email",
         "askingIsMember": "Don't have account? ",
         "signUp": "Sign up",
-        "logIn": "Log in"
-} 
+        "logIn": "Log in",
+        "forgotPassword": "Forgot your password?",
+        "resetPasswordTitle": "Reset Password",
+        "sendEmail": "Send Email"
+}

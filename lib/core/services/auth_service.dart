@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:bodiapp/common_libs.dart';
+import 'package:bodiapp/core/routes/route_names.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum AuthStatus {
@@ -44,7 +45,8 @@ class AuthService {
   }
 
   Future<void> resetPassword(String email) async {
-    await _client.auth.resetPasswordForEmail(email);
+    await _client.auth.resetPasswordForEmail(email,
+        redirectTo: "bodiapp://${RouteNames.resetPassword}");
   }
 
   // Sign in with Google

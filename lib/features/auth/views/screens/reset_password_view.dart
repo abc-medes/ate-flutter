@@ -2,16 +2,16 @@ import 'package:bodiapp/common_libs.dart';
 import 'package:bodiapp/core/routes/route_names.dart';
 import 'package:bodiapp/features/auth/view_models/login_view_model.dart';
 import 'package:bodiapp/core/widgets/customed_text_input.dart';
+import 'package:bodiapp/features/auth/views/widgets/email_sent_step.dart';
 
-class EmailLoginInputView extends ConsumerStatefulWidget {
-  const EmailLoginInputView({super.key});
+class ResetPasswordView extends ConsumerStatefulWidget {
+  const ResetPasswordView({super.key});
 
   @override
-  ConsumerState<EmailLoginInputView> createState() =>
-      _EmailLoginInputViewState();
+  ConsumerState<ResetPasswordView> createState() => _ResetPasswordViewState();
 }
 
-class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
+class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
   late final LoginViewModel viewModel;
 
   @override
@@ -31,12 +31,11 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
           icon: Icon(Icons.arrow_back),
           onPressed: () {
             ref.invalidate(loginViewModelProvider);
-
             Navigator.pop(context);
           },
         ),
         title: Text(
-          $strings.logIn,
+          $strings.resetPasswordTitle,
         ),
       ),
       body: SafeArea(
@@ -44,9 +43,28 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
+              if (viewState.currentStep == LoginStep.resettingEmailSent)
+                Expanded(
+                    child: EmailSentStep(
+                  title: 'Check Your Email',
+                  description:
+                      "We've sent a password reset approval link to ${viewState.emailController.text}. Please check your inbox and follow the instructions to reset your password.",
+                  nextStepsTitle: 'Next steps:',
+                  nextSteps: [
+                    'Check your email inbox for a password reset link.',
+                    'Click on the link in the email to reset your password.',
+                  ],
+                  resendButtonText: "Didn't receive the email? Resend",
+                  onResend: viewState.isLoading
+                      ? null
+                      : () async {/* resend logic */},
+                  backToLoginText: 'Back to Login',
+                  onBackToLogin: () => context.go(RouteNames.login),
+                  isLoading: viewState.isLoading,
+                )),
               if (viewState.currentStep == LoginStep.emailInput)
                 Expanded(
-                  child: EmailAndPasswordInputStep(
+                  child: EmailInputStep(
                       viewState: viewState, viewModel: viewModel),
                 ),
               SizedBox(
@@ -56,7 +74,7 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
                   onPressed: viewState.isLoading
                       ? null
                       : () async {
-                          await viewModel.handlePasswordLogin();
+                          viewModel.handleForgotPassword(context);
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
@@ -67,7 +85,7 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
                     ),
                   ),
                   child: Text(
-                    $strings.logIn,
+                    $strings.sendEmail,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -83,8 +101,8 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
   }
 }
 
-class EmailAndPasswordInputStep extends StatelessWidget {
-  const EmailAndPasswordInputStep({
+class EmailInputStep extends StatelessWidget {
+  const EmailInputStep({
     super.key,
     required this.viewState,
     required this.viewModel,
@@ -105,44 +123,6 @@ class EmailAndPasswordInputStep extends StatelessWidget {
           enabled: !viewState.isLoading,
           errorText:
               !viewState.isEmailValid ? 'Please enter a valid email' : null,
-        ),
-
-        const SizedBox(height: 16),
-
-        CustomedTextInput(
-          controller: viewState.passwordController,
-          hintText: 'Password',
-          obscureText: !viewState.isPasswordVisible,
-          suffixIcon: IconButton(
-            icon: Icon(
-              viewState.isPasswordVisible
-                  ? Icons.visibility_off
-                  : Icons.visibility,
-              color: AppColors.textTertiary,
-            ),
-            onPressed: viewModel.togglePasswordVisibility,
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Forgot password link
-        Padding(
-          padding: const EdgeInsets.only(top: 12.0),
-          child: Center(
-            child: GestureDetector(
-              onTap: () {
-                context.replace(RouteNames.resetPassword);
-                // viewModel.handleForgotPassword(context);
-              },
-              child: Text(
-                $strings.forgotPassword,
-                style: TextStyle(
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          ),
         ),
       ],
     );

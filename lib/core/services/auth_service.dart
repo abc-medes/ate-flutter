@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:bodiapp/common_libs.dart';
 import 'package:bodiapp/core/routes/route_names.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum AuthStatus {
   initial,
@@ -28,10 +27,13 @@ class AuthService {
       {required String email,
       required String password,
       required String name}) async {
-    final authResponse =
-        await _client.auth.signUp(email: email, password: password, data: {
-      'name': name,
-    });
+    final authResponse = await _client.auth.signUp(
+        email: email,
+        password: password,
+        emailRedirectTo: "bodiapp://auth/signup",
+        data: {
+          'name': name,
+        });
     return authResponse;
   }
 

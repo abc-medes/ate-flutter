@@ -1,6 +1,6 @@
 import 'package:bodiapp/common_libs.dart';
-import 'package:bodiapp/core/utils/app_logic.dart';
-import 'package:bodiapp/core/utils/deep_link_logic.dart';
+import 'package:bodiapp/core/services/app_logic.dart';
+import 'package:bodiapp/core/services/deep_link_logic.dart';
 import 'package:bodiapp/l10n/l10n.dart';
 import 'package:bodiapp/core/config/env.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';

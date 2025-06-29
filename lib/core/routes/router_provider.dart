@@ -1,6 +1,6 @@
 import 'package:bodiapp/core/routes/route_names.dart';
 import 'package:bodiapp/core/services/user_service.dart';
-import 'package:bodiapp/core/services/keyboard_dismiss_on_navigation_observer.dart';
+import 'package:bodiapp/core/utils/keyboard_dismiss_on_navigation_observer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart';

@@ -87,9 +87,8 @@ class UserService {
       'health_metrics': emptyHealthMetrics.toJson(),
     };
 
-    await _client.from('health_metrics').upsert(
+    await _client.from('health_metrics').insert(
           healthData,
-          onConflict: 'user_id',
         );
   }
 }

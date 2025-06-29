@@ -235,9 +235,9 @@ class SignupViewModel extends StateNotifier<SignupState> {
   }
 
   Future<void> wrapUpEmailSignUp(BuildContext context) async {
-    state = state.copyWith(isLoading: true);
-
+    if (!context.mounted) return;
     if (_isDisposed) return;
+    state = state.copyWith(isLoading: true);
 
     try {
       final res = await _authService.signInWithEmail(
@@ -252,6 +252,8 @@ class SignupViewModel extends StateNotifier<SignupState> {
       await _userService.createEmptyUserHealthMetrics(res.user?.id ?? '');
 
       state = state.copyWith(isLoading: false);
+
+      if (context.mounted) context.go(RouteNames.settings);
     } on AuthException catch (e) {
       state = state.copyWith(
         isLoading: false,

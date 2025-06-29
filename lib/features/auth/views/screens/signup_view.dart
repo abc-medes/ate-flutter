@@ -55,44 +55,50 @@ class _SignupViewState extends ConsumerState<SignupView> {
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: $styles.colors.accent1),
+          icon: Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-        title: Text($strings.signUp,
-            style: $styles.text.h3.copyWith(color: $styles.colors.accent1)),
+        title: Text(
+          $strings.signUp,
+        ),
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
-              if (viewState.currentStep == SignupStep.detailsInput)
-                Expanded(
-                    child: _buildDetailsStep(context, viewModel, viewState)),
-              if (viewState.currentStep == SignupStep.emailSent)
-                Expanded(
-                  child: EmailSentStep(
-                    title: 'Verify Your Email',
-                    description:
-                        "We've sent an email to ${viewState.emailController.text} with a verification link. Please click the link in your email to complete your registration.",
-                    nextStepsTitle: 'Next steps:',
-                    nextSteps: [
-                      'Check your email inbox for a verification link from us',
-                      'Click on the link in the email to verify your account',
-                      'Return to the app to complete your registration',
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      if (viewState.currentStep == SignupStep.detailsInput)
+                        _buildDetailsStep(context, viewModel, viewState),
+                      if (viewState.currentStep == SignupStep.emailSent)
+                        EmailSentStep(
+                          title: 'Verify Your Email',
+                          description:
+                              "We've sent an email to ${viewState.emailController.text} with a verification link. Please click the link in your email to complete your registration.",
+                          nextStepsTitle: 'Next steps:',
+                          nextSteps: [
+                            'Check your email inbox for a verification link from us',
+                            'Click on the link in the email to verify your account',
+                            'Return to the app to complete your registration',
+                          ],
+                          resendButtonText: "Didn't receive the email? Resend",
+                          onResend: viewState.isLoading
+                              ? null
+                              : () async {/* resend logic */},
+                          backToLoginText: 'Back to Login',
+                          onBackToLogin: () => context.go(RouteNames.login),
+                          isLoading: viewState.isLoading,
+                        ),
+                      // _buildEmailSentStep(context, viewModel, viewState),
                     ],
-                    resendButtonText: "Didn't receive the email? Resend",
-                    onResend: viewState.isLoading
-                        ? null
-                        : () async {/* resend logic */},
-                    backToLoginText: 'Back to Login',
-                    onBackToLogin: () => context.go(RouteNames.login),
-                    isLoading: viewState.isLoading,
                   ),
                 ),
-              // _buildEmailSentStep(context, viewModel, viewState),
+              ),
               SizedBox(
                 width: double.infinity,
                 height: 54,
@@ -110,12 +116,6 @@ class _SignupViewState extends ConsumerState<SignupView> {
                             default:
                               break;
                           }
-
-                          // if (viewState.currentStep ==
-                          //     SignupStep.detailsInput) {
-                          //   await viewModel.signUp();
-                          // } else
-                          // await viewModel.finishSignUp(context);
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
@@ -145,73 +145,75 @@ class _SignupViewState extends ConsumerState<SignupView> {
     SignupViewModel viewModel,
     SignupState viewState,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Email field
-        CustomedTextInput(
-          controller: viewState.emailController,
-          hintText: 'Email',
-          isRequired: true,
-          keyboardType: TextInputType.emailAddress,
-          onChanged: (_) => viewModel.validateEmail(),
-          errorText: !viewState.isEmailValid
-              ? 'Please enter a valid email address'
-              : null,
-        ),
-        const SizedBox(height: 24),
-
-        // Name field
-        CustomedTextInput(
-          controller: viewState.nameController,
-          hintText: 'Full Name',
-          isRequired: true,
-        ),
-        const SizedBox(height: 24),
-
-        // Password field
-        CustomedTextInput(
-          controller: viewState.passwordController,
-          hintText: 'Password',
-          isRequired: true,
-          obscureText: !viewState.isPasswordVisible,
-          onChanged: (_) => viewModel.validatePassword(),
-          errorText: !viewState.isPasswordValid
-              ? 'Password must be at least 8 characters with at least 1 number'
-              : null,
-          suffixIcon: IconButton(
-            icon: Icon(
-              viewState.isPasswordVisible
-                  ? Icons.visibility_off
-                  : Icons.visibility,
-              color: AppColors.textTertiary,
-            ),
-            onPressed: viewModel.togglePasswordVisibility,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Email field
+          CustomedTextInput(
+            controller: viewState.emailController,
+            hintText: 'Email',
+            isRequired: true,
+            keyboardType: TextInputType.emailAddress,
+            onChanged: (_) => viewModel.validateEmail(),
+            errorText: !viewState.isEmailValid
+                ? 'Please enter a valid email address'
+                : null,
           ),
-        ),
-        const SizedBox(height: 24),
+          const SizedBox(height: 24),
 
-        // Confirm Password field
-        CustomedTextInput(
-          controller: viewState.confirmPasswordController,
-          hintText: 'Confirm Password',
-          isRequired: true,
-          obscureText: !viewState.isConfirmPasswordVisible,
-          onChanged: (_) => viewModel.validatePasswordsMatch(),
-          errorText:
-              !viewState.doPasswordsMatch ? 'Passwords do not match' : null,
-          suffixIcon: IconButton(
-            icon: Icon(
-              viewState.isConfirmPasswordVisible
-                  ? Icons.visibility_off
-                  : Icons.visibility,
-              color: AppColors.textTertiary,
-            ),
-            onPressed: viewModel.toggleConfirmPasswordVisibility,
+          // Name field
+          CustomedTextInput(
+            controller: viewState.nameController,
+            hintText: 'Full Name',
+            isRequired: true,
           ),
-        ),
-        const SizedBox(height: 40),
-      ],
+          const SizedBox(height: 24),
+
+          // Password field
+          CustomedTextInput(
+            controller: viewState.passwordController,
+            hintText: 'Password',
+            isRequired: true,
+            obscureText: !viewState.isPasswordVisible,
+            onChanged: (_) => viewModel.validatePassword(),
+            errorText: !viewState.isPasswordValid
+                ? 'Password must be at least 8 characters with at least 1 number'
+                : null,
+            suffixIcon: IconButton(
+              icon: Icon(
+                viewState.isPasswordVisible
+                    ? Icons.visibility_off
+                    : Icons.visibility,
+                color: AppColors.textTertiary,
+              ),
+              onPressed: viewModel.togglePasswordVisibility,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Confirm Password field
+          CustomedTextInput(
+            controller: viewState.confirmPasswordController,
+            hintText: 'Confirm Password',
+            isRequired: true,
+            obscureText: !viewState.isConfirmPasswordVisible,
+            onChanged: (_) => viewModel.validatePasswordsMatch(),
+            errorText:
+                !viewState.doPasswordsMatch ? 'Passwords do not match' : null,
+            suffixIcon: IconButton(
+              icon: Icon(
+                viewState.isConfirmPasswordVisible
+                    ? Icons.visibility_off
+                    : Icons.visibility,
+                color: AppColors.textTertiary,
+              ),
+              onPressed: viewModel.toggleConfirmPasswordVisibility,
+            ),
+          ),
+          const SizedBox(height: 40),
+        ],
+      ),
     );
   }
 }

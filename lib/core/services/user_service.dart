@@ -4,8 +4,6 @@ import 'package:bodiapp/data/models/health_model.dart';
 import 'package:bodiapp/data/repositories/health_repository.dart';
 import 'package:bodiapp/data/models/user_model.dart' as UM;
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class UserService {
   final SupabaseClient _client = Supabase.instance.client;
   final _healthRepository = healthRepository;
@@ -89,7 +87,7 @@ class UserService {
       'health_metrics': emptyHealthMetrics.toJson(),
     };
 
-    await _client.from('health_metrics').insert(healthData);
+    await _client.from('health_metrics').upsert(healthData);
   }
 }
 

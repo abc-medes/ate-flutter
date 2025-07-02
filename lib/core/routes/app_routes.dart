@@ -6,7 +6,7 @@ import 'package:bodiapp/features/settings/views/screens/settings_view.dart';
 final appRoutes = [
   AppRoute(
     RouteNames.home,
-    (_) => const HomeView(),
+    (_) => HomeView(),
   ),
   AppRoute(
     RouteNames.settings,

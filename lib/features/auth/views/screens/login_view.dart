@@ -25,29 +25,27 @@ class _LoginViewState extends ConsumerState<LoginView> {
   }
 
   @override
+  void dispose() {
+    LoadingScreen.dismiss(context);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final viewState = ref.watch(loginViewModelProvider);
 
-    final isAuthLoading = false;
     final isLoading = viewState.isLoading;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-
-      if (isAuthLoading || isLoading) {
-        try {
+    ref.listen<bool>(
+      loginViewModelProvider.select((s) => s.isLoading),
+      (prev, isLoading) {
+        if (isLoading) {
           LoadingScreen.show(context, message: 'Signing in...');
-        } catch (e) {
-          print('Error showing loading screen: $e');
-        }
-      } else {
-        try {
+        } else {
           LoadingScreen.dismiss(context);
-        } catch (e) {
-          print('Error dismissing loading screen: $e');
         }
-      }
-    });
+      },
+    );
 
     if (viewState.error != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

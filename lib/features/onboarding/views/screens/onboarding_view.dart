@@ -273,7 +273,7 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
         SizedBox(
           height: 80,
           child: TypewriterAnimatedText(
-            ["We'll tune your insights with care.", "As uniquely as you are."],
+            ["We'll tune your insights with care. \n As uniquely as you are."],
             textStyle: Theme.of(context).textTheme.headlineMedium!,
             loop: false,
           ),

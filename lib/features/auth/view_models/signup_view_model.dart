@@ -253,7 +253,7 @@ class SignupViewModel extends StateNotifier<SignupState> {
 
       state = state.copyWith(isLoading: false);
 
-      if (context.mounted) context.go(RouteNames.settings);
+      if (context.mounted) context.go(RouteNames.home);
     } on AuthException catch (e) {
       state = state.copyWith(
         isLoading: false,

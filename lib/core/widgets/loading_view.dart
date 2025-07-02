@@ -58,41 +58,16 @@ class LoadingScreen extends StatefulWidget {
   }
 
   static void dismiss(BuildContext context) {
-    try {
-      if (_overlayKey.currentState != null) {
-        _overlayKey.currentState?.dismiss();
-      }
-    } catch (e) {
-      print('Error dismissing via key: $e');
-    }
+    if (!_isOverlayShown || _currentOverlayEntry == null) return;
 
     try {
-      if (_isOverlayShown && _currentOverlayEntry != null) {
-        // Use a post-frame callback to ensure UI isn't being built
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (context.mounted) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              try {
-                _currentOverlayEntry?.remove();
-                print('Loading screen dismissed via direct overlay entry');
-              } catch (e) {
-                print('Error removing overlay entry in post-frame: $e');
-              } finally {
-                _currentOverlayEntry = null;
-                _isOverlayShown = false;
-              }
-            });
-          } else {
-            // If context is not valid, just clean up the state
-            _currentOverlayEntry = null;
-            _isOverlayShown = false;
-          }
-        });
-      }
+      _currentOverlayEntry?.remove();
+      print('Loading screen dismissed');
     } catch (e) {
-      print('Error dismissing via direct overlay: $e');
-      _isOverlayShown = false;
+      print('Error removing loading overlay: $e');
+    } finally {
       _currentOverlayEntry = null;
+      _isOverlayShown = false;
     }
   }
 

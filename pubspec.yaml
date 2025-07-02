@@ -80,7 +80,7 @@ flutter_launcher_icons:
   adaptive_icon_foreground: assets/logo/bodi_logo.png
 
 flutter_native_splash:
-  color: "#05804C"
+  color: "#FDF8e7"
   image: assets/logo/bodi_logo.png
   android: true
   ios: true

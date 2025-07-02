@@ -107,7 +107,7 @@ class LoginViewModel extends StateNotifier<LoginState> {
     state = state.copyWith(clearError: true);
   }
 
-  Future<void> handlePasswordLogin() async {
+  Future<void> handlePasswordLogin(BuildContext context) async {
     if (_isDisposed || state.isLoading) return;
     try {
       final email = state.emailController.text.trim();
@@ -121,6 +121,8 @@ class LoginViewModel extends StateNotifier<LoginState> {
       await _authService.signInWithEmail(email: email, password: password);
 
       state = state.copyWith(isLoading: false);
+
+      if (context.mounted) context.go(RouteNames.home);
     } catch (e) {
       if (e is AuthException) {
         state = state.copyWith(

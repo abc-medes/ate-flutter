@@ -56,7 +56,7 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
                   onPressed: viewState.isLoading
                       ? null
                       : () async {
-                          await viewModel.handlePasswordLogin();
+                          await viewModel.handlePasswordLogin(context);
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,

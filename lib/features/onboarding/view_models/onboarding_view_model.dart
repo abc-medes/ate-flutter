@@ -16,6 +16,7 @@ class HealthOnboardingState {
   final bool isSaving;
   final int currentPage;
   final List<String> progressMessages;
+  final bool isFinalizing;
 
   HealthOnboardingState({
     this.selectedHeight = 170,
@@ -26,6 +27,7 @@ class HealthOnboardingState {
     this.isSaving = false,
     this.currentPage = 0,
     this.progressMessages = const [],
+    this.isFinalizing = false,
   }) : selectedBirthDate = selectedBirthDate ??
             DateTime.now().subtract(const Duration(days: 365 * 30));
 
@@ -38,6 +40,7 @@ class HealthOnboardingState {
     bool? isSaving,
     int? currentPage,
     List<String>? progressMessages,
+    bool? isFinalizing,
   }) {
     return HealthOnboardingState(
       selectedHeight: selectedHeight ?? this.selectedHeight,
@@ -48,6 +51,7 @@ class HealthOnboardingState {
       isSaving: isSaving ?? this.isSaving,
       currentPage: currentPage ?? this.currentPage,
       progressMessages: progressMessages ?? this.progressMessages,
+      isFinalizing: isFinalizing ?? this.isFinalizing,
     );
   }
 }
@@ -167,21 +171,14 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
     state = state.copyWith(progressMessages: []);
   }
 
-  void _updateLastLog(String message) {
-    if (state.progressMessages.isNotEmpty) return;
-    final updated = [...state.progressMessages.sublist(0, -1), message];
-    state = state.copyWith(progressMessages: updated);
-  }
-
   void _log(String message) {
-    print(message);
     state = state.copyWith(
       progressMessages: [...state.progressMessages, message],
     );
   }
 
   Future<bool> finalizeOnboarding() async {
-    state = state.copyWith(isSaving: true);
+    state = state.copyWith(isFinalizing: true);
     try {
       final healthMetrics = await _healthRepository.getExistingHealthMetrics();
       await OnboardingService().saveHealthMetricsToDatabase(healthMetrics);
@@ -194,7 +191,7 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
       print('Error finalising onboarding: $e');
       return false;
     } finally {
-      state = state.copyWith(isSaving: false);
+      state = state.copyWith(isFinalizing: false);
     }
   }
 }

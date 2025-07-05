@@ -8,6 +8,8 @@ class LiveTypewriter extends StatefulWidget {
     required this.style,
     this.charDelay = const Duration(milliseconds: 40),
     this.linePause = const Duration(milliseconds: 600),
+    this.expectedLineCount,
+    this.onComplete,
   });
 
   /// List you keep appending to; the widget will automatically type
@@ -17,6 +19,8 @@ class LiveTypewriter extends StatefulWidget {
   final TextStyle style;
   final Duration charDelay;
   final Duration linePause;
+  final int? expectedLineCount;
+  final VoidCallback? onComplete;
 
   @override
   State<LiveTypewriter> createState() => _LiveTypewriterState();
@@ -27,6 +31,7 @@ class _LiveTypewriterState extends State<LiveTypewriter> {
   int _charIndex = 0;
   int _lineIndex = 0;
   Timer? _timer;
+  bool _completed = false;
 
   @override
   void initState() {
@@ -35,8 +40,10 @@ class _LiveTypewriterState extends State<LiveTypewriter> {
   }
 
   @override
-  void didUpdateWidget(covariant LiveTypewriter oldWidget) {
-    super.didUpdateWidget(oldWidget);
+  void didUpdateWidget(covariant LiveTypewriter old) {
+    super.didUpdateWidget(old);
+    if (widget.lines.length > old.lines.length) _completed = false;
+
     if (_timer == null && _lineIndex < widget.lines.length) _start();
   }
 
@@ -44,8 +51,20 @@ class _LiveTypewriterState extends State<LiveTypewriter> {
 
   void _tick() {
     if (!mounted) return;
-    if (_lineIndex >= widget.lines.length) {
+
+    final int target = widget.expectedLineCount ?? widget.lines.length;
+
+    if (_lineIndex >= target) {
       _timer = null;
+      if (!_completed) {
+        _completed = true;
+        widget.onComplete?.call();
+      }
+      return;
+    }
+
+    if (_lineIndex >= widget.lines.length) {
+      _timer = Timer(widget.linePause, _tick);
       return;
     }
 

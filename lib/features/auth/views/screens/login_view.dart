@@ -1,12 +1,12 @@
 import 'dart:io';
-import 'package:bodiapp/common_libs.dart';
-import 'package:bodiapp/core/widgets/typewriter_animated_text.dart';
-import 'package:bodiapp/features/_common/ins_logo.dart';
-import 'package:bodiapp/features/auth/view_models/login_view_model.dart';
-import 'package:bodiapp/features/auth/views/widgets/social_login_button.dart';
-import 'package:bodiapp/core/routes/route_names.dart';
-import 'package:bodiapp/core/widgets/loading_view.dart';
-import 'package:bodiapp/core/widgets/error_snackbar.dart';
+import 'package:regene/common_libs.dart';
+import 'package:regene/core/widgets/typewriter_animated_text.dart';
+import 'package:regene/features/_common/regene_logo.dart';
+import 'package:regene/features/auth/view_models/login_view_model.dart';
+import 'package:regene/features/auth/views/widgets/social_login_button.dart';
+import 'package:regene/core/routes/route_names.dart';
+import 'package:regene/core/widgets/loading_view.dart';
+import 'package:regene/core/widgets/error_snackbar.dart';
 
 class LoginView extends ConsumerStatefulWidget {
   const LoginView({super.key});
@@ -84,7 +84,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    InsLogo(size: $styles.sizes.maxContentWidth3 * 0.5),
+                    RegeneLogo(size: $styles.sizes.maxContentWidth3 * 0.5),
                     Gap($styles.insets.xs),
                     TypewriterAnimatedText(
                       loop: false,

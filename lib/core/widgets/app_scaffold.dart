@@ -1,4 +1,4 @@
-import 'package:bodiapp/common_libs.dart';
+import 'package:regene/common_libs.dart';
 
 class AppScaffold extends StatelessWidget {
   const AppScaffold({super.key, required this.child});

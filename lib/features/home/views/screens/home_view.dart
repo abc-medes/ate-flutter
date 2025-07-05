@@ -1,8 +1,8 @@
-import 'package:bodiapp/common_libs.dart';
-import 'package:bodiapp/core/routes/route_names.dart';
-import 'package:bodiapp/core/widgets/chat_input.dart';
-import 'package:bodiapp/core/widgets/typewriter_animated_text.dart';
-import 'package:bodiapp/features/home/view_models/home_view_model.dart';
+import 'package:regene/common_libs.dart';
+import 'package:regene/core/routes/route_names.dart';
+import 'package:regene/core/widgets/chat_input.dart';
+import 'package:regene/core/widgets/typewriter_animated_text.dart';
+import 'package:regene/features/home/view_models/home_view_model.dart';
 
 class HomeView extends ConsumerWidget {
   const HomeView({super.key});

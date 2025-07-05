@@ -1,9 +1,9 @@
-import 'package:bodiapp/common_libs.dart';
-import 'package:bodiapp/core/routes/route_names.dart';
-import 'package:bodiapp/core/services/user_service.dart';
+import 'package:regene/common_libs.dart';
+import 'package:regene/core/routes/route_names.dart';
+import 'package:regene/core/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:bodiapp/core/services/auth_service.dart';
+import 'package:regene/core/services/auth_service.dart';
 
 enum SignupStep {
   detailsInput,

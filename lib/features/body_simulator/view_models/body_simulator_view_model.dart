@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Or your chosen state management
-import 'package:bodiapp/data/models/health_model.dart';
-import 'package:bodiapp/data/models/body_simulator_model.dart'; // Ensure this path and model are correct
+import 'package:regene/data/models/health_model.dart';
+import 'package:regene/data/models/body_simulator_model.dart'; // Ensure this path and model are correct
 
 // Provider for the ViewModel
 final bodySimulatorViewModelProvider =

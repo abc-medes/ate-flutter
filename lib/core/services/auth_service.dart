@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:bodiapp/common_libs.dart';
-import 'package:bodiapp/core/routes/route_names.dart';
+import 'package:regene/common_libs.dart';
+import 'package:regene/core/routes/route_names.dart';
 
 enum AuthStatus {
   initial,
@@ -30,7 +30,7 @@ class AuthService {
     final authResponse = await _client.auth.signUp(
         email: email,
         password: password,
-        emailRedirectTo: "bodiapp://auth/signup",
+        emailRedirectTo: "regene://auth/signup",
         data: {
           'name': name,
         });
@@ -48,7 +48,7 @@ class AuthService {
 
   Future<void> resetPassword(String email) async {
     await _client.auth.resetPasswordForEmail(email,
-        redirectTo: "bodiapp://${RouteNames.resetPassword}");
+        redirectTo: "regene://${RouteNames.resetPassword}");
   }
 
   // Sign in with Google

@@ -1,4 +1,4 @@
-import 'package:bodiapp/data/models/body_simulator_model.dart';
+import 'package:regene/data/models/body_simulator_model.dart';
 import 'package:flutter/material.dart';
 
 /**

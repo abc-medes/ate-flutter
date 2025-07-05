@@ -1,10 +1,10 @@
-import 'package:bodiapp/core/routes/route_names.dart';
-import 'package:bodiapp/core/widgets/chat_input.dart';
-import 'package:bodiapp/features/body_simulator/view_models/body_simulator_view_model.dart';
-import 'package:bodiapp/features/home/view_models/home_view_model.dart';
+import 'package:regene/core/routes/route_names.dart';
+import 'package:regene/core/widgets/chat_input.dart';
+import 'package:regene/features/body_simulator/view_models/body_simulator_view_model.dart';
+import 'package:regene/features/home/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:bodiapp/data/models/health_model.dart';
-import 'package:bodiapp/data/models/body_simulator_model.dart';
+import 'package:regene/data/models/health_model.dart';
+import 'package:regene/data/models/body_simulator_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 

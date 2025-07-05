@@ -239,44 +239,6 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     return DailyUserData.values;
   }
 
-  String getHealthFieldName(BasicUserData field) {
-    switch (field) {
-      case BasicUserData.height:
-        return 'Height';
-      case BasicUserData.weight:
-        return 'Weight';
-      case BasicUserData.dateOfBirth:
-        return 'Date of Birth';
-      case BasicUserData.gender:
-        return 'Gender';
-      // case BasicUserData.preExistingConditions:
-      //   return 'Health Conditions';
-      // case BasicUserData.medications:
-      //   return 'Medications';
-      // case BasicUserData.allergies:
-      //   return 'Allergies';
-    }
-  }
-
-  IconData getHealthFieldIcon(BasicUserData field) {
-    switch (field) {
-      case BasicUserData.height:
-        return Icons.height;
-      case BasicUserData.weight:
-        return Icons.monitor_weight;
-      case BasicUserData.dateOfBirth:
-        return Icons.cake;
-      case BasicUserData.gender:
-        return Icons.person;
-      // case BasicUserData.preExistingConditions:
-      //   return Icons.medical_information;
-      // case BasicUserData.medications:
-      //   return Icons.medication;
-      // case BasicUserData.allergies:
-      //   return Icons.coronavirus;
-    }
-  }
-
   String getDailyDataName(DailyUserData field) {
     switch (field) {
       case DailyUserData.nutritionData:

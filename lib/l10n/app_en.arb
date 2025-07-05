@@ -11,5 +11,28 @@
         "logIn": "Log in",
         "forgotPassword": "Forgot your password?",
         "resetPasswordTitle": "Reset Password",
-        "sendEmail": "Send Email"
+        "sendEmail": "Send Email",
+        "onboarding_gender": "We'll tune your insights.\n As uniquely as you are.",
+        "onboarding_birth": "Your age guides\n how your body recovers.",
+        "onboarding_bodymetrics": "Your body shape completes\nthe picture.",
+        "gender_male": "Male",
+        "gender_female": "Female",
+        "select_gender": "Select your gender",
+        "select_birthdate": "Select your birth date",
+        "select_hw": "Select your height and weight",
+        "select_bodytype": "Select your body type",
+        "bodytype_slim": "Slim",
+        "bodytype_average": "Average",
+        "bodytype_muscular": "Muscular",
+        "bodytype_overweight": "Over-weight",
+        "bodytype_obese": "Obese",
+
+        "onboarding_bodytype_dynamic": "{height} cm · {weight} kg\nAlmost there — pick your body type!",
+        "@onboarding_bodytype_dynamic": {
+        "description": "Shows user's height & weight before asking body type",
+        "placeholders": {
+                        "height": { "type": "int" },
+                        "weight": { "type": "int" }
+                }
+        }
 }

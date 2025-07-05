@@ -1,5 +1,4 @@
 import 'package:regene/data/models/body_simulator_model.dart';
-import 'package:flutter/material.dart';
 
 /**
  * HEALTH DATA PRIORITY LEVELS
@@ -30,6 +29,7 @@ enum UserInputField {
   weight,
   dateOfBirth,
   gender,
+  bodyType,
   preExistingConditions,
   medications,
   allergies,
@@ -45,6 +45,7 @@ enum UserInputField {
 enum BasicUserData {
   height,
   weight,
+  bodyType,
   dateOfBirth,
   gender,
 }
@@ -57,6 +58,8 @@ extension BasicUserDataExtension on BasicUserData {
         return UserInputField.height;
       case BasicUserData.weight:
         return UserInputField.weight;
+      case BasicUserData.bodyType:
+        return UserInputField.bodyType;
       case BasicUserData.dateOfBirth:
         return UserInputField.dateOfBirth;
       case BasicUserData.gender:
@@ -99,6 +102,7 @@ extension UserInputFieldExtension on UserInputField {
         this == UserInputField.weight ||
         this == UserInputField.dateOfBirth ||
         this == UserInputField.gender ||
+        this == UserInputField.bodyType ||
         this == UserInputField.preExistingConditions ||
         this == UserInputField.medications ||
         this == UserInputField.allergies ||
@@ -122,6 +126,8 @@ extension UserInputFieldExtension on UserInputField {
         return BasicUserData.height;
       case UserInputField.weight:
         return BasicUserData.weight;
+      case UserInputField.bodyType:
+        return BasicUserData.bodyType;
       case UserInputField.dateOfBirth:
         return BasicUserData.dateOfBirth;
       case UserInputField.gender:
@@ -263,6 +269,7 @@ class HealthMetrics {
   bool get isBasicProfileComplete =>
       userInputData.height != null &&
       userInputData.weight != null &&
+      userInputData.bodyType != null &&
       userInputData.dateOfBirth != null &&
       userInputData.gender != null;
 
@@ -341,6 +348,7 @@ class UserInputData {
       as double?; // in kg - MEDIUM PRIORITY as it may change weekly
   DateTime? get dateOfBirth => _data[UserInputField.dateOfBirth] as DateTime?;
   String? get gender => _data[UserInputField.gender] as String?;
+  String? get bodyType => _data[UserInputField.bodyType] as String?;
   List<HealthCondition>? get preExistingConditions =>
       _data[UserInputField.preExistingConditions] as List<HealthCondition>?;
   List<Medication>? get medications =>
@@ -360,6 +368,7 @@ class UserInputData {
     double? height,
     double? weight,
     DateTime? dateOfBirth,
+    String? bodyType,
     String? gender,
     List<HealthCondition>? preExistingConditions,
     List<Medication>? medications,
@@ -381,6 +390,9 @@ class UserInputData {
     }
     if (gender != null) {
       _data[UserInputField.gender] = gender;
+    }
+    if (bodyType != null) {
+      _data[UserInputField.bodyType] = bodyType;
     }
     if (preExistingConditions != null) {
       _data[UserInputField.preExistingConditions] = preExistingConditions;
@@ -416,6 +428,7 @@ class UserInputData {
           ? DateTime.parse(json['date_of_birth'])
           : null,
       gender: json['gender'],
+      bodyType: json['body_type'],
       preExistingConditions: json['pre_existing_conditions'] != null
           ? List<HealthCondition>.from(json['pre_existing_conditions']
               .map((x) => HealthCondition.fromJson(x)))
@@ -459,6 +472,9 @@ class UserInputData {
     }
     if (_data.containsKey(UserInputField.gender)) {
       jsonMap['gender'] = gender;
+    }
+    if (_data.containsKey(UserInputField.bodyType)) {
+      jsonMap['body_type'] = bodyType;
     }
     if (_data.containsKey(UserInputField.preExistingConditions)) {
       jsonMap['pre_existing_conditions'] =
@@ -509,6 +525,7 @@ class UserInputData {
     double? weight,
     DateTime? dateOfBirth,
     String? gender,
+    String? bodyType,
     List<HealthCondition>? preExistingConditions,
     List<Medication>? medications,
     List<Allergy>? allergies,
@@ -535,6 +552,9 @@ class UserInputData {
     }
     if (gender != null) {
       newData._data[UserInputField.gender] = gender;
+    }
+    if (bodyType != null) {
+      newData._data[UserInputField.bodyType] = bodyType;
     }
     if (preExistingConditions != null) {
       newData._data[UserInputField.preExistingConditions] =

@@ -18,13 +18,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         return state.matchedLocation.startsWith('/auth')
             ? null
             : RouteNames.login;
-      }
-
-      if (authState.isAuthenticated && !userService.isBasicHealthDataComplete) {
+      } else if (authState.isAuthenticated &&
+          !userService.isBasicHealthDataComplete) {
         return RouteNames.onboarding;
       }
 
-      return RouteNames.home;
+      return null;
     },
     routes: [...authRoutes, ...appRoutes],
   );

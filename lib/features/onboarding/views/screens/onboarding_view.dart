@@ -1,7 +1,6 @@
 import 'package:regene/common_libs.dart';
 import 'package:regene/core/routes/route_names.dart';
 import 'package:regene/core/widgets/live_typewriter.dart';
-import 'package:regene/core/widgets/typewriter_animated_text.dart';
 import 'package:regene/features/onboarding/view_models/onboarding_view_model.dart';
 import 'package:regene/features/onboarding/views/widgets/birth_date_picker.dart';
 import 'package:regene/features/onboarding/views/widgets/body_type_pidcker.dart';
@@ -238,8 +237,10 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
       children: [
         LiveTypewriter(
           lines: logs,
-          charDelay: const Duration(milliseconds: 100),
-          linePause: const Duration(milliseconds: 1000),
+          expectedLineCount: 2,
+          onComplete: _scheduleNavigation,
+          charDelay: const Duration(milliseconds: 50),
+          linePause: const Duration(milliseconds: 200),
           style: $styles.text.h4.copyWith(
             color: $styles.colors.accent1,
           ),
@@ -248,5 +249,13 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
         if (state.isSaving) const CircularProgressIndicator(),
       ],
     );
+  }
+
+  void _scheduleNavigation() {
+    if (mounted && context.mounted) {
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        context.go(RouteNames.home);
+      });
+    }
   }
 }

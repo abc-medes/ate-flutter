@@ -226,34 +226,6 @@ class HealthMetrics {
     required this.bodySimulatorData,
   });
 
-  // Calculate BMI if height and weight are available
-  double? get bmi {
-    if (userInputData.height == null ||
-        userInputData.weight == null ||
-        userInputData.height == 0) {
-      return null;
-    }
-    return userInputData.weight! /
-        ((userInputData.height! / 100) * (userInputData.height! / 100));
-  }
-
-  // Get BMI category
-  String? get bmiCategory {
-    if (bmi == null) {
-      return null;
-    }
-    if (bmi! < 18.5) {
-      return 'Underweight';
-    }
-    if (bmi! < 25) {
-      return 'Normal weight';
-    }
-    if (bmi! < 30) {
-      return 'Overweight';
-    }
-    return 'Obese';
-  }
-
   int? get age {
     if (userInputData.dateOfBirth == null) return null;
     final today = DateTime.now();

@@ -1,6 +1,6 @@
-import 'package:bodiapp/common_libs.dart';
-import 'package:bodiapp/core/services/auth_service.dart';
-import 'package:bodiapp/features/auth/view_models/login_view_model.dart';
+import 'package:regene/common_libs.dart';
+import 'package:regene/core/services/auth_service.dart';
+import 'package:regene/features/auth/view_models/login_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SocialAuthButton extends StatelessWidget {

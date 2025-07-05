@@ -1,7 +1,7 @@
 // lib/data/repositories/user_repository.dart
 import 'dart:convert';
 
-import 'package:bodiapp/data/models/health_model.dart';
+import 'package:regene/data/models/health_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserRepository {

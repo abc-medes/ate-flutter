@@ -1,8 +1,8 @@
-import 'package:bodiapp/common_libs.dart';
-import 'package:bodiapp/core/routes/route_names.dart';
-import 'package:bodiapp/features/auth/view_models/login_view_model.dart';
-import 'package:bodiapp/core/widgets/customed_text_input.dart';
-import 'package:bodiapp/features/auth/views/widgets/email_sent_step.dart';
+import 'package:regene/common_libs.dart';
+import 'package:regene/core/routes/route_names.dart';
+import 'package:regene/features/auth/view_models/login_view_model.dart';
+import 'package:regene/core/widgets/customed_text_input.dart';
+import 'package:regene/features/auth/views/widgets/email_sent_step.dart';
 
 class ResetPasswordView extends ConsumerStatefulWidget {
   const ResetPasswordView({super.key});

@@ -1,5 +1,5 @@
-import 'package:bodiapp/common_libs.dart';
-import 'package:bodiapp/core/utils/color_utils.dart';
+import 'package:regene/common_libs.dart';
+import 'package:regene/core/utils/color_utils.dart';
 
 class AppColors {
   // TODO: for temporary use, will be removed later------------------------------------------------

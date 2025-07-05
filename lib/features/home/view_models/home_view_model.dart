@@ -1,11 +1,11 @@
-import 'package:bodiapp/common_libs.dart';
-import 'package:bodiapp/core/services/api_service.dart';
-// import 'package:bodiapp/theme/app_theme.dart';
-// import 'package:bodiapp/core/widgets/%5Bdeprecated%5D_ai_response_bottom_sheet.dart';
-import 'package:bodiapp/data/models/chat_model.dart';
+import 'package:regene/common_libs.dart';
+import 'package:regene/core/services/api_service.dart';
+// import 'package:regene/theme/app_theme.dart';
+// import 'package:regene/core/widgets/%5Bdeprecated%5D_ai_response_bottom_sheet.dart';
+import 'package:regene/data/models/chat_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:bodiapp/core/services/auth_service.dart';
-import 'package:bodiapp/data/models/health_model.dart';
+import 'package:regene/core/services/auth_service.dart';
+import 'package:regene/data/models/health_model.dart';
 
 final homeViewModelProvider =
     StateNotifierProvider<HomeViewModel, HomeViewState>((ref) {

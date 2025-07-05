@@ -1,11 +1,11 @@
-import 'package:bodiapp/common_libs.dart';
-import 'package:bodiapp/core/routes/route_names.dart';
-import 'package:bodiapp/features/auth/view_models/signup_view_model.dart';
-import 'package:bodiapp/features/auth/views/widgets/email_sent_step.dart';
+import 'package:regene/common_libs.dart';
+import 'package:regene/core/routes/route_names.dart';
+import 'package:regene/features/auth/view_models/signup_view_model.dart';
+import 'package:regene/features/auth/views/widgets/email_sent_step.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:bodiapp/core/widgets/loading_view.dart';
-import 'package:bodiapp/core/widgets/error_snackbar.dart';
-import 'package:bodiapp/core/widgets/customed_text_input.dart';
+import 'package:regene/core/widgets/loading_view.dart';
+import 'package:regene/core/widgets/error_snackbar.dart';
+import 'package:regene/core/widgets/customed_text_input.dart';
 
 class SignupView extends ConsumerStatefulWidget {
   final String email;

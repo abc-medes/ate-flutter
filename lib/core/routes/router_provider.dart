@@ -1,6 +1,6 @@
-import 'package:bodiapp/core/routes/route_names.dart';
-import 'package:bodiapp/core/services/user_service.dart';
-import 'package:bodiapp/core/utils/keyboard_dismiss_on_navigation_observer.dart';
+import 'package:regene/core/routes/route_names.dart';
+import 'package:regene/core/services/user_service.dart';
+import 'package:regene/core/utils/keyboard_dismiss_on_navigation_observer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart';
@@ -21,10 +21,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       if (authState.isAuthenticated && !userService.isBasicHealthDataComplete) {
-        return RouteNames.settings;
+        return RouteNames.onboarding;
       }
 
-      return RouteNames.settings;
+      return RouteNames.home;
     },
     routes: [...authRoutes, ...appRoutes],
   );

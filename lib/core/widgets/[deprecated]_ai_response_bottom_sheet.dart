@@ -1,4 +1,4 @@
-import 'package:bodiapp/data/models/chat_model.dart';
+import 'package:regene/data/models/chat_model.dart';
 import 'package:flutter/material.dart';
 
 class AIResponseBottomSheet {

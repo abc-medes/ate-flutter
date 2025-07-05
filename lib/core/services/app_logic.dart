@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:bodiapp/common_libs.dart';
-import 'package:bodiapp/core/common/platform_info.dart';
-import 'package:bodiapp/features/_utils/page_routes.dart';
+import 'package:regene/common_libs.dart';
+import 'package:regene/core/common/platform_info.dart';
+import 'package:regene/features/_utils/page_routes.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 

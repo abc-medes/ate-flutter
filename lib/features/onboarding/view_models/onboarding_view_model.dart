@@ -1,5 +1,6 @@
-import 'dart:convert';
 import 'package:regene/core/services/api_service.dart';
+import 'package:regene/core/services/onboarding_service.dart';
+import 'package:regene/features/onboarding/views/widgets/body_type_pidcker.dart';
 import 'package:regene/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regene/data/models/health_model.dart';
@@ -11,16 +12,20 @@ class HealthOnboardingState {
   final int selectedWeight;
   final DateTime selectedBirthDate;
   final Gender selectedGender;
+  final BodyType selectedBodyType;
   final bool isSaving;
   final int currentPage;
+  final List<String> progressMessages;
 
   HealthOnboardingState({
     this.selectedHeight = 170,
     this.selectedWeight = 70,
     DateTime? selectedBirthDate,
     this.selectedGender = Gender.male,
+    this.selectedBodyType = BodyType.slim,
     this.isSaving = false,
     this.currentPage = 0,
+    this.progressMessages = const [],
   }) : selectedBirthDate = selectedBirthDate ??
             DateTime.now().subtract(const Duration(days: 365 * 30));
 
@@ -29,16 +34,20 @@ class HealthOnboardingState {
     int? selectedWeight,
     DateTime? selectedBirthDate,
     Gender? selectedGender,
+    BodyType? selectedBodyType,
     bool? isSaving,
     int? currentPage,
+    List<String>? progressMessages,
   }) {
     return HealthOnboardingState(
       selectedHeight: selectedHeight ?? this.selectedHeight,
       selectedWeight: selectedWeight ?? this.selectedWeight,
       selectedBirthDate: selectedBirthDate ?? this.selectedBirthDate,
       selectedGender: selectedGender ?? this.selectedGender,
+      selectedBodyType: selectedBodyType ?? this.selectedBodyType,
       isSaving: isSaving ?? this.isSaving,
       currentPage: currentPage ?? this.currentPage,
+      progressMessages: progressMessages ?? this.progressMessages,
     );
   }
 }
@@ -118,6 +127,26 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
     }
   }
 
+  void updateBodyType(BodyType bodyType) {
+    state = state.copyWith(selectedBodyType: bodyType);
+  }
+
+  Future<bool> saveBodyType() async {
+    state = state.copyWith(isSaving: true);
+    try {
+      await _healthRepository.saveBodyType(state.selectedBodyType);
+      await _userService.refreshBasicHealthData();
+
+      state = state.copyWith(isSaving: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isSaving: false);
+      return false;
+    } finally {
+      state = state.copyWith(isSaving: false);
+    }
+  }
+
   Future<List<BasicUserData>> getMissingHealthData() async {
     return await _healthRepository.getMissingBasicUserData();
   }
@@ -128,6 +157,41 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
       await ApiService.initializeBodySimulatorState();
       return true;
     } catch (e) {
+      return false;
+    } finally {
+      state = state.copyWith(isSaving: false);
+    }
+  }
+
+  void clearProgressMessages() {
+    state = state.copyWith(progressMessages: []);
+  }
+
+  void _updateLastLog(String message) {
+    if (state.progressMessages.isNotEmpty) return;
+    final updated = [...state.progressMessages.sublist(0, -1), message];
+    state = state.copyWith(progressMessages: updated);
+  }
+
+  void _log(String message) {
+    print(message);
+    state = state.copyWith(
+      progressMessages: [...state.progressMessages, message],
+    );
+  }
+
+  Future<bool> finalizeOnboarding() async {
+    state = state.copyWith(isSaving: true);
+    try {
+      final healthMetrics = await _healthRepository.getExistingHealthMetrics();
+      await OnboardingService().saveHealthMetricsToDatabase(healthMetrics);
+      _log('Saving health-metrics to database - done');
+      await initializeBodySimulatorState();
+      _log('Initializing body simulator state - done');
+
+      return true;
+    } catch (e) {
+      print('Error finalising onboarding: $e');
       return false;
     } finally {
       state = state.copyWith(isSaving: false);

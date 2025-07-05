@@ -11,5 +11,27 @@
         "logIn": "Log in",
         "forgotPassword": "Forgot your password?",
         "resetPasswordTitle": "Reset Password",
-        "sendEmail": "Send Email"
+        "sendEmail": "Send Email",
+        "onboarding_gender": "We'll tune your insights.\n As uniquely as you are.",
+        "onboarding_birth": "Your age guides how your body recovers.",
+        "onboarding_bodymetrics": "Your body shape completes the picture.",
+        "gender_male": "Male",
+        "gender_female": "Female",
+        "select_gender": "Select your gender",
+        "select_birthdate": "Select your birth date",
+        "select_hw": "Select your height and weight",
+        "select_bodytype": "체형을 선택하세요",
+        "bodytype_slim": "마름",
+        "bodytype_average": "평균",
+        "bodytype_muscular": "근육질",
+        "bodytype_overweight": "과체중",
+        "bodytype_obese": "비만",
+        "onboarding_bodytype_dynamic": "{height} cm · {weight} kg\n거의 끝났어요! 체형을 골라 주세요",
+        "@onboarding_bodytype_dynamic": {
+        "description": "신장·체중을 보여주고 체형을 요청",
+        "placeholders": {
+                        "height": { "type": "int" },
+                        "weight": { "type": "int" }
+                }
+        }
 }

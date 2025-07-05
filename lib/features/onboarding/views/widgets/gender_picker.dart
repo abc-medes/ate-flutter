@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:regene/common_libs.dart';
 
 enum Gender {
   male,
@@ -9,9 +10,9 @@ extension GenderExtension on Gender {
   String get displayName {
     switch (this) {
       case Gender.male:
-        return 'Male';
+        return $strings.gender_male;
       case Gender.female:
-        return 'Female';
+        return $strings.gender_female;
     }
   }
 }
@@ -32,10 +33,12 @@ class GenderPickerWidget extends StatelessWidget {
 
     return Column(
       children: [
+        Text($strings.select_gender,
+            style: $styles.text.bodySmall, textAlign: TextAlign.center),
         SizedBox(
-          height: 200,
+          height: $styles.sizes.maxContentWidth3,
           child: CupertinoPicker(
-            itemExtent: 40,
+            itemExtent: $styles.sizes.maxContentWidth3 / 5,
             scrollController: FixedExtentScrollController(
               initialItem: genders.indexOf(selectedGender),
             ),
@@ -46,6 +49,7 @@ class GenderPickerWidget extends StatelessWidget {
               return Center(
                 child: Text(
                   gender.displayName,
+                  style: $styles.text.h3,
                 ),
               );
             }).toList(),

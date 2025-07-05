@@ -160,8 +160,6 @@ class _BodySimulatorViewState extends ConsumerState<BodySimulatorView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildDataRow('Age', metrics.age?.toString() ?? 'N/A'),
-            _buildDataRow('BMI', metrics.bmi?.toStringAsFixed(1) ?? 'N/A'),
-            _buildDataRow('BMI Category', metrics.bmiCategory ?? 'N/A'),
             _buildDataRow('Basic Profile Complete',
                 metrics.isBasicProfileComplete ? 'Yes' : 'No'),
             if (metrics.homeSuggestions.isNotEmpty) ...[

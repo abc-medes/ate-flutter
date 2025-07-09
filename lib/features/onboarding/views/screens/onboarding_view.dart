@@ -32,7 +32,7 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
   @override
   void initState() {
     super.initState();
-    _pageController.addListener(() {
+    _pageController.addListener(() async {
       int newPage = _pageController.page?.round() ?? 0;
       int currentPage = ref.read(healthOnboardingProvider).currentPage;
       if (newPage != currentPage) {
@@ -43,11 +43,12 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
 
         ref.read(healthOnboardingProvider.notifier).updateCurrentPage(newPage);
         if (newPage > currentPage) {
-          _saveCurrentPageData(currentPage);
+          await _saveCurrentPageData(currentPage);
         }
 
         if (newPage == _onboardingSteps.length && !_wrapUpTriggered) {
           _wrapUpTriggered = true;
+          await _saveCurrentPageData(_onboardingSteps.length - 1);
           ref.read(healthOnboardingProvider.notifier).finalizeOnboarding();
         }
       }
@@ -60,7 +61,7 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
     super.dispose();
   }
 
-  void _saveCurrentPageData(int pageIndex) async {
+  Future<void> _saveCurrentPageData(int pageIndex) async {
     final viewModel = ref.read(healthOnboardingProvider.notifier);
 
     switch (pageIndex) {

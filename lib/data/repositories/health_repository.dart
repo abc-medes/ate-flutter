@@ -152,7 +152,6 @@ class HealthRepository {
   Future<void> saveBodyType(BodyType bodyType) async {
     try {
       final healthMetrics = await getExistingHealthMetrics();
-
       final updatedUserInputData = healthMetrics.userInputData.copyWith(
         bodyType: bodyType.displayName,
       );
@@ -233,8 +232,6 @@ class HealthRepository {
       print('Error saving health metrics: $e');
     }
   }
-
-  // TODO: need to be fixed more sexier way. need to create new table for health metrics.
 }
 
 final healthRepository = HealthRepository();

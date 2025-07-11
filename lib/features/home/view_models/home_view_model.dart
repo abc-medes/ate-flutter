@@ -1,9 +1,6 @@
 import 'package:regene/common_libs.dart';
 import 'package:regene/core/services/api_service.dart';
-// import 'package:regene/theme/app_theme.dart';
-// import 'package:regene/core/widgets/%5Bdeprecated%5D_ai_response_bottom_sheet.dart';
 import 'package:regene/data/models/chat_model.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regene/core/services/auth_service.dart';
 import 'package:regene/data/models/health_model.dart';
 
@@ -162,7 +159,7 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     textController.clear();
 
     try {
-      final response = await ApiService.memorizeChat(text);
+      // final response = await ApiService.memorizeChat(text);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

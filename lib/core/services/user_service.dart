@@ -2,7 +2,7 @@ import 'package:regene/common_libs.dart';
 import 'package:regene/data/models/body_simulator_model.dart';
 import 'package:regene/data/models/health_model.dart';
 import 'package:regene/data/repositories/health_repository.dart';
-import 'package:regene/data/models/user_model.dart' as UM;
+import 'package:regene/data/models/user_model.dart' as um;
 
 class UserService {
   final SupabaseClient _client = Supabase.instance.client;
@@ -31,7 +31,7 @@ class UserService {
     final response =
         await _client.from('profiles').select().eq('id', userId).single();
 
-    return response ?? {};
+    return response;
   }
 
   Future<void> updateUserProfile(
@@ -51,7 +51,7 @@ class UserService {
         .maybeSingle();
 
     if (existingProfile != null) {
-      final updatedUser = UM.User.newUser(
+      final updatedUser = um.User.newUser(
         id: userId,
         email: email,
         name: name,
@@ -62,7 +62,7 @@ class UserService {
           .update(updatedUser.toJson())
           .eq('id', userId);
     } else {
-      final newUser = UM.User.newUser(
+      final newUser = um.User.newUser(
         id: userId,
         email: email,
         name: name,

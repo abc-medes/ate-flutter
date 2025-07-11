@@ -1,11 +1,5 @@
 import 'package:regene/common_libs.dart';
-import 'package:flutter/material.dart';
-import 'package:regene/theme/app_theme.dart';
 import 'dart:math' as math;
-
-// Global key to access the overlay state
-final GlobalKey<_LoadingOverlayState> _overlayKey =
-    GlobalKey<_LoadingOverlayState>();
 
 // Track whether overlay is currently shown
 bool _isOverlayShown = false;
@@ -159,47 +153,6 @@ class _LoadingScreenState extends State<LoadingScreen>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildAnimatedLogo() {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: 1.0 + 0.1 * math.sin(2 * math.pi * _controller.value),
-          child: Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.health_and_safety,
-              size: 64,
-              color: AppColors.primary,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildLoadingIndicator() {
-    return Column(
-      children: [
-        SizedBox(
-          width: 40,
-          height: 40,
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-            strokeWidth: 3,
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildLoadingDots(),
-      ],
     );
   }
 

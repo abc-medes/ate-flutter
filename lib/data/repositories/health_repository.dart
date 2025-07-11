@@ -4,10 +4,8 @@ import 'package:regene/features/onboarding/views/widgets/body_type_pidcker.dart'
 import 'package:regene/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:regene/data/models/health_model.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as SB;
 
 class HealthRepository {
-  final SB.SupabaseClient _client = SB.Supabase.instance.client;
   static const String _healthDataKey = 'health_metrics';
 
   Future<bool> isUserInputFieldSaved(UserInputField field) async {

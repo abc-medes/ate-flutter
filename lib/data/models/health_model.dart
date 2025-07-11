@@ -1815,15 +1815,4 @@ void demonstrateEnumBasedApproach() {
           condition: 'Sunny',
           timestamp: DateTime.now(),
           location: 'Seoul'));
-
-  // Create a complete health metrics object
-  final healthMetrics = HealthMetrics(
-      userInputData: userData,
-      autoDetectedData: AutoDetectedData(),
-      environmentalData: envData,
-      bodySimulatorData: BodySimulatorData.empty());
-
-  // Convert to JSON and back
-  final json = healthMetrics.toJson();
-  final recreated = HealthMetrics.fromJson(json);
 }

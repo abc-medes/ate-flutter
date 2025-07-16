@@ -1,6 +1,8 @@
 import 'package:regene/common_libs.dart';
+import 'package:regene/core/services/app_lifecycle.dart';
 import 'package:regene/core/services/app_logic.dart';
 import 'package:regene/core/services/deep_link_logic.dart';
+import 'package:regene/core/services/user_service.dart';
 import 'package:regene/l10n/l10n.dart';
 import 'package:regene/core/config/env.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -19,25 +21,29 @@ Future<void> main() async {
 
   await appLogic.bootstrap();
 
-  runApp(ProviderScope(child: regene()));
+  runApp(ProviderScope(child: Regene()));
 }
 
-class regene extends ConsumerStatefulWidget {
-  const regene({super.key});
+class Regene extends ConsumerStatefulWidget {
+  const Regene({super.key});
 
   @override
-  ConsumerState<regene> createState() => _regeneState();
+  ConsumerState<Regene> createState() => _RegeneState();
 }
 
-class _regeneState extends ConsumerState<regene> {
+class _RegeneState extends ConsumerState<Regene> {
+  late final LifecycleLogic _lifecycle;
+
   @override
   void initState() {
     super.initState();
     GetIt.I.get<DeepLinkLogic>().init(context);
+    _lifecycle = LifecycleLogic(ref.read(userServiceProvider));
   }
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     GetIt.I.get<DeepLinkLogic>().dispose();
     super.dispose();
   }

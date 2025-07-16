@@ -14,7 +14,7 @@ class ApiService {
     try {
       Future<http.StreamedResponse> _executeSendRequest(String token) async {
         final request =
-            http.Request('POST', Uri.parse('$_baseUrl/generate/health'))
+            http.Request('POST', Uri.parse('$_baseUrl/generate/chat-reply'))
               ..headers.addAll({
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer $token',

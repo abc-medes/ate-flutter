@@ -1,13 +1,20 @@
+import 'package:flutter/cupertino.dart';
 import 'package:regene/common_libs.dart';
 import 'package:regene/core/services/api_service.dart';
+import 'package:regene/core/services/user_service.dart';
+import 'package:regene/data/models/body_simulator_model.dart';
 import 'package:regene/data/models/chat_model.dart';
 import 'package:regene/core/services/auth_service.dart';
 import 'package:regene/data/models/health_model.dart';
+import 'package:regene/features/home/views/widgets/_body_simultor_snapshot_details.dart';
+import 'package:regene/features/home/views/widgets/system_detail_sheet.dart';
+
+enum ChatHelperType { ai, alerts, waitlist, system, context }
 
 final homeViewModelProvider =
     StateNotifierProvider<HomeViewModel, HomeViewState>((ref) {
   final authService = ref.watch(authServiceProvider).isAuthenticated;
-  return HomeViewModel(authService);
+  return HomeViewModel(authService)..fetchBodySimulatorState(ref);
 });
 
 class HomeViewState {
@@ -15,11 +22,15 @@ class HomeViewState {
   final List<ChatMessage> messages;
   final bool isProcessing;
   final bool isSaveMode;
+  final ChatHelperType selectedHelperChip;
+  final SBBodySimulatorStateSnapshot? bodySimulatorState;
   HomeViewState({
     this.missingBasicData = const [],
     this.messages = const [],
     this.isProcessing = false,
     this.isSaveMode = false,
+    this.selectedHelperChip = ChatHelperType.ai,
+    this.bodySimulatorState,
   });
 
   HomeViewState copyWith({
@@ -28,12 +39,16 @@ class HomeViewState {
     List<ChatMessage>? messages,
     bool? isProcessing,
     bool? isSaveMode,
+    ChatHelperType? selectedHelperChip,
+    SBBodySimulatorStateSnapshot? bodySimulatorState,
   }) {
     return HomeViewState(
       missingBasicData: missingBasicData ?? this.missingBasicData,
       messages: messages ?? this.messages,
       isProcessing: isProcessing ?? this.isProcessing,
       isSaveMode: isSaveMode ?? this.isSaveMode,
+      selectedHelperChip: selectedHelperChip ?? this.selectedHelperChip,
+      bodySimulatorState: bodySimulatorState ?? this.bodySimulatorState,
     );
   }
 }
@@ -47,32 +62,37 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
   final GlobalKey _userCurrentMessageKey = GlobalKey();
   GlobalKey get userCurrentMessageKey => _userCurrentMessageKey;
 
-  HomeViewModel(this._isAuthenticated) : super(HomeViewState()) {
-    // _init();
-    textController.addListener(_onTextChange);
-  }
+  HomeViewModel(this._isAuthenticated) : super(HomeViewState());
 
   @override
   void dispose() {
-    textController.removeListener(_onTextChange);
     textController.dispose();
     scrollController.dispose();
     chatFocusNode.dispose();
     super.dispose();
   }
 
-  // Listen for text changes and scroll to bottom
-  void _onTextChange() {
-    if (textController.text.isNotEmpty) {
-      scrollToBottom();
-    }
-  }
-
   void onSaveModeToggle() {
     state = state.copyWith(isSaveMode: !state.isSaveMode);
   }
 
-  // Public method to scroll to bottom of chat
+  void selectHelperChip(ChatHelperType chipType) {
+    if (state.selectedHelperChip == chipType) {
+      return;
+    } else {
+      state = state.copyWith(selectedHelperChip: chipType);
+    }
+  }
+
+  void showBodySimulatorSnapshotDetails(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => BodySimulatorSnapshotDetails(
+        userId: state.bodySimulatorState!.userId,
+      ),
+    );
+  }
+
   void scrollToBottom() {
     // Use a small delay to ensure layout is complete
     Future.delayed(const Duration(milliseconds: 100), () {
@@ -215,69 +235,10 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     }
   }
 
-  void dismissLoginPrompt() {
-    state = state.copyWith(showLoginPrompt: false);
-  }
-
-  void scrollUserMessageToTop() {
-    final context = _userCurrentMessageKey.currentContext;
-    if (context != null) {
-      Scrollable.ensureVisible(
-        context,
-        alignment: 0.0, // 0.0 = 위쪽
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
-  // Health data helper methods
-  List<DailyUserData> getDailyUserDataFields() {
-    return DailyUserData.values;
-  }
-
-  String getDailyDataName(DailyUserData field) {
-    switch (field) {
-      case DailyUserData.nutritionData:
-        return 'Nutrition';
-      case DailyUserData.moodData:
-        return 'Mood';
-      case DailyUserData.symptoms:
-        return 'Symptoms';
-      case DailyUserData.sleepQuality:
-        return 'Sleep';
-      case DailyUserData.activityData:
-        return 'Activity';
-    }
-  }
-
-  IconData getDailyDataIcon(DailyUserData field) {
-    switch (field) {
-      case DailyUserData.nutritionData:
-        return Icons.restaurant_menu;
-      case DailyUserData.moodData:
-        return Icons.mood;
-      case DailyUserData.symptoms:
-        return Icons.healing;
-      case DailyUserData.sleepQuality:
-        return Icons.nightlight_round;
-      case DailyUserData.activityData:
-        return Icons.directions_run;
-    }
-  }
-
-  Color getDailyDataColor(DailyUserData field) {
-    switch (field) {
-      case DailyUserData.nutritionData:
-        return Colors.green; // Replace with AppColors.nutrition
-      case DailyUserData.moodData:
-        return Colors.amber; // Replace with AppColors.mood
-      case DailyUserData.symptoms:
-        return Colors.redAccent;
-      case DailyUserData.sleepQuality:
-        return Colors.indigo; // Replace with AppColors.sleep
-      case DailyUserData.activityData:
-        return Colors.blue; // Replace with AppColors.activity
-    }
+  void fetchBodySimulatorState(Ref ref) async {
+    final bodySimulatorState =
+        await ref.read(userServiceProvider).bodySimulatorState();
+    print(bodySimulatorState);
+    state = state.copyWith(bodySimulatorState: bodySimulatorState);
   }
 }

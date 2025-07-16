@@ -1,6 +1,7 @@
 // body_simulator_model.dart
 
 // Helper to safely parse doubles from JSON, handling int or double types
+
 double _parseDouble(dynamic value) {
   if (value is int) {
     return value.toDouble();
@@ -347,36 +348,53 @@ class BodySimulatorState {
   }
 }
 
-// Finally, the BodySimulatorData class
-class BodySimulatorData {
-  final BodySimulatorState state;
-  final DateTime? lastUpdatedAt;
+class SBBodySimulatorStateSnapshot {
+  final int id;
+  final String userId;
+  final BodySimulatorState bodyState;
+  final DateTime lastUpdatedAt;
+  final DateTime lastUpdatedAtUtc;
+  final DateTime createdAt;
 
-  BodySimulatorData({
-    required this.state,
-    this.lastUpdatedAt,
+  SBBodySimulatorStateSnapshot({
+    required this.id,
+    required this.userId,
+    required this.bodyState,
+    required this.lastUpdatedAt,
+    required this.lastUpdatedAtUtc,
+    required this.createdAt,
   });
 
-  factory BodySimulatorData.fromJson(Map<String, dynamic> json) {
-    return BodySimulatorData(
-      state: BodySimulatorState.fromJson(
-          json['state'] as Map<String, dynamic>? ?? {}),
-      lastUpdatedAt: json['last_updated_at'] != null
-          ? DateTime.tryParse(json['last_updated_at'] as String)
-          : null,
+  factory SBBodySimulatorStateSnapshot.fromJson(Map<String, dynamic> json) {
+    final bodyStateRaw = json['body_state'];
+    if (bodyStateRaw is! Map<String, dynamic>) {
+      print('body_state is not a map! Value: $bodyStateRaw');
+      // You can throw, return a default, or handle as you wish:
+      return SBBodySimulatorStateSnapshot(
+        id: (json['id'] ?? 0) as int,
+        userId: json['user_id'] ?? '',
+        bodyState: BodySimulatorState.empty(),
+        lastUpdatedAt: DateTime.parse(json['last_updated_at']),
+        lastUpdatedAtUtc: DateTime.parse(json['last_updated_at_utc']),
+        createdAt: DateTime.parse(json['created_at']),
+      );
+    }
+    return SBBodySimulatorStateSnapshot(
+      id: (json['id'] ?? 0) as int,
+      userId: json['user_id'],
+      bodyState: BodySimulatorState.fromJson(bodyStateRaw),
+      lastUpdatedAt: DateTime.parse(json['last_updated_at']),
+      lastUpdatedAtUtc: DateTime.parse(json['last_updated_at_utc']),
+      createdAt: DateTime.parse(json['created_at']),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'state': state.toJson(),
-        'last_updated_at': lastUpdatedAt?.toIso8601String(),
+        'id': id,
+        'user_id': userId,
+        'body_state': bodyState.toJson(),
+        'last_updated_at': lastUpdatedAt.toIso8601String(),
+        'last_updated_at_utc': lastUpdatedAtUtc.toIso8601String(),
+        'created_at': createdAt.toIso8601String(),
       };
-
-  // Factory for an empty BodySimulatorData, useful for initialization
-  factory BodySimulatorData.empty() {
-    return BodySimulatorData(
-      state: BodySimulatorState.empty(),
-      lastUpdatedAt: null, // Or your placeholder very old date
-    );
-  }
 }

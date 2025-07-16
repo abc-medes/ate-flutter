@@ -124,7 +124,7 @@ class HealthRepository {
       userInputData: UserInputData(),
       autoDetectedData: AutoDetectedData(),
       environmentalData: EnvironmentalData(),
-      bodySimulatorData: BodySimulatorData.empty(),
+      bodySimulatorData: BodySimulatorState.empty(),
     );
   }
 

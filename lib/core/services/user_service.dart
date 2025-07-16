@@ -76,7 +76,7 @@ class UserService {
       userInputData: UserInputData(),
       autoDetectedData: AutoDetectedData(),
       environmentalData: EnvironmentalData(),
-      bodySimulatorData: BodySimulatorData.empty(),
+      bodySimulatorData: BodySimulatorState.empty(),
     );
 
     final now = DateTime.now();
@@ -90,6 +90,27 @@ class UserService {
     await _client.from('health_metrics').insert(
           healthData,
         );
+  }
+
+  Future<SBBodySimulatorStateSnapshot> bodySimulatorState() async {
+    final response = await _client
+        .from('user_body_state_snapshots')
+        .select('*')
+        .eq('user_id', _client.auth.currentUser!.id)
+        .single();
+    return SBBodySimulatorStateSnapshot.fromJson(response);
+  }
+
+  Stream<SBBodySimulatorStateSnapshot?> bodySimulatorStateStream(
+      String userId) {
+    return _client
+        .from('user_body_state_snapshots') // just the table name
+        .stream(primaryKey: ['id']) // enable realtime
+        .eq('user_id', userId) // <- filter separately
+        .limit(1)
+        .map((rows) => rows.isEmpty
+            ? null
+            : SBBodySimulatorStateSnapshot.fromJson(rows.first));
   }
 }
 

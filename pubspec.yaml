@@ -30,6 +30,7 @@ environment:
 dependencies:
   build_runner: ^2.4.15
   cupertino_icons: ^1.0.8
+  extra_alignments: ^1.0.0+1
   flutter:
     sdk: flutter
   flutter_animate: ^4.5.0
@@ -104,12 +105,40 @@ flutter:
   fonts:
   - family: NanumGothic         
     fonts:
-      - asset: assets/fonts/NanumGothic/NanumGothic-Regular.ttf
+      - asset: assets/fonts/NanumGothic-Regular.ttf
         weight: 400
-      - asset: assets/fonts/NanumGothic/NanumGothic-Bold.ttf
+      - asset: assets/fonts/NanumGothic-Bold.ttf
         weight: 700
-      - asset: assets/fonts/NanumGothic/NanumGothic-ExtraBold.ttf
+      - asset: assets/fonts/NanumGothic-ExtraBold.ttf
         weight: 800
+  - family: Cinzel
+    fonts:
+      - asset: assets/fonts/CinzelDecorative-Regular.ttf
+        weight: 400
+      - asset: assets/fonts/CinzelDecorative-Black.ttf
+        weight: 900
+      - asset: assets/fonts/CinzelDecorative-Bold.ttf
+        weight: 700
+  - family: Yeseva
+    fonts:
+      - asset: assets/fonts/YesevaOne-Regular.ttf
+  - family: Tenor
+    fonts:
+      - asset: assets/fonts/TenorSans-Regular.ttf
+  - family: Raleway
+    fonts:
+      - asset: assets/fonts/Raleway-Regular.ttf
+      - asset: assets/fonts/Raleway-Italic.ttf
+        style: italic
+      - asset: assets/fonts/Raleway-Medium.ttf
+        weight: 500
+      - asset: assets/fonts/Raleway-Bold.ttf
+        weight: 700
+      - asset: assets/fonts/Raleway-ExtraBold.ttf
+        weight: 800
+  - family: B612Mono
+    fonts:
+      - asset: assets/fonts/B612Mono-Regular.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

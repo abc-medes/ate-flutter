@@ -217,7 +217,7 @@ class HealthMetrics {
   final AutoDetectedData autoDetectedData;
 
   final EnvironmentalData environmentalData;
-  final BodySimulatorData bodySimulatorData;
+  final BodySimulatorState bodySimulatorData;
 
   HealthMetrics({
     required this.userInputData,
@@ -279,9 +279,9 @@ class HealthMetrics {
           json['auto_detected_data'] as Map<String, dynamic>? ?? {}),
       environmentalData: EnvironmentalData.fromJson(
           json['environmental_data'] as Map<String, dynamic>? ?? {}),
-      bodySimulatorData: BodySimulatorData.fromJson(
+      bodySimulatorData: BodySimulatorState.fromJson(
           json['body_simulator_data'] as Map<String, dynamic>? ??
-              BodySimulatorData.empty().toJson()),
+              BodySimulatorState.empty().toJson()),
     );
   }
 
@@ -298,7 +298,7 @@ class HealthMetrics {
     UserInputData? userInputData,
     AutoDetectedData? autoDetectedData,
     EnvironmentalData? environmentalData,
-    BodySimulatorData? bodySimulatorData,
+    BodySimulatorState? bodySimulatorData,
   }) {
     return HealthMetrics(
       userInputData: userInputData ?? this.userInputData,

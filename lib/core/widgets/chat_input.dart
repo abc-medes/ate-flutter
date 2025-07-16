@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:regene/main.dart';
 
 class ChatInput extends StatefulWidget {
   final Function(String, List<String>)? onSubmit;
@@ -74,6 +75,7 @@ class _ChatInputState extends State<ChatInput> {
 
   @override
   Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -81,7 +83,7 @@ class _ChatInputState extends State<ChatInput> {
         if (_selectedImages.isNotEmpty)
           Container(
             height: 80,
-            margin: const EdgeInsets.only(bottom: 8),
+            margin: EdgeInsets.only(bottom: $styles.insets.sm),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: _selectedImages.length,
@@ -125,24 +127,23 @@ class _ChatInputState extends State<ChatInput> {
             ),
           ),
 
-        // Chat input (always expanded)
         Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: widget.shouldSaveAsContext
-                  ? Theme.of(context).colorScheme.secondary
-                  : Theme.of(context).colorScheme.primary,
-              width: 2.0,
+            color: $styles.colors.background,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular($styles.insets.lg),
+              topRight: Radius.circular($styles.insets.lg),
+            ),
+            border: Border(
+              top: BorderSide(color: $styles.colors.accent1),
             ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Text input field
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                padding: EdgeInsets.symmetric(
+                    horizontal: $styles.insets.md, vertical: $styles.insets.sm),
                 child: TextField(
                   controller: _chatInputController,
                   focusNode: _chatFocusNode,
@@ -172,7 +173,9 @@ class _ChatInputState extends State<ChatInput> {
 
               // Action buttons (always visible)
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.symmetric(
+                  horizontal: $styles.insets.md,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -184,11 +187,8 @@ class _ChatInputState extends State<ChatInput> {
                                 ? Icons.save
                                 : Icons.save_outlined,
                             color: widget.shouldSaveAsContext
-                                ? Theme.of(context).colorScheme.secondary
-                                : Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withOpacity(0.6),
+                                ? $styles.colors.accent2
+                                : $styles.colors.accent1,
                           ),
                           onPressed: widget.onSaveModeToggle,
                           tooltip: widget.shouldSaveAsContext
@@ -200,8 +200,8 @@ class _ChatInputState extends State<ChatInput> {
                             icon: Icon(
                               Icons.image,
                               color: widget.shouldSaveAsContext
-                                  ? Theme.of(context).colorScheme.secondary
-                                  : Theme.of(context).colorScheme.primary,
+                                  ? $styles.colors.accent2
+                                  : $styles.colors.accent1,
                             ),
                             onPressed: _handleImageSelection,
                             tooltip: 'Add image',
@@ -212,8 +212,8 @@ class _ChatInputState extends State<ChatInput> {
                       icon: Icon(
                         Icons.send,
                         color: widget.shouldSaveAsContext
-                            ? Theme.of(context).colorScheme.secondary
-                            : Theme.of(context).colorScheme.primary,
+                            ? $styles.colors.accent2
+                            : $styles.colors.accent1,
                       ),
                       onPressed: _handleSubmit,
                       tooltip: 'Send message',
@@ -221,6 +221,7 @@ class _ChatInputState extends State<ChatInput> {
                   ],
                 ),
               ),
+              SizedBox(height: mq.padding.bottom / 2),
             ],
           ),
         ),

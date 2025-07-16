@@ -47,6 +47,7 @@ class _regeneState extends ConsumerState<regene> {
     return MaterialApp.router(
       routerConfig: ref.watch(routerProvider),
       debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.system,
       theme: ThemeData(
           fontFamily: $styles.text.body.fontFamily, useMaterial3: true),
       color: $styles.colors.black,

@@ -123,7 +123,7 @@ class ApiService {
       }
       String accessToken = session.accessToken;
 
-      Future<http.Response> _executeRequest(String token) async {
+      Future<http.Response> executeRequest(String token) async {
         final localTimestamp = DateTime.now().toIso8601String();
         final uri = Uri.parse(
             '$_baseUrl/initialize/body-simulator?local_timestamp_str=$localTimestamp');
@@ -138,7 +138,7 @@ class ApiService {
         );
       }
 
-      var response = await _executeRequest(accessToken);
+      var response = await executeRequest(accessToken);
 
       if (response.statusCode == 401) {
         print('API token expired or invalid, attempting refresh...');
@@ -150,7 +150,7 @@ class ApiService {
         }
         accessToken = authResponse.session!.accessToken;
         print('Token refreshed. Retrying request with new token...');
-        response = await _executeRequest(accessToken);
+        response = await executeRequest(accessToken);
       }
 
       if (response.statusCode != 200) {

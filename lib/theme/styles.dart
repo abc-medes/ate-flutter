@@ -91,6 +91,11 @@ class _Text {
     'ko': TextStyle(fontFamily: 'NanumGothic'),
   };
 
+  final Map<String, TextStyle> _numberFonts = {
+    'en': TextStyle(fontFamily: 'Cinzel'),
+    'ko': TextStyle(fontFamily: 'Cinzel'),
+  };
+
   TextStyle _getFontForLocale(Map<String, TextStyle> fonts) {
     if (localeLogic.isLoaded) {
       return fonts.entries
@@ -107,6 +112,7 @@ class _Text {
   TextStyle get wonderTitleFont => _getFontForLocale(_wonderTitleFonts);
   TextStyle get contentFont => _getFontForLocale(_contentFonts);
   TextStyle get monoTitleFont => _getFontForLocale(_monoTitleFonts);
+  TextStyle get numberFont => _getFontForLocale(_numberFonts);
 
   late final TextStyle dropCase =
       _createFont(quoteFont, sizePx: 56, heightPx: 20);
@@ -153,6 +159,8 @@ class _Text {
       .copyWith(fontStyle: FontStyle.italic);
   late final TextStyle btn = _createFont(contentFont,
       sizePx: 14, weight: FontWeight.w500, spacingPc: 2, heightPx: 14);
+  late final TextStyle number = _createFont(numberFont,
+      sizePx: 120, heightPx: 120, weight: FontWeight.w600);
 
   TextStyle _createFont(TextStyle style,
       {required double sizePx,

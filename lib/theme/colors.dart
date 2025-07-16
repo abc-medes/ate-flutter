@@ -29,8 +29,6 @@ class AppColors {
   static const mood = Color(0xFFFFEB3B);
 
   // Neutral Colors
-  // static const background =
-  //     Color(0xFFFDF8e7); // creamy vanilla background like the image
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF212121);
   static const textSecondary = Color(0xFF757575);
@@ -42,7 +40,6 @@ class AppColors {
   static const error = Color(0xFFE57373);
   static const warning = Color(0xFFFFB74D);
   static const info = Color(0xFF64B5F6);
-  // TODO: for temporary use, will be removed later------------------------------------------------
 
   /// Common
   final Color accent1 = Color(0xFF05804C);

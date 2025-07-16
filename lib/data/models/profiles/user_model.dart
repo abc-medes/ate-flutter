@@ -1,3 +1,6 @@
+import 'package:regene/data/models/profiles/_app_open_state.dart';
+import 'package:regene/data/models/profiles/_notification_settings.dart';
+import 'package:regene/data/models/profiles/_user_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 class User {
@@ -8,6 +11,7 @@ class User {
   final DateTime createdAt;
   final DateTime lastSignInAt;
   final UserPreferences preferences;
+  final OpenState appOpenState;
 
   User({
     required this.id,
@@ -17,6 +21,7 @@ class User {
     required this.createdAt,
     required this.lastSignInAt,
     required this.preferences,
+    required this.appOpenState,
   });
 
   factory User.fromSupabase(
@@ -29,6 +34,7 @@ class User {
       createdAt: supabaseUser.createdAt as DateTime,
       lastSignInAt: supabaseUser.lastSignInAt as DateTime,
       preferences: UserPreferences.fromJson(profileData['preferences'] ?? {}),
+      appOpenState: OpenState.fromJson(profileData['app_open_state'] ?? {}),
     );
   }
 
@@ -49,6 +55,7 @@ class User {
       preferences: UserPreferences(
         notificationSettings: NotificationSettings(),
       ),
+      appOpenState: OpenState(),
     );
   }
 
@@ -61,6 +68,7 @@ class User {
       'created_at': createdAt.toIso8601String(),
       'last_sign_in_at': lastSignInAt.toIso8601String(),
       'preferences': preferences.toJson(),
+      'app_open_state': appOpenState.toJson(),
     };
   }
 
@@ -68,6 +76,7 @@ class User {
     String? name,
     String? avatarUrl,
     UserPreferences? preferences,
+    OpenState? appOpenState,
   }) {
     return User(
       id: id,
@@ -77,81 +86,7 @@ class User {
       createdAt: createdAt,
       lastSignInAt: lastSignInAt,
       preferences: preferences ?? this.preferences,
-    );
-  }
-}
-
-class UserPreferences {
-  final bool darkMode;
-  final String? language;
-  final NotificationSettings notificationSettings;
-
-  UserPreferences({
-    this.darkMode = false,
-    this.language,
-    required this.notificationSettings,
-  });
-
-  factory UserPreferences.fromJson(Map<String, dynamic> json) {
-    return UserPreferences(
-      darkMode: json['dark_mode'] ?? false,
-      language: json['language'],
-      notificationSettings:
-          NotificationSettings.fromJson(json['notification_settings'] ?? {}),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'dark_mode': darkMode,
-      'language': language,
-      'notification_settings': notificationSettings.toJson(),
-    };
-  }
-
-  UserPreferences copyWith({
-    bool? darkMode,
-    String? language,
-    NotificationSettings? notificationSettings,
-  }) {
-    return UserPreferences(
-      darkMode: darkMode ?? this.darkMode,
-      language: language ?? this.language,
-      notificationSettings: notificationSettings ?? this.notificationSettings,
-    );
-  }
-}
-
-class NotificationSettings {
-  final bool pushEnabled;
-  final bool emailEnabled;
-
-  NotificationSettings({
-    this.pushEnabled = true,
-    this.emailEnabled = true,
-  });
-
-  factory NotificationSettings.fromJson(Map<String, dynamic> json) {
-    return NotificationSettings(
-      pushEnabled: json['push_enabled'] ?? true,
-      emailEnabled: json['email_enabled'] ?? true,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'push_enabled': pushEnabled,
-      'email_enabled': emailEnabled,
-    };
-  }
-
-  NotificationSettings copyWith({
-    bool? pushEnabled,
-    bool? emailEnabled,
-  }) {
-    return NotificationSettings(
-      pushEnabled: pushEnabled ?? this.pushEnabled,
-      emailEnabled: emailEnabled ?? this.emailEnabled,
+      appOpenState: appOpenState ?? this.appOpenState,
     );
   }
 }

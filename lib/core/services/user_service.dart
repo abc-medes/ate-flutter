@@ -2,7 +2,7 @@ import 'package:regene/common_libs.dart';
 import 'package:regene/data/models/body_simulator_model.dart';
 import 'package:regene/data/models/health_model.dart';
 import 'package:regene/data/repositories/health_repository.dart';
-import 'package:regene/data/models/user_model.dart' as um;
+import 'package:regene/data/models/profiles/user_model.dart' as um;
 
 class UserService {
   final SupabaseClient _client = Supabase.instance.client;
@@ -17,6 +17,80 @@ class UserService {
   Future<void> initialize() async {
     await refreshBasicHealthData();
     _initialized = true;
+  }
+
+  /// ------------------------------------------------------------
+  ///                       App-open logic
+  /// ------------------------------------------------------------
+  /// Was the app ever opened before?
+
+  Future<Map<String, dynamic>> _getOpenStateMap(String userId) async {
+    final res = await _client
+        .from('profiles')
+        .select('open_state')
+        .eq('id', userId)
+        .single();
+    return Map<String, dynamic>.from(res['open_state'] ?? {});
+  }
+
+  Future<void> _saveOpenStateMap(
+      String userId, Map<String, dynamic> map) async {
+    await _client.from('profiles').update({'open_state': map}).eq('id', userId);
+  }
+
+  Future<bool> hasUserOpenedApp(String userId) async {
+    final map = await _getOpenStateMap(userId);
+    return map['has_opened_app'] ?? false;
+  }
+
+  Future<bool> isAppOpen(String userId) async {
+    final map = await _getOpenStateMap(userId);
+    return map['is_app_open'] ?? false;
+  }
+
+  Future<void> setUserAppOpened(String userId) async {
+    final map = await _getOpenStateMap(userId);
+    map
+      ..['has_opened_app'] = true
+      ..['is_app_open'] = true
+      ..['last_opened_at'] = DateTime.now().toIso8601String();
+    await _saveOpenStateMap(userId, map);
+  }
+
+  /// Mark app as closed
+  Future<void> setUserAppClosed(String userId) async {
+    final map = await _getOpenStateMap(userId);
+    map
+      ..['is_app_open'] = false
+      ..['last_closed_at'] = DateTime.now().toIso8601String();
+    await _saveOpenStateMap(userId, map);
+  }
+
+  /// Realtime flag if you need to react to the current open/closed state.
+  Stream<bool> isAppOpenStream(String userId) {
+    return _client
+        .from('profiles')
+        .stream(primaryKey: ['id'])
+        .eq('id', userId)
+        .limit(1)
+        .map((rows) => rows.isEmpty
+            ? false
+            : (rows.first['open_state']?['is_app_open'] ?? false));
+  }
+
+  /// ------------------------------------------------------------
+
+  /// Realtime stream to observe changes to the flag.
+  Stream<bool> hasUserOpenedAppStream(String userId) {
+    return _client
+        .from('profiles')
+        .stream(primaryKey: ['id'])
+        .eq('id', userId)
+        .limit(1)
+        .map(
+          (rows) =>
+              rows.isEmpty ? false : (rows.first['has_opened_app'] ?? false),
+        );
   }
 
   Future<void> refreshBasicHealthData() async {

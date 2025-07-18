@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:regene/common_libs.dart';
+import 'package:regene/core/services/api_service.dart';
 import 'package:regene/data/models/body_simulator_model.dart';
-import 'package:regene/core/services/user_service.dart';
 
 class BodySimulatorSnapshotDetails extends ConsumerStatefulWidget {
   final String userId;
@@ -15,18 +15,20 @@ class BodySimulatorSnapshotDetails extends ConsumerStatefulWidget {
 
 class _BodySimulatorSnapshotDetailsState
     extends ConsumerState<BodySimulatorSnapshotDetails> {
-  StreamSubscription<SBBodySimulatorStateSnapshot?>? _subscription;
-  SBBodySimulatorStateSnapshot? _snapshot;
+  StreamSubscription<BodySimulatorState?>? _subscription;
+  BodySimulatorState? _bodyState;
 
   @override
   void initState() {
     super.initState();
-    _subscription = ref
-        .read(userServiceProvider)
-        .bodySimulatorStateStream(widget.userId)
-        .listen((snapshot) {
-      setState(() => _snapshot = snapshot);
-    });
+    _subscription = ApiService.bodyStateStream().listen(
+      (state) {
+        debugPrint(
+            '🩺  Body-state update → ${state.toJson()}'); // ← shows the model
+        setState(() => _bodyState = state);
+      },
+      onError: (err) => debugPrint('WS error: $err'),
+    );
   }
 
   @override
@@ -37,10 +39,9 @@ class _BodySimulatorSnapshotDetailsState
 
   @override
   Widget build(BuildContext context) {
-    if (_snapshot == null) {
+    if (_bodyState == null) {
       return Center(child: CircularProgressIndicator());
     }
-    final state = _snapshot!.bodyState;
 
     return Material(
       color: $styles.colors.background,
@@ -74,7 +75,7 @@ class _BodySimulatorSnapshotDetailsState
               ),
 
               // ---------- sections ----------
-              ..._organSlivers(state),
+              ..._organSlivers(_bodyState!),
 
               // bottom padding
               const SliverPadding(padding: EdgeInsets.only(bottom: 32)),

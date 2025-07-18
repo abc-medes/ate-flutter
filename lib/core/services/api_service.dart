@@ -3,10 +3,15 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:regene/data/models/body_simulator_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/status.dart' as ws_status;
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ApiService {
   static const String _baseUrl = 'http://localhost:8080/api';
+  static const String _wsUrl = 'ws://localhost:8080';
   static final SupabaseClient _supabase = Supabase.instance.client;
 
   static Stream<String> sendChatMessage(String prompt) async* {
@@ -170,6 +175,78 @@ class ApiService {
         throw Exception('Error initializing body simulator: $e');
       }
     }
+  }
+
+  static Stream<BodySimulatorState> bodyStateStream({
+    Duration reconnectDelay = const Duration(seconds: 2),
+  }) {
+    final controller = StreamController<BodySimulatorState>();
+    WebSocketChannel? channel;
+
+    Future<void> connect() async {
+      final session = _supabase.auth.currentSession;
+      if (session == null) {
+        controller.addError(Exception('Not authenticated'));
+        await controller.close();
+        return;
+      }
+
+      final jwt = session.accessToken;
+      final wsUri = Uri.parse('$_wsUrl/ws/body-state?token=$jwt');
+
+      try {
+        channel = IOWebSocketChannel.connect(
+          wsUri,
+        );
+
+        channel!.stream.listen(
+          (message) {
+            try {
+              final data = jsonDecode(message);
+              if (data is Map<String, dynamic>) {
+                controller.add(BodySimulatorState.fromJson(data));
+              }
+            } catch (_) {
+              // ignore malformed frames
+            }
+          },
+          onError: controller.addError,
+          cancelOnError: true,
+          onDone: () async {
+            final code = channel?.closeCode;
+            // 4001 = auth error (our convention) → refresh once then retry
+            if (code == 4001) {
+              final refreshed = await _supabase.auth.refreshSession();
+              if (refreshed.session != null) {
+                await Future.delayed(reconnectDelay);
+                if (!controller.isClosed) connect();
+                return;
+              }
+            }
+            // Any other close → simple back-off reconnect
+            if (!controller.isClosed) {
+              await Future.delayed(reconnectDelay);
+              connect();
+            }
+          },
+        );
+      } catch (e) {
+        controller.addError(e);
+        if (!controller.isClosed) {
+          await Future.delayed(reconnectDelay);
+          connect();
+        }
+      }
+    }
+
+    // kick-off
+    connect();
+
+    controller.onCancel = () async {
+      await channel?.sink.close(ws_status.normalClosure);
+    };
+
+    return controller.stream;
   }
 }
 

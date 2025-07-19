@@ -1,8 +1,9 @@
 import 'package:regene/common_libs.dart';
 
 class TappableScore extends StatefulWidget {
-  const TappableScore({super.key, required this.onTap});
+  const TappableScore({super.key, required this.score, required this.onTap});
   final VoidCallback onTap;
+  final double score;
 
   @override
   State<TappableScore> createState() => TappableScoreState();
@@ -54,7 +55,7 @@ class TappableScoreState extends State<TappableScore> {
                 fontWeight: FontWeight.w900,
                 letterSpacing: -10),
             children: <TextSpan>[
-              const TextSpan(text: '89'),
+              TextSpan(text: widget.score.toString()),
               TextSpan(
                 text: '.2',
                 style: $styles.text.number.copyWith(

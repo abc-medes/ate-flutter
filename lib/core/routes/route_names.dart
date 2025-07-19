@@ -13,6 +13,7 @@ class RouteNames {
   static const home = '/';
   static const profile = '/profile';
   static const settings = '/settings';
+  static const chat = '/chat';
 
   // Cannot be instantiated
   RouteNames._();

@@ -29,7 +29,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildHeader(context, ref),
+                  _buildHeader(context, state, ref),
                 ],
               ),
             ),
@@ -43,22 +43,18 @@ class _HomeViewState extends ConsumerState<HomeView> {
             onSaveModeToggle: () => viewModel.onSaveModeToggle(),
             onSubmit: (text, images) {
               if (text.isNotEmpty) {
+                context.go(RouteNames.chat, extra: text);
                 viewModel.textController.text = text;
-                if (state.isSaveMode) {
-                  viewModel.handleMemorize(context);
-                } else {
-                  viewModel.handleChatSubmit();
-                }
               }
             },
-            onChanged: (_) => viewModel.scrollToBottom(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, WidgetRef ref) {
+  Widget _buildHeader(
+      BuildContext context, HomeViewState state, WidgetRef ref) {
     final mq = MediaQuery.of(context);
     return Container(
       padding: EdgeInsets.fromLTRB($styles.insets.md, mq.padding.top,
@@ -100,6 +96,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
           Text("Overall Score", style: $styles.text.h3),
           SizedBox(height: $styles.insets.md),
           TappableScore(
+            score: state.bodySimulatorState?.overallScore.overallScore ?? 0,
             onTap: () => ref
                 .read(homeViewModelProvider.notifier)
                 .showBodySimulatorSnapshotDetails(context),

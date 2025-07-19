@@ -280,6 +280,37 @@ class NervousData {
       };
 }
 
+class BodyOverallScore {
+  final double overallScore;
+  final Map<String, double> organScores;
+
+  BodyOverallScore({
+    required this.overallScore,
+    required this.organScores,
+  });
+
+  factory BodyOverallScore.fromJson(Map<String, dynamic> json) {
+    return BodyOverallScore(
+      overallScore: _parseDouble(json['overall_score']),
+      organScores: json['organ_scores'] != null
+          ? Map<String, double>.from(json['organ_scores'])
+          : {},
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'overallScore': overallScore,
+        'organScores': organScores,
+      };
+
+  factory BodyOverallScore.empty() {
+    return BodyOverallScore(
+      overallScore: 0.0,
+      organScores: {},
+    );
+  }
+}
+
 // Next, the class to hold the state (all organs)
 class BodySimulatorState {
   final BrainData? brain;
@@ -352,6 +383,7 @@ class SBBodySimulatorStateSnapshot {
   final int id;
   final String userId;
   final BodySimulatorState bodyState;
+  final BodyOverallScore overallScore;
   final DateTime lastUpdatedAt;
   final DateTime lastUpdatedAtUtc;
   final DateTime createdAt;
@@ -360,29 +392,18 @@ class SBBodySimulatorStateSnapshot {
     required this.id,
     required this.userId,
     required this.bodyState,
+    required this.overallScore,
     required this.lastUpdatedAt,
     required this.lastUpdatedAtUtc,
     required this.createdAt,
   });
 
   factory SBBodySimulatorStateSnapshot.fromJson(Map<String, dynamic> json) {
-    final bodyStateRaw = json['body_state'];
-    if (bodyStateRaw is! Map<String, dynamic>) {
-      print('body_state is not a map! Value: $bodyStateRaw');
-      // You can throw, return a default, or handle as you wish:
-      return SBBodySimulatorStateSnapshot(
-        id: (json['id'] ?? 0) as int,
-        userId: json['user_id'] ?? '',
-        bodyState: BodySimulatorState.empty(),
-        lastUpdatedAt: DateTime.parse(json['last_updated_at']),
-        lastUpdatedAtUtc: DateTime.parse(json['last_updated_at_utc']),
-        createdAt: DateTime.parse(json['created_at']),
-      );
-    }
     return SBBodySimulatorStateSnapshot(
       id: (json['id'] ?? 0) as int,
       userId: json['user_id'],
-      bodyState: BodySimulatorState.fromJson(bodyStateRaw),
+      bodyState: BodySimulatorState.fromJson(json['body_state']),
+      overallScore: BodyOverallScore.fromJson(json['health_score']),
       lastUpdatedAt: DateTime.parse(json['last_updated_at']),
       lastUpdatedAtUtc: DateTime.parse(json['last_updated_at_utc']),
       createdAt: DateTime.parse(json['created_at']),
@@ -393,6 +414,7 @@ class SBBodySimulatorStateSnapshot {
         'id': id,
         'user_id': userId,
         'body_state': bodyState.toJson(),
+        'overall_score': overallScore.toJson(),
         'last_updated_at': lastUpdatedAt.toIso8601String(),
         'last_updated_at_utc': lastUpdatedAtUtc.toIso8601String(),
         'created_at': createdAt.toIso8601String(),

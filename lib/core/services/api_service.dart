@@ -177,17 +177,21 @@ class ApiService {
     }
   }
 
-  static Stream<BodySimulatorState> bodyStateStream({
+  static Stream<SBBodySimulatorStateSnapshot> bodyStateStream({
     Duration reconnectDelay = const Duration(seconds: 2),
   }) {
-    final controller = StreamController<BodySimulatorState>();
+    final controller = StreamController<SBBodySimulatorStateSnapshot>();
     WebSocketChannel? channel;
 
     Future<void> connect() async {
+      if (controller.isClosed) return;
+
       final session = _supabase.auth.currentSession;
       if (session == null) {
-        controller.addError(Exception('Not authenticated'));
-        await controller.close();
+        if (!controller.isClosed) {
+          controller.addError(Exception('Not authenticated'));
+          await controller.close();
+        }
         return;
       }
 
@@ -201,38 +205,45 @@ class ApiService {
 
         channel!.stream.listen(
           (message) {
+            // 컨트롤러가 닫혔으면 메시지 처리를 중단합니다.
+            if (controller.isClosed) return;
             try {
               final data = jsonDecode(message);
               if (data is Map<String, dynamic>) {
-                controller.add(BodySimulatorState.fromJson(data));
+                controller.add(SBBodySimulatorStateSnapshot.fromJson(data));
               }
             } catch (_) {
               // ignore malformed frames
             }
           },
-          onError: controller.addError,
+          onError: (error) {
+            if (!controller.isClosed) controller.addError(error);
+          },
           cancelOnError: true,
           onDone: () async {
+            // 컨트롤러가 닫혔으면 재연결을 시도하지 않습니다.
+            if (controller.isClosed) return;
+
             final code = channel?.closeCode;
             // 4001 = auth error (our convention) → refresh once then retry
             if (code == 4001) {
               final refreshed = await _supabase.auth.refreshSession();
               if (refreshed.session != null) {
                 await Future.delayed(reconnectDelay);
-                if (!controller.isClosed) connect();
+                connect(); // 재연결 시도
                 return;
               }
             }
-            // Any other close → simple back-off reconnect
-            if (!controller.isClosed) {
+
+            if (code != ws_status.normalClosure && !controller.isClosed) {
               await Future.delayed(reconnectDelay);
               connect();
             }
           },
         );
       } catch (e) {
-        controller.addError(e);
         if (!controller.isClosed) {
+          controller.addError(e);
           await Future.delayed(reconnectDelay);
           connect();
         }
@@ -243,7 +254,9 @@ class ApiService {
     connect();
 
     controller.onCancel = () async {
+      await controller.close();
       await channel?.sink.close(ws_status.normalClosure);
+      channel = null;
     };
 
     return controller.stream;

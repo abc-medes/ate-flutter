@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:regene/common_libs.dart';
 import 'package:regene/core/services/api_service.dart';
 import 'package:regene/data/models/body_simulator_model.dart';
+import 'package:regene/features/home/views/widgets/_animated_metric_value.dart';
 
 class BodySimulatorSnapshotDetails extends ConsumerStatefulWidget {
   final String userId;
@@ -15,8 +16,8 @@ class BodySimulatorSnapshotDetails extends ConsumerStatefulWidget {
 
 class _BodySimulatorSnapshotDetailsState
     extends ConsumerState<BodySimulatorSnapshotDetails> {
-  StreamSubscription<BodySimulatorState?>? _subscription;
-  BodySimulatorState? _bodyState;
+  StreamSubscription<SBBodySimulatorStateSnapshot?>? _subscription;
+  SBBodySimulatorStateSnapshot? _bodyState;
 
   @override
   void initState() {
@@ -87,13 +88,16 @@ class _BodySimulatorSnapshotDetailsState
   }
 
   // ---------- helpers --------------------------------------------------------
-  List<Widget> _organSlivers(BodySimulatorState s) {
+  List<Widget> _organSlivers(SBBodySimulatorStateSnapshot sbs) {
     final slivers = <Widget>[];
+    final s = sbs.bodyState;
+    final scores = sbs.overallScore.organScores;
 
-    void add(String title, Widget? table) {
+    void add(String key, Widget? table) {
       if (table == null) return;
+      final score = scores[key]; // 🆕 organ score
       slivers
-        ..add(SliverToBoxAdapter(child: _sectionTitle(title)))
+        ..add(SliverToBoxAdapter(child: _sectionTitle(key, score)))
         ..add(SliverToBoxAdapter(child: table));
     }
 
@@ -112,99 +116,106 @@ class _BodySimulatorSnapshotDetailsState
     return slivers;
   }
 
-  Widget _sectionTitle(String text) => Padding(
+  Widget _sectionTitle(String text, double? score) => Padding(
         padding: const EdgeInsets.only(top: 24, bottom: 8),
-        child: Text(
-          text,
-          style: $styles.text.bodyBold.copyWith(fontSize: 18),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(text, style: $styles.text.bodyBold.copyWith(fontSize: 18)),
+            if (score != null)
+              AnimatedMetricValue(
+                value: score,
+              ),
+          ],
         ),
       );
 
-  Widget _metricTable(List<(String, String)> rows) => Table(
+  Widget _metricTable(List<(String, double, bool, String)> rows) => Table(
         columnWidths: const {0: FlexColumnWidth(2), 1: FlexColumnWidth()},
         border: TableBorder(
-          horizontalInside: BorderSide(
-            color: $styles.colors.caption.withOpacity(.15),
-          ),
+          horizontalInside:
+              BorderSide(color: $styles.colors.caption.withOpacity(.15)),
         ),
         children: rows
             .map(
-              (r) => TableRow(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Text(r.$1),
+              (r) => TableRow(children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(r.$1), // label
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: AnimatedMetricValue(
+                    value: r.$2, // current number
+                    isIncreaseGood: r.$3, // true/false
+                    suffix: r.$4, // unit
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Text(r.$2, textAlign: TextAlign.right),
-                  ),
-                ],
-              ),
+                ),
+              ]),
             )
             .toList(),
       );
 
   // ---------- per-organ tables ----------------------------------------------
   Widget _brainTable(BrainData d) => _metricTable([
-        ('Stress level', '${d.stressLevel}%'),
-        ('Serotonin', '${d.serotonin}'),
-        ('Sleep rhythm', '${d.sleepRhythm} h'),
-        ('Cortisol', '${d.cortisol}'),
+        ('Stress level', d.stressLevel, false, '%'),
+        ('Serotonin', d.serotonin, true, ''),
+        ('Sleep rhythm', d.sleepRhythm, true, ' h'),
+        ('Cortisol', d.cortisol, false, ''),
       ]);
 
   Widget _heartTable(HeartData d) => _metricTable([
-        ('Blood sugar', '${d.bloodSugar} mg/dL'),
-        ('Blood pressure', '${d.bloodPressure} mmHg'),
-        ('Heart rate', '${d.heartRate} bpm'),
-        ('HRV', '${d.hrv} ms'),
+        ('Blood sugar', d.bloodSugar, false, ' mg/dL'),
+        ('Blood pressure', d.bloodPressure, false, ' mmHg'),
+        ('Heart rate', d.heartRate, false, ' bpm'),
+        ('HRV', d.hrv, true, ' ms'),
       ]);
 
   Widget _lungsTable(LungsData d) => _metricTable([
-        ('O₂ saturation', '${d.oxygenSaturation}%'),
-        ('Health index', '${d.lungHealth}'),
-        ('PM exposure', '${d.pmExposure} μg/m³'),
-        ('Respiratory rate', '${d.respiratoryRate} bpm'),
+        ('O₂ saturation', d.oxygenSaturation, true, '%'),
+        ('Health index', d.lungHealth, true, ''),
+        ('PM exposure', d.pmExposure, false, ' μg/m³'),
+        ('Respiratory rate', d.respiratoryRate, false, ' bpm'),
       ]);
 
   Widget _liverTable(LiverData d) => _metricTable([
-        ('Detox capacity', '${d.detoxCapacity}%'),
-        ('Liver enzymes', '${d.liverEnzymes}'),
-        ('Fat processing', '${d.fatProcessing}%'),
-        ('Alcohol load', '${d.alcoholLoad}%'),
+        ('Detox capacity', d.detoxCapacity, true, '%'),
+        ('Liver enzymes', d.liverEnzymes, false, ''),
+        ('Fat processing', d.fatProcessing, true, '%'),
+        ('Alcohol load', d.alcoholLoad, false, '%'),
       ]);
 
   Widget _stomachTable(StomachData d) => _metricTable([
-        ('Digestion speed', '${d.digestionSpeed}%'),
-        ('Acidity', '${d.acidity}'),
-        ('Nausea risk', '${d.nauseaRisk}%'),
-        ('Food retention', '${d.foodRetention}%'),
+        ('Digestion speed', d.digestionSpeed, true, '%'),
+        ('Acidity', d.acidity, false, ''),
+        ('Nausea risk', d.nauseaRisk, false, '%'),
+        ('Food retention', d.foodRetention, false, '%'),
       ]);
 
   Widget _intestinesTable(IntestinesData d) => _metricTable([
-        ('Bacteria diversity', '${d.gutBacteriaDiversity}%'),
-        ('Inflammation', '${d.inflammation}%'),
-        ('Absorption rate', '${d.absorptionRate}%'),
-        ('Gas level', '${d.gasLevel}%'),
+        ('Bacteria diversity', d.gutBacteriaDiversity, true, '%'),
+        ('Inflammation', d.inflammation, false, '%'),
+        ('Absorption rate', d.absorptionRate, true, '%'),
+        ('Gas level', d.gasLevel, false, '%'),
       ]);
 
   Widget _kidneysTable(KidneysData d) => _metricTable([
-        ('Hydration', '${d.hydration}%'),
-        ('Electrolyte balance', '${d.electrolyteBalance}%'),
-        ('Urea clearance', '${d.ureaClearance}%'),
-        ('Toxicity load', '${d.toxicityLoad}%'),
+        ('Hydration', d.hydration, true, '%'),
+        ('Electrolyte balance', d.electrolyteBalance, true, '%'),
+        ('Urea clearance', d.ureaClearance, true, '%'),
+        ('Toxicity load', d.toxicityLoad, false, '%'),
       ]);
 
   Widget _endocrineTable(EndocrineData d) => _metricTable([
-        ('Insulin sensitivity', '${d.insulinSensitivity}%'),
-        ('Thyroid function', '${d.thyroidFunction}%'),
-        ('E/T ratio', '${d.estrogenTestosteroneRatio}'),
+        ('Insulin sensitivity', d.insulinSensitivity, true, '%'),
+        ('Thyroid function', d.thyroidFunction, true, '%'),
+        ('E/T ratio', d.estrogenTestosteroneRatio, false, ''),
       ]);
 
   Widget _nervousTable(NervousData d) => _metricTable([
-        ('Focus level', '${d.focusLevel}%'),
-        ('Mood stability', '${d.moodStability}%'),
-        ('Anxiety level', '${d.anxietyLevel}%'),
-        ('Neuro flexibility', '${d.neuroFlexibility}%'),
+        ('Focus level', d.focusLevel, true, '%'),
+        ('Mood stability', d.moodStability, true, '%'),
+        ('Anxiety level', d.anxietyLevel, false, '%'),
+        ('Neuro flexibility', d.neuroFlexibility, true, '%'),
       ]);
 }

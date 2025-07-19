@@ -238,7 +238,6 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
   void fetchBodySimulatorState(Ref ref) async {
     final bodySimulatorState =
         await ref.read(userServiceProvider).bodySimulatorState();
-    print(bodySimulatorState);
     state = state.copyWith(bodySimulatorState: bodySimulatorState);
   }
 }

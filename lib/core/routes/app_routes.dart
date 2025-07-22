@@ -16,9 +16,11 @@ final appRoutes = [
   ),
   AppRoute(
     RouteNames.chat,
-    (state) => ChatView(
-      cm: state.extra as ChatMessage? ??
-          ChatMessage(message: '', isUser: true, hour: 0),
-    ),
+    (state) {
+      if (state.extra is ChatMessage) {
+        return ChatView(cm: state.extra as ChatMessage);
+      }
+      return HomeView();
+    },
   ),
 ];

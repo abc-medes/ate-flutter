@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:regene/data/models/chat_model.dart';
 import 'package:regene/main.dart';
+import 'package:uuid/uuid.dart';
 
 class ChatInput extends StatefulWidget {
   final Function(ChatMessage cm)? onSubmit;
@@ -10,6 +11,7 @@ class ChatInput extends StatefulWidget {
   final TextEditingController? controller;
   final bool shouldSaveAsContext;
   final VoidCallback? onSaveModeToggle;
+  final String? sessionId;
 
   const ChatInput({
     super.key,
@@ -19,6 +21,7 @@ class ChatInput extends StatefulWidget {
     this.isDisabled = false,
     this.shouldSaveAsContext = false,
     this.onSaveModeToggle,
+    this.sessionId,
   });
 
   @override
@@ -66,11 +69,14 @@ class _ChatInputState extends State<ChatInput> {
     final text = _chatInputController.text;
     if (text.trim().isEmpty && _selectedImages.isEmpty) return;
 
+    final sessionId = widget.sessionId ?? const Uuid().v4();
+
     final cm = ChatMessage(
+      sessionId: sessionId,
       message: text,
       localTimestamp: DateTime.now(),
       isUser: true,
-      hour: _selectedHour,
+      chatOffset: _selectedHour,
     );
 
     if (widget.onSubmit != null) {

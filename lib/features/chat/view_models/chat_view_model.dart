@@ -29,11 +29,13 @@ class ChatViewState {
 /// VIEW-MODEL
 /// ─────────────────────────────────────────
 class ChatViewModel extends StateNotifier<ChatViewState> {
-  ChatViewModel(this._initialPrompt) : super(const ChatViewState()) {
-    _sendPrompt(_initialPrompt); // 화면 진입 시 바로 전송
+  ChatViewModel(ChatMessage initialPrompt) : super(const ChatViewState()) {
+    sessionId = initialPrompt.sessionId;
+
+    _sendPrompt(initialPrompt);
   }
 
-  final ChatMessage _initialPrompt;
+  late final String sessionId;
   StreamSubscription<String>? _sub;
 
   @override
@@ -45,33 +47,39 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
   void _sendPrompt(ChatMessage cm) {
     if (cm.message.trim().isEmpty || state.isProcessing) return;
 
-    final userMsg = ChatMessage(message: cm.message, isUser: true);
-
-    var aiMsg = ChatMessage(message: '', isUser: false);
+    final aiMsgPlaceholder = ChatMessage(
+      sessionId: sessionId,
+      message: '',
+      isUser: false,
+      chatOffset: cm.chatOffset,
+    );
 
     state = state.copyWith(
-      messages: [...state.messages, userMsg, aiMsg],
+      messages: [...state.messages, cm, aiMsgPlaceholder],
       isProcessing: true,
     );
-    final aiIndex = state.messages.length; // 새로 추가될 index
+    final aiMessageIndex = state.messages.length - 1;
 
-    // 3) 스트리밍 호출
     _sub = ApiService.sendChatMessage(cm).listen(
       (chunk) {
-        aiMsg = aiMsg.copyWith(message: aiMsg.message + chunk);
-        final msgs = List<ChatMessage>.from(state.messages);
-        if (aiIndex >= msgs.length) {
-          msgs.add(aiMsg);
-        } else {
-          msgs[aiIndex] = aiMsg;
-        }
-        state = state.copyWith(messages: msgs);
+        final currentMessages = List<ChatMessage>.from(state.messages);
+        final currentAiMessage = currentMessages[aiMessageIndex];
+        currentMessages[aiMessageIndex] = currentAiMessage.copyWith(
+          message: currentAiMessage.message + chunk,
+        );
+        state = state.copyWith(messages: currentMessages);
       },
-      onDone: () => state = state.copyWith(isProcessing: false),
+      onDone: () {
+        state = state.copyWith(isProcessing: false);
+      },
       onError: (e) {
-        final err = ChatMessage(message: '⚠︎ $e', isUser: false);
+        final currentMessages = List<ChatMessage>.from(state.messages);
+        final currentAiMessage = currentMessages[aiMessageIndex];
+        currentMessages[aiMessageIndex] = currentAiMessage.copyWith(
+          message: '⚠︎ Error: $e',
+        );
         state = state.copyWith(
-          messages: [...state.messages, err],
+          messages: currentMessages,
           isProcessing: false,
         );
       },

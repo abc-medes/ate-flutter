@@ -171,6 +171,8 @@ class UserService {
         .from('user_body_state_snapshots')
         .select('*')
         .eq('user_id', _client.auth.currentUser!.id)
+        .order('created_at', ascending: false)
+        .limit(1)
         .single();
     return SBBodySimulatorStateSnapshot.fromJson(response);
   }
@@ -178,9 +180,10 @@ class UserService {
   Stream<SBBodySimulatorStateSnapshot?> bodySimulatorStateStream(
       String userId) {
     return _client
-        .from('user_body_state_snapshots') // just the table name
-        .stream(primaryKey: ['id']) // enable realtime
-        .eq('user_id', userId) // <- filter separately
+        .from('user_body_state_snapshots')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', userId)
+        .order('created_at', ascending: false)
         .limit(1)
         .map((rows) => rows.isEmpty
             ? null

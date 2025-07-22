@@ -55,20 +55,34 @@ class TappableScoreState extends State<TappableScore> {
                 fontWeight: FontWeight.w900,
                 letterSpacing: -10),
             children: <TextSpan>[
-              TextSpan(text: widget.score.toString()),
-              TextSpan(
-                text: '.2',
-                style: $styles.text.number.copyWith(
-                  color: $styles.colors.accent1,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -10,
-                  fontSize: $styles.text.number.fontSize! * 0.5,
-                ),
-              ),
+              // Split score into integer and fractional parts for styling
+              ..._buildScoreSpans(widget.score),
             ],
           ),
         ),
       ),
     );
+  }
+
+  /// Returns two TextSpan: integer part and fractional part (with dot)
+  List<TextSpan> _buildScoreSpans(double value) {
+    // Keep one decimal place
+    final fixed = value.toStringAsFixed(1);
+    final parts = fixed.split('.');
+    final intPart = parts.first;
+    final fracPart = '.${parts.last}';
+
+    return [
+      TextSpan(text: intPart),
+      TextSpan(
+        text: fracPart,
+        style: $styles.text.number.copyWith(
+          color: $styles.colors.accent1,
+          fontWeight: FontWeight.w900,
+          letterSpacing: -5,
+          fontSize: $styles.text.number.fontSize! * 0.5,
+        ),
+      ),
+    ];
   }
 }

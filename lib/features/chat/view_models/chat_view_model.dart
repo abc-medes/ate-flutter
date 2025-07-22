@@ -33,7 +33,7 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
     _sendPrompt(_initialPrompt); // 화면 진입 시 바로 전송
   }
 
-  final String _initialPrompt;
+  final ChatMessage _initialPrompt;
   StreamSubscription<String>? _sub;
 
   @override
@@ -42,14 +42,12 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
     super.dispose();
   }
 
-  void _sendPrompt(String text) {
-    if (text.trim().isEmpty || state.isProcessing) return;
+  void _sendPrompt(ChatMessage cm) {
+    if (cm.message.trim().isEmpty || state.isProcessing) return;
 
-    // 1) 사용자 메시지
-    final userMsg = ChatMessage(text: text, isUser: true);
+    final userMsg = ChatMessage(message: cm.message, isUser: true);
 
-    // 2) AI 자리 확보(빈 메시지)
-    var aiMsg = ChatMessage(text: '', isUser: false);
+    var aiMsg = ChatMessage(message: '', isUser: false);
 
     state = state.copyWith(
       messages: [...state.messages, userMsg, aiMsg],
@@ -58,9 +56,9 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
     final aiIndex = state.messages.length; // 새로 추가될 index
 
     // 3) 스트리밍 호출
-    _sub = ApiService.sendChatMessage(text).listen(
+    _sub = ApiService.sendChatMessage(cm).listen(
       (chunk) {
-        aiMsg = aiMsg.copyWith(text: aiMsg.text + chunk);
+        aiMsg = aiMsg.copyWith(message: aiMsg.message + chunk);
         final msgs = List<ChatMessage>.from(state.messages);
         if (aiIndex >= msgs.length) {
           msgs.add(aiMsg);
@@ -71,7 +69,7 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
       },
       onDone: () => state = state.copyWith(isProcessing: false),
       onError: (e) {
-        final err = ChatMessage(text: '⚠︎ $e', isUser: false);
+        final err = ChatMessage(message: '⚠︎ $e', isUser: false);
         state = state.copyWith(
           messages: [...state.messages, err],
           isProcessing: false,
@@ -85,6 +83,6 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
 /// PROVIDER (prompt 파라미터 전달)
 /// ─────────────────────────────────────────
 final chatViewModelProvider = StateNotifierProvider.autoDispose
-    .family<ChatViewModel, ChatViewState, String>(
-  (ref, prompt) => ChatViewModel(prompt),
+    .family<ChatViewModel, ChatViewState, ChatMessage>(
+  (ref, cm) => ChatViewModel(cm),
 );

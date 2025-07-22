@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:async';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:regene/common_libs.dart';
 import 'package:regene/data/models/body_simulator_model.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:regene/data/models/chat_model.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/status.dart' as ws_status;
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -14,7 +14,7 @@ class ApiService {
   static const String _wsUrl = 'ws://localhost:8080';
   static final SupabaseClient _supabase = Supabase.instance.client;
 
-  static Stream<String> sendChatMessage(String prompt) async* {
+  static Stream<String> sendChatMessage(ChatMessage chatMessage) async* {
     final client = http.Client();
     try {
       Future<http.StreamedResponse> _executeSendRequest(String token) async {
@@ -24,10 +24,7 @@ class ApiService {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer $token',
               })
-              ..body = jsonEncode({
-                'prompt': prompt,
-                'user_id': _supabase.auth.currentUser!.id,
-              });
+              ..body = jsonEncode(chatMessage.toJson());
         return client.send(request);
       }
 
@@ -68,6 +65,7 @@ class ApiService {
       // Clean up the exception message to avoid "Exception: Exception: ..."
       if (e is Exception) {
         final errorMessage = e.toString();
+        print('Error sending message: $errorMessage');
         throw Exception(
             'Error sending message: ${errorMessage.startsWith("Exception: ") ? errorMessage.substring("Exception: ".length) : errorMessage}');
       } else {
@@ -196,7 +194,9 @@ class ApiService {
       }
 
       final jwt = session.accessToken;
-      final wsUri = Uri.parse('$_wsUrl/ws/body-state?token=$jwt');
+      final ts = DateTime.now().toIso8601String();
+      final wsUri =
+          Uri.parse('$_wsUrl/ws/body-state?token=$jwt&local_timestamp=$ts');
 
       try {
         channel = IOWebSocketChannel.connect(
@@ -205,27 +205,26 @@ class ApiService {
 
         channel!.stream.listen(
           (message) {
-            // 컨트롤러가 닫혔으면 메시지 처리를 중단합니다.
             if (controller.isClosed) return;
             try {
               final data = jsonDecode(message);
+              debugPrint('🌐 got message ▶︎ $data');
               if (data is Map<String, dynamic>) {
                 controller.add(SBBodySimulatorStateSnapshot.fromJson(data));
               }
             } catch (_) {
-              // ignore malformed frames
+              debugPrint('🌐 parse error ▶︎ $_');
             }
           },
           onError: (error) {
+            debugPrint('🌐 parse error ▶︎ $error');
             if (!controller.isClosed) controller.addError(error);
           },
           cancelOnError: true,
           onDone: () async {
-            // 컨트롤러가 닫혔으면 재연결을 시도하지 않습니다.
             if (controller.isClosed) return;
 
             final code = channel?.closeCode;
-            // 4001 = auth error (our convention) → refresh once then retry
             if (code == 4001) {
               final refreshed = await _supabase.auth.refreshSession();
               if (refreshed.session != null) {
@@ -243,6 +242,7 @@ class ApiService {
         );
       } catch (e) {
         if (!controller.isClosed) {
+          debugPrint('🌐 connect error ▶︎ $e');
           controller.addError(e);
           await Future.delayed(reconnectDelay);
           connect();

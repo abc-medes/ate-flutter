@@ -292,8 +292,8 @@ class BodyOverallScore {
   factory BodyOverallScore.fromJson(Map<String, dynamic> json) {
     return BodyOverallScore(
       overallScore: _parseDouble(json['overall_score']),
-      organScores: json['organ_scores'] != null
-          ? Map<String, double>.from(json['organ_scores'])
+      organScores: json['health_score'] != null
+          ? Map<String, double>.from(json['health_score'])
           : {},
     );
   }
@@ -383,7 +383,7 @@ class SBBodySimulatorStateSnapshot {
   final int id;
   final String userId;
   final BodySimulatorState bodyState;
-  final BodyOverallScore overallScore;
+  final BodyOverallScore healthScore;
   final DateTime lastUpdatedAt;
   final DateTime lastUpdatedAtUtc;
   final DateTime createdAt;
@@ -392,7 +392,7 @@ class SBBodySimulatorStateSnapshot {
     required this.id,
     required this.userId,
     required this.bodyState,
-    required this.overallScore,
+    required this.healthScore,
     required this.lastUpdatedAt,
     required this.lastUpdatedAtUtc,
     required this.createdAt,
@@ -403,7 +403,7 @@ class SBBodySimulatorStateSnapshot {
       id: (json['id'] ?? 0) as int,
       userId: json['user_id'],
       bodyState: BodySimulatorState.fromJson(json['body_state']),
-      overallScore: BodyOverallScore.fromJson(json['health_score']),
+      healthScore: BodyOverallScore.fromJson(json['health_score']),
       lastUpdatedAt: DateTime.parse(json['last_updated_at']),
       lastUpdatedAtUtc: DateTime.parse(json['last_updated_at_utc']),
       createdAt: DateTime.parse(json['created_at']),
@@ -414,7 +414,7 @@ class SBBodySimulatorStateSnapshot {
         'id': id,
         'user_id': userId,
         'body_state': bodyState.toJson(),
-        'overall_score': overallScore.toJson(),
+        'health_score': healthScore.toJson(),
         'last_updated_at': lastUpdatedAt.toIso8601String(),
         'last_updated_at_utc': lastUpdatedAtUtc.toIso8601String(),
         'created_at': createdAt.toIso8601String(),

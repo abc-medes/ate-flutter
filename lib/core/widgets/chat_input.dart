@@ -1,8 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:regene/data/models/chat_model.dart';
 import 'package:regene/main.dart';
 
 class ChatInput extends StatefulWidget {
-  final Function(String, List<String>)? onSubmit;
+  final Function(ChatMessage cm)? onSubmit;
   final Function(String)? onChanged;
   final bool isDisabled;
   final TextEditingController? controller;
@@ -27,6 +29,7 @@ class _ChatInputState extends State<ChatInput> {
   late TextEditingController _chatInputController;
   final FocusNode _chatFocusNode = FocusNode();
   List<String> _selectedImages = [];
+  int _selectedHour = 0;
 
   @override
   void initState() {
@@ -63,8 +66,15 @@ class _ChatInputState extends State<ChatInput> {
     final text = _chatInputController.text;
     if (text.trim().isEmpty && _selectedImages.isEmpty) return;
 
+    final cm = ChatMessage(
+      message: text,
+      localTimestamp: DateTime.now(),
+      isUser: true,
+      hour: _selectedHour,
+    );
+
     if (widget.onSubmit != null) {
-      widget.onSubmit!(text, _selectedImages);
+      widget.onSubmit!(cm);
     }
 
     _chatInputController.clear();
@@ -143,31 +153,64 @@ class _ChatInputState extends State<ChatInput> {
             children: [
               Padding(
                 padding: EdgeInsets.symmetric(
-                    horizontal: $styles.insets.md, vertical: $styles.insets.sm),
-                child: TextField(
-                  controller: _chatInputController,
-                  focusNode: _chatFocusNode,
-                  maxLines: 5,
-                  minLines: 1,
-                  cursorColor: widget.shouldSaveAsContext
-                      ? Theme.of(context).colorScheme.secondary
-                      : Theme.of(context).colorScheme.primary,
-                  decoration: InputDecoration(
-                    hintText: widget.shouldSaveAsContext
-                        ? 'Tell me what you want to remember...'
-                        : 'How was your health day?',
-                    hintStyle: TextStyle(
-                      color: Theme.of(context).hintColor,
+                    horizontal: $styles.insets.sm, vertical: $styles.insets.sm),
+                child: Row(
+                  children: [
+                    // 시간 선택 Picker
+                    SizedBox(
+                      width: $styles.insets.offset,
+                      height: $styles.insets.xl * 1.2,
+                      child: CupertinoPicker(
+                        scrollController: FixedExtentScrollController(
+                          initialItem: _selectedHour,
+                        ),
+                        itemExtent: $styles.insets.lg, // 기존 32
+                        squeeze: 1.5,
+                        onSelectedItemChanged: (idx) =>
+                            setState(() => _selectedHour = idx),
+                        children: [
+                          Center(
+                            child: Text(
+                              '현재',
+                              style: $styles.text.bodySmall,
+                            ),
+                          ),
+                          for (int h = 1; h <= 10; h++)
+                            Text('${h}h ago', style: $styles.text.bodySmall),
+                        ],
+                      ),
                     ),
-                    contentPadding: EdgeInsets.zero,
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    focusedErrorBorder: InputBorder.none,
-                  ),
-                  textInputAction: TextInputAction.newline,
+                    SizedBox(width: $styles.insets.sm), // 기존 8
+
+                    // Expanded TextField
+                    Expanded(
+                      child: TextField(
+                        controller: _chatInputController,
+                        focusNode: _chatFocusNode,
+                        maxLines: 5,
+                        minLines: 1,
+                        cursorColor: widget.shouldSaveAsContext
+                            ? $styles.colors.accent2
+                            : $styles.colors.accent1,
+                        style: $styles.text.bodySmall,
+                        decoration: InputDecoration(
+                          hintText: widget.shouldSaveAsContext
+                              ? 'Tell me what you want to remember...'
+                              : 'How was your health day?',
+                          hintStyle: $styles.text.bodySmall
+                              .copyWith(color: $styles.colors.caption),
+                          contentPadding: EdgeInsets.zero,
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
+                        ),
+                        textInputAction: TextInputAction.newline,
+                      ),
+                    ),
+                  ],
                 ),
               ),
 

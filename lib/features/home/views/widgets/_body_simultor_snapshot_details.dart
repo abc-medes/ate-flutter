@@ -91,7 +91,7 @@ class _BodySimulatorSnapshotDetailsState
   List<Widget> _organSlivers(SBBodySimulatorStateSnapshot sbs) {
     final slivers = <Widget>[];
     final s = sbs.bodyState;
-    final scores = sbs.overallScore.organScores;
+    final scores = sbs.healthScore.organScores;
 
     void add(String key, Widget? table) {
       if (table == null) return;
@@ -119,9 +119,9 @@ class _BodySimulatorSnapshotDetailsState
   Widget _sectionTitle(String text, double? score) => Padding(
         padding: const EdgeInsets.only(top: 24, bottom: 8),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(text, style: $styles.text.bodyBold.copyWith(fontSize: 18)),
+            SizedBox(width: $styles.insets.sm),
             if (score != null)
               AnimatedMetricValue(
                 value: score,

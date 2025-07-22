@@ -1,36 +1,45 @@
 class ChatMessage {
-  final String text;
+  final String message;
   final bool isUser;
-  final DateTime timestamp;
-  final String? userId;
+  final DateTime localTimestamp;
+  final int? hour;
 
   ChatMessage({
-    required this.text,
+    required this.message,
     required this.isUser,
-    this.userId,
-    DateTime? timestamp,
-  }) : timestamp = timestamp ?? DateTime.now();
+    DateTime? localTimestamp,
+    this.hour,
+  }) : localTimestamp = localTimestamp ?? DateTime.now();
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
-      text: json['message'] as String,
+      message: json['message'] as String,
       isUser: json['is_user'] as bool,
-      userId: json['user_id'] as String?,
-      timestamp: DateTime.parse(json['created_at'] as String),
+      localTimestamp: DateTime.parse(json['local_timestamp_str'] as String),
+      hour: json['hour'] as int? ?? 0,
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'message': message,
+      'is_user': isUser,
+      'local_timestamp_str': localTimestamp.toIso8601String(),
+      'hour': hour,
+    };
+  }
+
   ChatMessage copyWith({
-    String? text,
+    String? message,
     bool? isUser,
-    DateTime? timestamp,
-    String? userId,
+    DateTime? localTimestamp,
+    int? hour,
   }) {
     return ChatMessage(
-      text: text ?? this.text,
+      message: message ?? this.message,
       isUser: isUser ?? this.isUser,
-      timestamp: timestamp ?? this.timestamp,
-      userId: userId ?? this.userId,
+      localTimestamp: localTimestamp ?? this.localTimestamp,
+      hour: hour ?? this.hour ?? 0,
     );
   }
 }

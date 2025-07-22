@@ -2,6 +2,7 @@ import 'package:regene/common_libs.dart';
 import 'package:regene/core/routes/route_names.dart';
 import 'package:regene/core/widgets/chat_input.dart';
 import 'package:regene/core/widgets/circular_icon_button.dart';
+import 'package:regene/data/models/chat_model.dart';
 import 'package:regene/features/home/view_models/home_view_model.dart';
 import 'package:regene/features/home/views/widgets/chat_helper.dart';
 import 'package:regene/features/home/views/widgets/tappable_score.dart';
@@ -41,10 +42,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
           ChatInput(
             shouldSaveAsContext: state.isSaveMode,
             onSaveModeToggle: () => viewModel.onSaveModeToggle(),
-            onSubmit: (text, images) {
-              if (text.isNotEmpty) {
-                context.go(RouteNames.chat, extra: text);
-                viewModel.textController.text = text;
+            onSubmit: (ChatMessage chatMessage) {
+              if (chatMessage.message.isNotEmpty) {
+                context.go(RouteNames.chat, extra: chatMessage);
+                viewModel.textController.text = chatMessage.message;
               }
             },
           ),
@@ -96,7 +97,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
           Text("Overall Score", style: $styles.text.h3),
           SizedBox(height: $styles.insets.md),
           TappableScore(
-            score: state.bodySimulatorState?.overallScore.overallScore ?? 0,
+            score: state.bodySimulatorState?.healthScore.overallScore ?? 0,
             onTap: () => ref
                 .read(homeViewModelProvider.notifier)
                 .showBodySimulatorSnapshotDetails(context),

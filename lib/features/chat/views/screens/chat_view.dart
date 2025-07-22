@@ -1,16 +1,17 @@
 import 'package:regene/common_libs.dart';
 import 'package:regene/core/widgets/circular_icon_button.dart';
+import 'package:regene/data/models/chat_model.dart';
 import 'package:regene/features/chat/view_models/chat_view_model.dart';
 import 'package:regene/core/routes/route_names.dart';
 
 /// 매우 단순한 채팅 UI – 실시간 스트림 텍스트만 표시
 class ChatView extends ConsumerWidget {
-  final String prompt;
-  const ChatView({super.key, required this.prompt});
+  final ChatMessage cm;
+  const ChatView({super.key, required this.cm});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(chatViewModelProvider(prompt));
+    final state = ref.watch(chatViewModelProvider(cm));
 
     return Scaffold(
       backgroundColor: $styles.colors.background,
@@ -80,7 +81,7 @@ class ChatView extends ConsumerWidget {
                       color: bubbleColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(m.text),
+                    child: Text(m.message),
                   ),
                 );
               },

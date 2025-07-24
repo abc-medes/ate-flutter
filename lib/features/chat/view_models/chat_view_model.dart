@@ -1,26 +1,36 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regene/core/services/api_service.dart';
+import 'package:regene/core/services/chat_service.dart';
 import 'package:regene/data/models/chat_model.dart';
+
+final chatViewModelProvider = StateNotifierProvider.autoDispose
+    .family<ChatViewModel, ChatViewState, ChatMessage>(
+  (ref, cm) => ChatViewModel(ref, cm)..loadChatHistory(ref),
+);
 
 /// ─────────────────────────────────────────
 /// STATE
 /// ─────────────────────────────────────────
 class ChatViewState {
   final List<ChatMessage> messages;
+  final List<ChatMessageDTO> prevMessages;
   final bool isProcessing;
 
   const ChatViewState({
     this.messages = const [],
+    this.prevMessages = const [],
     this.isProcessing = false,
   });
 
   ChatViewState copyWith({
     List<ChatMessage>? messages,
+    List<ChatMessageDTO>? prevMessages,
     bool? isProcessing,
   }) =>
       ChatViewState(
         messages: messages ?? this.messages,
+        prevMessages: prevMessages ?? this.prevMessages,
         isProcessing: isProcessing ?? this.isProcessing,
       );
 }
@@ -29,7 +39,8 @@ class ChatViewState {
 /// VIEW-MODEL
 /// ─────────────────────────────────────────
 class ChatViewModel extends StateNotifier<ChatViewState> {
-  ChatViewModel(ChatMessage initialPrompt) : super(const ChatViewState()) {
+  ChatViewModel(Ref ref, ChatMessage initialPrompt)
+      : super(const ChatViewState()) {
     sessionId = initialPrompt.sessionId;
 
     _sendPrompt(initialPrompt);
@@ -85,12 +96,15 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
       },
     );
   }
+
+  void loadChatHistory(Ref ref) async {
+    final history =
+        await ref.read(chatServiceProvider).getChatHistory(sessionId);
+    print('history: $history');
+    state = state.copyWith(prevMessages: history);
+  }
 }
 
 /// ─────────────────────────────────────────
 /// PROVIDER (prompt 파라미터 전달)
 /// ─────────────────────────────────────────
-final chatViewModelProvider = StateNotifierProvider.autoDispose
-    .family<ChatViewModel, ChatViewState, ChatMessage>(
-  (ref, cm) => ChatViewModel(cm),
-);

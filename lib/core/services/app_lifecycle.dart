@@ -1,12 +1,15 @@
 import 'package:regene/common_libs.dart';
+import 'package:regene/core/services/session_service.dart';
 import 'package:regene/core/services/user_service.dart';
+import 'package:uuid/uuid.dart';
 
 /// Keeps the user’s profile in sync with app-lifecycle events (open / close).
 /// If no user is logged-in `currentUser` is `null`, so the calls are skipped.
 class LifecycleLogic with WidgetsBindingObserver {
   final UserService _userService;
+  final WidgetRef _ref;
 
-  LifecycleLogic(this._userService) {
+  LifecycleLogic(this._userService, this._ref) {
     // Register for lifecycle callbacks right away.
     WidgetsBinding.instance.addObserver(this);
 
@@ -24,7 +27,8 @@ class LifecycleLogic with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
-      case AppLifecycleState.resumed: // App foreground
+      case AppLifecycleState.resumed:
+        _ref.read(sessionIdProvider.notifier).state = const Uuid().v4();
         _markAppOpened();
         break;
       case AppLifecycleState.paused: // Sent to background

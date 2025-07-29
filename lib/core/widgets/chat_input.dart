@@ -1,10 +1,9 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:regene/common_libs.dart';
+import 'package:regene/core/services/session_service.dart';
 import 'package:regene/data/models/chat_model.dart';
-import 'package:regene/main.dart';
-import 'package:uuid/uuid.dart';
 
-class ChatInput extends StatefulWidget {
+class ChatInput extends ConsumerStatefulWidget {
   final Function(ChatMessage cm)? onSubmit;
   final Function(String)? onChanged;
   final bool isDisabled;
@@ -25,10 +24,10 @@ class ChatInput extends StatefulWidget {
   });
 
   @override
-  State<ChatInput> createState() => _ChatInputState();
+  ConsumerState<ChatInput> createState() => _ChatInputState();
 }
 
-class _ChatInputState extends State<ChatInput> {
+class _ChatInputState extends ConsumerState<ChatInput> {
   late TextEditingController _chatInputController;
   final FocusNode _chatFocusNode = FocusNode();
   List<String> _selectedImages = [];
@@ -64,16 +63,10 @@ class _ChatInputState extends State<ChatInput> {
     });
   }
 
-  void _handleSubmit() {
-    if (widget.isDisabled) return;
-    final text = _chatInputController.text;
-    if (text.trim().isEmpty && _selectedImages.isEmpty) return;
-
-    final sessionId = widget.sessionId ?? const Uuid().v4();
-
+  void _createAndSendChatMessage() {
     final cm = ChatMessage(
-      sessionId: sessionId,
-      message: text,
+      sessionId: ref.read(sessionIdProvider),
+      message: _chatInputController.text,
       localTimestamp: DateTime.now(),
       isUser: true,
       chatOffset: _selectedHour,
@@ -87,6 +80,14 @@ class _ChatInputState extends State<ChatInput> {
     setState(() {
       _selectedImages = [];
     });
+  }
+
+  void _handleSubmit() {
+    if (widget.isDisabled) return;
+    final text = _chatInputController.text;
+    if (text.trim().isEmpty && _selectedImages.isEmpty) return;
+
+    _createAndSendChatMessage();
   }
 
   @override

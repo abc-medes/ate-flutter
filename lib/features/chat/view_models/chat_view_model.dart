@@ -1,52 +1,61 @@
 import 'dart:async';
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regene/core/services/api_service.dart';
 import 'package:regene/core/services/chat_service.dart';
+import 'package:regene/core/services/session_service.dart';
 import 'package:regene/data/models/chat_model.dart';
 
-final chatViewModelProvider = StateNotifierProvider.autoDispose
-    .family<ChatViewModel, ChatViewState, ChatMessage>(
-  (ref, cm) => ChatViewModel(ref, cm)..loadChatHistory(ref),
+final chatViewModelProvider =
+    StateNotifierProvider.autoDispose<ChatViewModel, ChatViewState>(
+  (ref) => ChatViewModel(ref),
 );
 
 /// ─────────────────────────────────────────
 /// STATE
 /// ─────────────────────────────────────────
 class ChatViewState {
-  final List<ChatMessage> messages;
-  final List<ChatMessageDTO> prevMessages;
+  final Map<String, List<ChatMessage>> historicalSessions;
+  final List<String> orderedSessionIds;
+  final List<ChatMessage> currentSessionMessages;
+
   final bool isProcessing;
+  final String? error;
 
   const ChatViewState({
-    this.messages = const [],
-    this.prevMessages = const [],
+    this.historicalSessions = const {},
+    this.orderedSessionIds = const [],
+    this.currentSessionMessages = const [],
     this.isProcessing = false,
+    this.error,
   });
 
   ChatViewState copyWith({
-    List<ChatMessage>? messages,
-    List<ChatMessageDTO>? prevMessages,
+    Map<String, List<ChatMessage>>? historicalSessions,
+    List<String>? orderedSessionIds,
+    List<ChatMessage>? currentSessionMessages,
     bool? isProcessing,
-  }) =>
-      ChatViewState(
-        messages: messages ?? this.messages,
-        prevMessages: prevMessages ?? this.prevMessages,
-        isProcessing: isProcessing ?? this.isProcessing,
-      );
+    String? error,
+    bool clearError = false,
+  }) {
+    return ChatViewState(
+      historicalSessions: historicalSessions ?? this.historicalSessions,
+      orderedSessionIds: orderedSessionIds ?? this.orderedSessionIds,
+      currentSessionMessages:
+          currentSessionMessages ?? this.currentSessionMessages,
+      isProcessing: isProcessing ?? this.isProcessing,
+      error: clearError ? null : error ?? this.error,
+    );
+  }
 }
 
 /// ─────────────────────────────────────────
 /// VIEW-MODEL
 /// ─────────────────────────────────────────
 class ChatViewModel extends StateNotifier<ChatViewState> {
-  ChatViewModel(Ref ref, ChatMessage initialPrompt)
-      : super(const ChatViewState()) {
-    sessionId = initialPrompt.sessionId;
+  ChatViewModel(this._ref) : super(const ChatViewState()) {}
 
-    _sendPrompt(initialPrompt);
-  }
-
-  late final String sessionId;
+  final Ref _ref;
   StreamSubscription<String>? _sub;
 
   @override
@@ -55,53 +64,69 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
     super.dispose();
   }
 
-  void _sendPrompt(ChatMessage cm) {
+  void sendPrompt(ChatMessage cm) {
     if (cm.message.trim().isEmpty || state.isProcessing) return;
 
     final aiMsgPlaceholder = ChatMessage(
-      sessionId: sessionId,
+      sessionId: _ref.read(sessionIdProvider),
       message: '',
       isUser: false,
       chatOffset: cm.chatOffset,
     );
 
+    if (!mounted) return;
     state = state.copyWith(
-      messages: [...state.messages, cm, aiMsgPlaceholder],
+      currentSessionMessages: [
+        ...state.currentSessionMessages,
+        cm,
+        aiMsgPlaceholder
+      ],
       isProcessing: true,
+      clearError: true,
     );
-    final aiMessageIndex = state.messages.length - 1;
 
     _sub = ApiService.sendChatMessage(cm).listen(
       (chunk) {
-        final currentMessages = List<ChatMessage>.from(state.messages);
-        final currentAiMessage = currentMessages[aiMessageIndex];
-        currentMessages[aiMessageIndex] = currentAiMessage.copyWith(
+        if (!mounted) return;
+        final messages = List<ChatMessage>.from(state.currentSessionMessages);
+        final aiMessageIndex = messages.length - 1;
+        if (aiMessageIndex < 0) return;
+        final currentAiMessage = messages[aiMessageIndex];
+        messages[aiMessageIndex] = currentAiMessage.copyWith(
           message: currentAiMessage.message + chunk,
         );
-        state = state.copyWith(messages: currentMessages);
+        state = state.copyWith(currentSessionMessages: messages);
       },
       onDone: () {
+        if (!mounted) return;
         state = state.copyWith(isProcessing: false);
       },
       onError: (e) {
-        final currentMessages = List<ChatMessage>.from(state.messages);
-        final currentAiMessage = currentMessages[aiMessageIndex];
-        currentMessages[aiMessageIndex] = currentAiMessage.copyWith(
+        if (!mounted) return;
+        final messages = List<ChatMessage>.from(state.currentSessionMessages);
+        final aiMessageIndex = messages.length - 1;
+
+        if (aiMessageIndex < 0) {
+          if (!mounted) return;
+          state = state.copyWith(
+            isProcessing: false,
+            error: 'Error sending message: $e',
+          );
+          return;
+        }
+
+        final currentAiMessage = messages[aiMessageIndex];
+        messages[aiMessageIndex] = currentAiMessage.copyWith(
           message: '⚠︎ Error: $e',
         );
+        if (!mounted) return;
         state = state.copyWith(
-          messages: currentMessages,
+          currentSessionMessages: messages,
           isProcessing: false,
+          error: 'Error sending message: $e',
         );
       },
     );
-  }
-
-  void loadChatHistory(Ref ref) async {
-    final history =
-        await ref.read(chatServiceProvider).getChatHistory(sessionId);
-    print('history: $history');
-    state = state.copyWith(prevMessages: history);
   }
 }
 

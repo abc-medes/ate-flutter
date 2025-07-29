@@ -9,8 +9,7 @@ class ChatService {
   User? get currentUser => _client.auth.currentUser;
   String? get currentUserId => currentUser?.id;
 
-  /// Fetch chat history for a session one time.
-  Future<List<ChatMessageDTO>> getChatHistory(String sessionId) async {
+  Future<List<ChatMessageDTO>> getChatHistory() async {
     if (currentUserId == null) {
       throw Exception('User not authenticated to fetch chat history.');
     }

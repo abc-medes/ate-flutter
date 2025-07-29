@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:regene/common_libs.dart';
 import 'package:regene/core/services/api_service.dart';
+import 'package:regene/core/services/session_service.dart';
 import 'package:regene/data/models/body_simulator_model.dart';
 import 'package:regene/features/home/views/widgets/_animated_metric_value.dart';
 
@@ -22,7 +23,8 @@ class _BodySimulatorSnapshotDetailsState
   @override
   void initState() {
     super.initState();
-    _subscription = ApiService.bodyStateStream().listen(
+    final sessionId = ref.read(sessionIdProvider);
+    _subscription = ApiService.bodyStateStream(sessionId: sessionId).listen(
       (state) {
         debugPrint(
             '🩺  Body-state update → ${state.toJson()}'); // ← shows the model

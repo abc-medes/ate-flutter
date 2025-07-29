@@ -44,7 +44,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
             onSaveModeToggle: () => viewModel.onSaveModeToggle(),
             onSubmit: (ChatMessage chatMessage) {
               if (chatMessage.message.isNotEmpty) {
-                context.go(RouteNames.chat, extra: chatMessage);
+                context.go(RouteNames.chat, extra: {
+                  'message': chatMessage.message,
+                  'chatOffset': chatMessage.chatOffset,
+                });
                 viewModel.textController.text = chatMessage.message;
               }
             },
@@ -78,12 +81,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   iconColor: $styles.colors.black,
                   backgroundColor: Colors.transparent,
                   onTap: () => print("Navigate to Detailed Analysis page")),
-              Row(
-                children: [
-                  Icon(Icons.calendar_month),
-                  SizedBox(width: $styles.insets.sm),
-                  Text("SAT, 25 JUN 2025", style: $styles.text.bodySmall),
-                ],
+              GestureDetector(
+                onTap: () => context.push(RouteNames.chatHistory),
+                child: Row(
+                  children: [
+                    Icon(Icons.calendar_month),
+                    SizedBox(width: $styles.insets.sm),
+                    Text("SAT, 25 JUN 2025", style: $styles.text.bodySmall),
+                  ],
+                ),
               ),
               CircularIconButton(
                   size: 48,

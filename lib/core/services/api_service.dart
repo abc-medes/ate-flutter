@@ -176,6 +176,7 @@ class ApiService {
   }
 
   static Stream<SBBodySimulatorStateSnapshot> bodyStateStream({
+    required String sessionId,
     Duration reconnectDelay = const Duration(seconds: 2),
   }) {
     final controller = StreamController<SBBodySimulatorStateSnapshot>();
@@ -195,8 +196,8 @@ class ApiService {
 
       final jwt = session.accessToken;
       final ts = DateTime.now().toIso8601String();
-      final wsUri =
-          Uri.parse('$_wsUrl/ws/body-state?token=$jwt&local_timestamp=$ts');
+      final wsUri = Uri.parse(
+          '$_wsUrl/ws/body-state?token=$jwt&session_id=$sessionId&local_timestamp=$ts');
 
       try {
         channel = IOWebSocketChannel.connect(

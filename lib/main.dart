@@ -38,7 +38,7 @@ class _RegeneState extends ConsumerState<Regene> {
   void initState() {
     super.initState();
     GetIt.I.get<DeepLinkLogic>().init(context);
-    _lifecycle = LifecycleLogic(ref.read(userServiceProvider));
+    _lifecycle = LifecycleLogic(ref.read(userServiceProvider), ref);
   }
 
   @override

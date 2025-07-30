@@ -166,7 +166,7 @@ class UserService {
         );
   }
 
-  Future<SBBodySimulatorStateSnapshot> bodySimulatorState() async {
+  Future<BodySimulatorStateSnapshotDTO> bodySimulatorState() async {
     final response = await _client
         .from('user_body_state_snapshots')
         .select('*')
@@ -174,10 +174,10 @@ class UserService {
         .order('created_at', ascending: false)
         .limit(1)
         .single();
-    return SBBodySimulatorStateSnapshot.fromJson(response);
+    return BodySimulatorStateSnapshotDTO.fromJson(response);
   }
 
-  Stream<SBBodySimulatorStateSnapshot?> bodySimulatorStateStream(
+  Stream<BodySimulatorStateSnapshotDTO?> bodySimulatorStateStream(
       String userId) {
     return _client
         .from('user_body_state_snapshots')
@@ -187,7 +187,7 @@ class UserService {
         .limit(1)
         .map((rows) => rows.isEmpty
             ? null
-            : SBBodySimulatorStateSnapshot.fromJson(rows.first));
+            : BodySimulatorStateSnapshotDTO.fromJson(rows.first));
   }
 }
 

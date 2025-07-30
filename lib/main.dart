@@ -6,10 +6,11 @@ import 'package:regene/core/services/user_service.dart';
 import 'package:regene/l10n/l10n.dart';
 import 'package:regene/core/config/env.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  tz.initializeTimeZones();
   await Env.load();
 
   registerSingletons();

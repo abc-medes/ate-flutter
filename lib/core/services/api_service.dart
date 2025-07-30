@@ -175,11 +175,11 @@ class ApiService {
     }
   }
 
-  static Stream<SBBodySimulatorStateSnapshot> bodyStateStream({
+  static Stream<BodySimulatorStateSnapshotDTO> bodyStateStream({
     required String sessionId,
     Duration reconnectDelay = const Duration(seconds: 2),
   }) {
-    final controller = StreamController<SBBodySimulatorStateSnapshot>();
+    final controller = StreamController<BodySimulatorStateSnapshotDTO>();
     WebSocketChannel? channel;
 
     Future<void> connect() async {
@@ -211,7 +211,7 @@ class ApiService {
               final data = jsonDecode(message);
               debugPrint('🌐 got message ▶︎ $data');
               if (data is Map<String, dynamic>) {
-                controller.add(SBBodySimulatorStateSnapshot.fromJson(data));
+                controller.add(BodySimulatorStateSnapshotDTO.fromJson(data));
               }
             } catch (_) {
               debugPrint('🌐 parse error ▶︎ $_');

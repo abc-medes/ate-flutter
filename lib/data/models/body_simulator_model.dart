@@ -379,18 +379,20 @@ class BodySimulatorState {
   }
 }
 
-class SBBodySimulatorStateSnapshot {
+class BodySimulatorStateSnapshotDTO {
   final int id;
   final String userId;
+  final String sessionId;
   final BodySimulatorState bodyState;
   final BodyOverallScore healthScore;
   final DateTime lastUpdatedAt;
   final DateTime lastUpdatedAtUtc;
   final DateTime createdAt;
 
-  SBBodySimulatorStateSnapshot({
+  BodySimulatorStateSnapshotDTO({
     required this.id,
     required this.userId,
+    required this.sessionId,
     required this.bodyState,
     required this.healthScore,
     required this.lastUpdatedAt,
@@ -398,10 +400,11 @@ class SBBodySimulatorStateSnapshot {
     required this.createdAt,
   });
 
-  factory SBBodySimulatorStateSnapshot.fromJson(Map<String, dynamic> json) {
-    return SBBodySimulatorStateSnapshot(
+  factory BodySimulatorStateSnapshotDTO.fromJson(Map<String, dynamic> json) {
+    return BodySimulatorStateSnapshotDTO(
       id: (json['id'] ?? 0) as int,
       userId: json['user_id'],
+      sessionId: json['session_id'],
       bodyState: BodySimulatorState.fromJson(json['body_state']),
       healthScore: BodyOverallScore.fromJson(json['health_score']),
       lastUpdatedAt: DateTime.parse(json['last_updated_at']),
@@ -413,6 +416,7 @@ class SBBodySimulatorStateSnapshot {
   Map<String, dynamic> toJson() => {
         'id': id,
         'user_id': userId,
+        'session_id': sessionId,
         'body_state': bodyState.toJson(),
         'health_score': healthScore.toJson(),
         'last_updated_at': lastUpdatedAt.toIso8601String(),

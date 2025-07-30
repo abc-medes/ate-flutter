@@ -22,7 +22,7 @@ class HomeViewState {
   final bool isProcessing;
   final bool isSaveMode;
   final ChatHelperType selectedHelperChip;
-  final SBBodySimulatorStateSnapshot? bodySimulatorState;
+  final BodySimulatorStateSnapshotDTO? bodySimulatorState;
   HomeViewState({
     this.missingBasicData = const [],
     this.messages = const [],
@@ -39,7 +39,7 @@ class HomeViewState {
     bool? isProcessing,
     bool? isSaveMode,
     ChatHelperType? selectedHelperChip,
-    SBBodySimulatorStateSnapshot? bodySimulatorState,
+    BodySimulatorStateSnapshotDTO? bodySimulatorState,
   }) {
     return HomeViewState(
       missingBasicData: missingBasicData ?? this.missingBasicData,

@@ -17,8 +17,8 @@ class BodySimulatorSnapshotDetails extends ConsumerStatefulWidget {
 
 class _BodySimulatorSnapshotDetailsState
     extends ConsumerState<BodySimulatorSnapshotDetails> {
-  StreamSubscription<SBBodySimulatorStateSnapshot?>? _subscription;
-  SBBodySimulatorStateSnapshot? _bodyState;
+  StreamSubscription<BodySimulatorStateSnapshotDTO?>? _subscription;
+  BodySimulatorStateSnapshotDTO? _bodyState;
 
   @override
   void initState() {
@@ -90,7 +90,7 @@ class _BodySimulatorSnapshotDetailsState
   }
 
   // ---------- helpers --------------------------------------------------------
-  List<Widget> _organSlivers(SBBodySimulatorStateSnapshot sbs) {
+  List<Widget> _organSlivers(BodySimulatorStateSnapshotDTO sbs) {
     final slivers = <Widget>[];
     final s = sbs.bodyState;
     final scores = sbs.healthScore.organScores;

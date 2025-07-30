@@ -195,9 +195,9 @@ class _ChatPageState extends State<_ChatPage> {
         // Input field for the live chat page
         if (widget.showInput)
           ChatInput(
-            onSubmit: (cm) {
-              if (widget.onSendMessage != null) {
-                widget.onSendMessage!(cm.message);
+            onSubmit: (ChatMessage chatMessage) {
+              if (chatMessage.message.isNotEmpty) {
+                widget.onSendMessage!(chatMessage.message);
               }
             },
           ),

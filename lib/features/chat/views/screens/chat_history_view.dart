@@ -5,6 +5,7 @@ import 'package:regene/common_libs.dart';
 import 'package:regene/core/routes/route_names.dart';
 import 'package:regene/core/widgets/chat_input.dart';
 import 'package:regene/core/widgets/circular_icon_button.dart';
+import 'package:regene/data/models/body_simulator_model.dart';
 import 'package:regene/data/models/chat_model.dart';
 import 'package:regene/features/chat/view_models/chat_history_view_model.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -54,18 +55,11 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView> {
     return state.eventsByDate[dayUtc] ?? [];
   }
 
-  int _getWeeksInMonth(DateTime month) {
-    final firstDay = DateTime.utc(month.year, month.month, 1);
-    final lastDay = DateTime.utc(month.year, month.month + 1, 0);
-    final firstWeekday =
-        firstDay.weekday == 7 ? 0 : firstDay.weekday; // Adjust for Monday start
-    final totalDays = firstWeekday + lastDay.day;
-    return (totalDays / 7).ceil();
-  }
-
   @override
   Widget build(BuildContext context) {
     final viewModel = ref.watch(chatHistoryViewModelProvider.notifier);
+    // Watch the state provider to ensure the UI rebuilds when data changes.
+    final state = ref.watch(chatHistoryViewModelProvider);
 
     return Scaffold(
       backgroundColor: $styles.colors.background,
@@ -73,57 +67,73 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView> {
         children: [
           _buildHeader(context, _focusedDay, ref),
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final pageViewHeight = constraints.maxHeight;
+            child: Padding(
+              padding: EdgeInsets.only(bottom: $styles.insets.sm),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final pageViewHeight = constraints.maxHeight;
+                  const double weeksInMonth =
+                      6.0; // Always calculate height for 6 weeks
+                  final daysOfWeekHeight = $styles.insets.md;
+                  final rowHeight =
+                      (pageViewHeight - daysOfWeekHeight) / weeksInMonth;
 
-                return PageView.builder(
-                  controller: _pageController,
-                  scrollDirection: Axis.vertical,
-                  onPageChanged: (page) {
-                    final newFocusedDay = _pageToMonth(page);
-                    setState(() {
-                      _focusedDay = newFocusedDay;
-                      _selectedDay = null; // Clear selection when month changes
-                    });
-                    viewModel.onMonthChanged(newFocusedDay);
-                  },
-                  itemBuilder: (context, index) {
-                    final month = _pageToMonth(index);
-                    final weeks = _getWeeksInMonth(month);
-                    const daysOfWeekHeight = 24.0;
-                    final rowHeight =
-                        (pageViewHeight - 150 - daysOfWeekHeight) / weeks;
-
-                    return TableCalendar<dynamic>(
-                      focusedDay: month,
-                      // These need to be wide enough to not crash.
-                      firstDay: DateTime.utc(month.year, month.month, 1),
-                      lastDay: DateTime.utc(month.year, month.month + 1, 0),
-                      rowHeight: rowHeight,
-                      daysOfWeekHeight: daysOfWeekHeight,
-                      headerVisible: false,
-                      availableGestures:
-                          AvailableGestures.none, // Scrolling is by PageView
-                      selectedDayPredicate: (day) =>
-                          isSameDay(_selectedDay, day),
-                      eventLoader: _getEventsForDay,
-                      startingDayOfWeek: StartingDayOfWeek.monday,
-                      calendarStyle: const CalendarStyle(
-                        outsideDaysVisible: false,
-                      ),
-                      onDaySelected: (selectedDay, focusedDay) {
-                        if (!isSameDay(_selectedDay, selectedDay)) {
-                          setState(() {
-                            _selectedDay = selectedDay;
-                            // focusedDay is managed by the PageView
-                          });
-                        }
-                      },
-                    );
-                  },
-                );
-              },
+                  return PageView.builder(
+                    controller: _pageController,
+                    scrollDirection: Axis.vertical,
+                    onPageChanged: (page) {
+                      final newFocusedDay = _pageToMonth(page);
+                      setState(() {
+                        _focusedDay = newFocusedDay;
+                        _selectedDay =
+                            null; // Clear selection when month changes
+                      });
+                      viewModel.onMonthChanged(newFocusedDay);
+                    },
+                    itemBuilder: (context, index) {
+                      final month = _pageToMonth(index);
+                      return TableCalendar<dynamic>(
+                        focusedDay: month,
+                        firstDay: DateTime.utc(month.year, month.month, 1),
+                        lastDay: DateTime.utc(month.year, month.month + 1, 0),
+                        rowHeight: rowHeight,
+                        daysOfWeekHeight: daysOfWeekHeight,
+                        headerVisible: false,
+                        availableGestures:
+                            AvailableGestures.none, // Scrolling is by PageView
+                        selectedDayPredicate: (day) =>
+                            isSameDay(_selectedDay, day),
+                        eventLoader: _getEventsForDay,
+                        startingDayOfWeek: StartingDayOfWeek.monday,
+                        calendarStyle: const CalendarStyle(
+                          outsideDaysVisible: false,
+                        ),
+                        onDaySelected: (selectedDay, focusedDay) {
+                          if (!isSameDay(_selectedDay, selectedDay)) {
+                            setState(() {
+                              _selectedDay = selectedDay;
+                            });
+                          }
+                        },
+                        calendarBuilders: CalendarBuilders(
+                          defaultBuilder: (context, day, focusedDay) {
+                            return _buildCellContent(day);
+                          },
+                          todayBuilder: (context, day, focusedDay) {
+                            return _buildCellContent(day, isToday: true);
+                          },
+                          selectedBuilder: (context, day, focusedDay) {
+                            return _buildCellContent(day, isSelected: true);
+                          },
+                          outsideBuilder: (context, day, focusedDay) {
+                            return _buildCellContent(day, isOutside: true);
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ),
           ChatInput(
@@ -136,6 +146,78 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView> {
               }
             },
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCellContent(DateTime day,
+      {bool isToday = false, bool isSelected = false, bool isOutside = false}) {
+    final events = _getEventsForDay(day);
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      margin: EdgeInsets.all($styles.insets.xxs),
+      padding: EdgeInsets.all($styles.insets.xxs),
+      decoration: BoxDecoration(
+        color: isSelected ? $styles.colors.accent1.withOpacity(0.2) : null,
+        borderRadius: BorderRadius.circular($styles.corners.sm),
+        border: isToday
+            ? Border.all(color: $styles.colors.accent1, width: 2)
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${day.day}',
+            style: $styles.text.bodySmall.copyWith(
+              color: isOutside ? $styles.colors.caption : $styles.colors.black,
+            ),
+          ),
+          if (events.isNotEmpty)
+            Expanded(
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: events.length,
+                itemBuilder: (context, index) {
+                  final event = events[index];
+                  String title = 'Unknown event';
+                  IconData icon = Icons.event;
+                  Color iconColor = $styles.colors.caption;
+
+                  if (event is ChatMessageDTO) {
+                    title = event.message;
+                    icon = Icons.chat_bubble_outline;
+                    iconColor = $styles.colors.accent1;
+                  } else if (event is BodySimulatorStateSnapshotDTO) {
+                    title =
+                        'Body Score: ${event.healthScore.overallScore.toStringAsFixed(1)}';
+                    icon = Icons.monitor_heart_outlined;
+                    iconColor = $styles.colors.accent2;
+                  }
+
+                  return Row(
+                    children: [
+                      Icon(icon, size: 12, color: iconColor),
+                      SizedBox(width: $styles.insets.xxs),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: $styles.text.caption.copyWith(
+                            color: isOutside
+                                ? $styles.colors.caption
+                                : $styles.colors.black,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
         ],
       ),
     );
@@ -160,7 +242,9 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView> {
             DateFormat.yMMMM().format(focusedMonth),
             style: $styles.text.h3,
           ),
-          const SizedBox(width: 48), // To balance the back button
+          SizedBox(
+              width: $styles
+                  .insets.xl), // To balance the back button with a sized box
         ],
       ),
     );

@@ -127,6 +127,10 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView> {
                           }
                         },
                         calendarBuilders: CalendarBuilders(
+                          markerBuilder: (context, day, events) {
+                            // Return an empty container to hide default markers
+                            return Container();
+                          },
                           defaultBuilder: (context, day, focusedDay) {
                             return _buildCellContent(day);
                           },
@@ -165,10 +169,11 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView> {
   Widget _buildCellContent(DateTime day,
       {bool isToday = false, bool isSelected = false, bool isOutside = false}) {
     final events = _getEventsForDay(day);
+    final chatCount = events.whereType<ChatMessageDTO>().length;
+
     return Container(
       width: double.infinity,
       height: double.infinity,
-      margin: EdgeInsets.all($styles.insets.xxs),
       padding: EdgeInsets.all($styles.insets.xxs),
       decoration: BoxDecoration(
         color: isSelected ? $styles.colors.accent1.withOpacity(0.2) : null,
@@ -180,11 +185,34 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '${day.day}',
-            style: $styles.text.bodySmall.copyWith(
-              color: isOutside ? $styles.colors.caption : $styles.colors.black,
-            ),
+          Row(
+            children: [
+              Text(
+                '${day.day}',
+                style: $styles.text.bodySmall.copyWith(
+                  color:
+                      isOutside ? $styles.colors.caption : $styles.colors.black,
+                ),
+              ),
+              if (chatCount > 0 && !isOutside) ...[
+                SizedBox(width: $styles.insets.xxs),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: $styles.insets.xxs,
+                      vertical: $styles.insets.xxs / 2),
+                  decoration: BoxDecoration(
+                    color: $styles.colors.accent1,
+                    borderRadius: BorderRadius.circular($styles.corners.sm),
+                  ),
+                  child: Text(
+                    '$chatCount',
+                    style: $styles.text.caption.copyWith(
+                        color: $styles.colors.white,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ],
           ),
           if (events.isNotEmpty)
             Expanded(

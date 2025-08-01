@@ -99,18 +99,18 @@ class _ChatInputState extends ConsumerState<ChatInput> {
         // Selected images preview
         if (_selectedImages.isNotEmpty)
           Container(
-            height: 80,
+            height: $styles.insets.offset,
             margin: EdgeInsets.only(bottom: $styles.insets.sm),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: _selectedImages.length,
               itemBuilder: (context, index) {
                 return Container(
-                  width: 80,
-                  margin: const EdgeInsets.only(right: 8),
+                  width: $styles.insets.offset,
+                  margin: EdgeInsets.only(right: $styles.insets.xs),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular($styles.corners.md),
                   ),
                   child: Stack(
                     fit: StackFit.expand,
@@ -118,7 +118,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                       Center(
                         child: Text(
                           "Image ${index + 1}",
-                          style: TextStyle(
+                          style: $styles.text.caption.copyWith(
                             color: Theme.of(context)
                                 .colorScheme
                                 .onPrimaryContainer,
@@ -129,7 +129,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                         right: 0,
                         top: 0,
                         child: IconButton(
-                          icon: const Icon(Icons.close, size: 16),
+                          icon: Icon(Icons.close, size: $styles.insets.sm),
                           onPressed: () {
                             setState(() {
                               _selectedImages.removeAt(index);
@@ -171,7 +171,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                         scrollController: FixedExtentScrollController(
                           initialItem: _selectedHour,
                         ),
-                        itemExtent: $styles.insets.lg, // 기존 32
+                        itemExtent: $styles.insets.lg,
                         squeeze: 1.5,
                         onSelectedItemChanged: (idx) =>
                             setState(() => _selectedHour = idx),
@@ -187,7 +187,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                         ],
                       ),
                     ),
-                    SizedBox(width: $styles.insets.sm), // 기존 8
+                    SizedBox(width: $styles.insets.sm),
 
                     // Expanded TextField
                     Expanded(

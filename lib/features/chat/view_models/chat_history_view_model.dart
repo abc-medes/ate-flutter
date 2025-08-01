@@ -1,13 +1,11 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:regene/common_libs.dart';
 import 'package:regene/data/models/body_simulator_model.dart';
 import 'package:regene/data/models/chat_model.dart';
 import 'package:intl/intl.dart';
-
-// BodySimulatorStateSnapshotDTO가 이 파일에 없으므로 임시로 정의합니다.
-// 실제로는 body_simulator_model.dart에서 import 해야 합니다.
 
 @immutable
 class ChatHistoryState {
@@ -29,12 +27,13 @@ class ChatHistoryState {
     Map<String, bool>? monthlyLoadingStatus,
     DateTime? focusedMonth,
     String? error,
+    bool clearError = false,
   }) {
     return ChatHistoryState(
       eventsByDate: eventsByDate ?? this.eventsByDate,
       monthlyLoadingStatus: monthlyLoadingStatus ?? this.monthlyLoadingStatus,
       focusedMonth: focusedMonth ?? this.focusedMonth,
-      error: error ?? this.error,
+      error: clearError ? null : error ?? this.error,
     );
   }
 }
@@ -45,6 +44,12 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
   final Ref _ref;
   final Set<String> _loadedMonths = {};
 
+  void clearError() {
+    if (mounted) {
+      state = state.copyWith(clearError: true);
+    }
+  }
+
   Future<void> onMonthChanged(DateTime month) async {
     final monthKey = DateFormat('yyyy-MM').format(month);
     if (_loadedMonths.contains(monthKey)) {
@@ -53,10 +58,10 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
     }
 
     if (!mounted) return;
-    // Set loading status for this specific month
     state = state.copyWith(
       focusedMonth: month,
       monthlyLoadingStatus: {...state.monthlyLoadingStatus, monthKey: true},
+      clearError: true,
     );
 
     try {
@@ -78,6 +83,9 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
           results[1] as List<BodySimulatorStateSnapshotDTO>;
 
       final newEvents = _groupEventsByDate(monthlyMessages, monthlySnapshots);
+      debugPrint(
+          '[ChatHistoryViewModel] Grouped Events for $monthKey: $newEvents');
+
       final updatedEvents =
           Map<DateTime, List<dynamic>>.from(state.eventsByDate)
             ..addAll(newEvents);
@@ -87,7 +95,8 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
         eventsByDate: updatedEvents,
         monthlyLoadingStatus: {...state.monthlyLoadingStatus, monthKey: false},
       );
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[ChatHistoryViewModel] Error onMonthChanged: $e\n$st');
       if (!mounted) return;
       state = state.copyWith(
         error: e.toString(),
@@ -102,47 +111,68 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
         .from('chat_history')
         .select()
         .eq('user_id', userId)
-        .gte('created_at', firstDay.toIso8601String())
-        .lte('created_at', lastDay.toIso8601String());
+        .gte('client_local_timestamp_iso', firstDay.toIso8601String())
+        .lte('client_local_timestamp_iso', lastDay.toIso8601String());
 
-    return (response as List)
+    final messages = (response as List)
         .map((item) => ChatMessageDTO.fromJson(item))
         .toList();
+    debugPrint(
+        '[ChatHistoryViewModel] Fetched ${messages.length} chat messages for ${DateFormat('yyyy-MM').format(firstDay)}');
+    return messages;
   }
 
   Future<List<BodySimulatorStateSnapshotDTO>> _fetchBodySnapshotsForMonth(
       String userId, DateTime firstDay, DateTime lastDay) async {
     final response = await Supabase.instance.client
-        .from('body_simulator_state_snapshots')
+        .from('user_body_state_snapshots')
         .select()
         .eq('user_id', userId)
         .gte('created_at', firstDay.toIso8601String())
         .lte('created_at', lastDay.toIso8601String());
 
-    return (response as List)
+    final snapshots = (response as List)
         .map((item) => BodySimulatorStateSnapshotDTO.fromJson(item))
         .toList();
+    debugPrint(
+        '[ChatHistoryViewModel] Fetched ${snapshots.length} body snapshots for ${DateFormat('yyyy-MM').format(firstDay)}');
+    return snapshots;
   }
 
-  Map<DateTime, List<dynamic>> _groupEventsByDate(List<ChatMessageDTO> messages,
-      List<BodySimulatorStateSnapshotDTO> snapshots) {
-    final eventsByDate = <DateTime, List<dynamic>>{};
+  Map<DateTime, List<dynamic>> _groupEventsByDate(
+    List<ChatMessageDTO> messages,
+    List<BodySimulatorStateSnapshotDTO> snapshots,
+  ) {
+    final Map<DateTime, List<dynamic>> eventsByDate = {};
 
-    final sessionsById = groupBy(messages, (dto) => dto.sessionId);
-    sessionsById.forEach((sessionId, messages) {
-      if (messages.isNotEmpty) {
-        final firstMessage = messages.first;
-        final date = DateTime.utc(firstMessage.createdAt.year,
-            firstMessage.createdAt.month, firstMessage.createdAt.day);
-        eventsByDate.putIfAbsent(date, () => []).add(firstMessage);
-      }
+    final messagesByDate = groupBy<ChatMessageDTO, DateTime>(
+      messages,
+      (message) {
+        final localTime = message.clientLocalTimestamp ?? message.createdAt;
+        return DateTime.utc(localTime.year, localTime.month, localTime.day);
+      },
+    );
+
+    messagesByDate.forEach((date, dailyMessages) {
+      final sessionsOnDate =
+          groupBy<ChatMessageDTO, String>(dailyMessages, (m) => m.sessionId);
+      eventsByDate.putIfAbsent(date, () => []);
+      sessionsOnDate.forEach((sessionId, sessionMessages) {
+        if (sessionMessages.isNotEmpty) {
+          eventsByDate[date]!.add(sessionMessages.first);
+        }
+      });
     });
 
-    for (var snapshot in snapshots) {
-      final date = DateTime.utc(snapshot.createdAt.year,
-          snapshot.createdAt.month, snapshot.createdAt.day);
-      eventsByDate.putIfAbsent(date, () => []).add(snapshot);
-    }
+    final snapshotsByDate = groupBy<BodySimulatorStateSnapshotDTO, DateTime>(
+      snapshots,
+      (snapshot) => DateTime.utc(snapshot.createdAt.year,
+          snapshot.createdAt.month, snapshot.createdAt.day),
+    );
+
+    snapshotsByDate.forEach((date, dailySnapshots) {
+      eventsByDate.putIfAbsent(date, () => []).addAll(dailySnapshots);
+    });
 
     return eventsByDate;
   }

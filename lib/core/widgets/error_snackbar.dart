@@ -242,6 +242,32 @@ class ErrorSnackbar {
       onDismiss: clearError,
     );
   }
+
+  static void showChatHistoryError({
+    required BuildContext context,
+    required String errorMessage,
+    required VoidCallback clearError,
+    VoidCallback? onTryAgain,
+  }) {
+    final String userFriendlyError = errorMessage;
+    final List<ErrorAction> actions = [];
+
+    // Always provide a way to try again for data fetching errors.
+    if (onTryAgain != null) {
+      actions.add(ErrorAction(
+        label: 'Try again',
+        onPressed: onTryAgain,
+        isPrimary: true,
+      ));
+    }
+
+    show(
+      context: context,
+      message: userFriendlyError,
+      actions: actions,
+      onDismiss: clearError,
+    );
+  }
 }
 
 /// Represents an action that can be taken in response to an error

@@ -5,6 +5,7 @@ import 'package:regene/common_libs.dart';
 import 'package:regene/core/routes/route_names.dart';
 import 'package:regene/core/widgets/chat_input.dart';
 import 'package:regene/core/widgets/circular_icon_button.dart';
+import 'package:regene/core/widgets/error_snackbar.dart';
 import 'package:regene/data/models/body_simulator_model.dart';
 import 'package:regene/data/models/chat_model.dart';
 import 'package:regene/features/chat/view_models/chat_history_view_model.dart';
@@ -58,8 +59,18 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView> {
   @override
   Widget build(BuildContext context) {
     final viewModel = ref.watch(chatHistoryViewModelProvider.notifier);
-    // Watch the state provider to ensure the UI rebuilds when data changes.
     final state = ref.watch(chatHistoryViewModelProvider);
+
+    ref.listen<ChatHistoryState>(chatHistoryViewModelProvider, (_, next) {
+      if (next.error != null) {
+        ErrorSnackbar.showChatHistoryError(
+          context: context,
+          errorMessage: next.error!,
+          clearError: viewModel.clearError,
+          onTryAgain: () => viewModel.onMonthChanged(state.focusedMonth),
+        );
+      }
+    });
 
     return Scaffold(
       backgroundColor: $styles.colors.background,

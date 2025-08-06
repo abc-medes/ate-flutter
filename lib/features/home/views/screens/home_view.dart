@@ -29,8 +29,18 @@ class _HomeViewState extends ConsumerState<HomeView> {
           Expanded(
             child: SingleChildScrollView(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeader(context, state, ref),
+                  SizedBox(height: $styles.insets.lg),
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: $styles.insets.md),
+                    child: Text("오늘의 인사이트", style: $styles.text.h3),
+                  ),
+                  SizedBox(height: $styles.insets.sm),
+                  _buildInsightsList(),
+                  SizedBox(height: $styles.insets.xl),
                 ],
               ),
             ),
@@ -110,6 +120,99 @@ class _HomeViewState extends ConsumerState<HomeView> {
           ),
           SizedBox(height: $styles.insets.md),
         ],
+      ),
+    );
+  }
+
+  Widget _buildInsightsList() {
+    final insights = [
+      {
+        'icon': Icons.local_fire_department_outlined,
+        'title': '염증 지수',
+        'value': '높음',
+        'advice': '항염증 식품을 섭취하고 충분한 휴식을 취하세요.'
+      },
+      {
+        'icon': Icons.sentiment_very_dissatisfied_outlined,
+        'title': '스트레스',
+        'value': '나쁨',
+        'advice': '명상이나 가벼운 운동으로 스트레스를 관리해보세요.'
+      },
+      {
+        'icon': Icons.directions_run_outlined,
+        'title': '다이어트 효율',
+        'value': '보통',
+        'advice': '식단에 단백질을 늘리고 규칙적인 운동을 시작해보세요.'
+      },
+      {
+        'icon': Icons.shield_outlined,
+        'title': '해독 능력',
+        'value': '좋음',
+        'advice': '몸의 해독 기능이 원활해요. 건강한 식단을 유지하세요.'
+      },
+      {
+        'icon': Icons.nightlight_round_outlined,
+        'title': '수면의 질',
+        'value': '매우 나쁨',
+        'advice': '자기 전 스마트폰 사용을 줄이고 일정한 시간에 잠자리에 들어보세요.'
+      },
+      {
+        'icon': Icons.psychology_outlined,
+        'title': '집중력 & 기분',
+        'value': '양호',
+        'advice': '집중력과 기분이 좋은 상태입니다. 꾸준히 유지하세요.'
+      },
+    ];
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
+      child: Column(
+        children: insights.map((insight) {
+          return _buildInsightCard(
+            insight['icon'] as IconData,
+            insight['title'] as String,
+            insight['value'] as String,
+            insight['advice'] as String,
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildInsightCard(
+      IconData icon, String title, String value, String advice) {
+    return Card(
+      margin: EdgeInsets.only(bottom: $styles.insets.sm),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular($styles.corners.lg),
+      ),
+      elevation: 0,
+      color: $styles.colors.background,
+      child: Padding(
+        padding: EdgeInsets.all($styles.insets.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 28, color: $styles.colors.accent1),
+                SizedBox(width: $styles.insets.sm),
+                Text(title, style: $styles.text.bodySmall),
+                const Spacer(),
+                Text(value,
+                    style: $styles.text.h3.copyWith(
+                      fontSize: 18,
+                      height: 1.2,
+                      fontWeight: FontWeight.bold,
+                    )),
+              ],
+            ),
+            SizedBox(height: $styles.insets.sm),
+            Text(advice,
+                style: $styles.text.bodySmall
+                    .copyWith(color: $styles.colors.black)),
+          ],
+        ),
       ),
     );
   }

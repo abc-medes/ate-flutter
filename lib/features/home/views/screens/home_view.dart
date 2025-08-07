@@ -52,13 +52,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
           ChatInput(
             shouldSaveAsContext: state.isSaveMode,
             onSaveModeToggle: () => viewModel.onSaveModeToggle(),
-            onSubmit: (ChatMessage chatMessage) {
-              if (chatMessage.message.isNotEmpty) {
-                context.go(RouteNames.chat, extra: {
-                  'message': chatMessage.message,
-                  'chatOffset': chatMessage.chatOffset,
-                });
-                viewModel.textController.text = chatMessage.message;
+            onSubmit: (ChatMessageDTO chatMessage) {
+              if (chatMessage.message?.isNotEmpty == true) {
+                context.push(
+                  RouteNames.chat,
+                  extra: {
+                    'initialMessage': chatMessage,
+                    'sessionId': chatMessage.sessionId,
+                  },
+                );
               }
             },
           ),

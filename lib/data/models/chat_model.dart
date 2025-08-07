@@ -1,60 +1,8 @@
-class ChatMessage {
-  final String sessionId;
-  final String message;
-  final bool isUser;
-  final DateTime localTimestamp;
-  final int? chatOffset;
-
-  ChatMessage({
-    required this.sessionId,
-    required this.message,
-    required this.isUser,
-    DateTime? localTimestamp,
-    this.chatOffset,
-  }) : localTimestamp = localTimestamp ?? DateTime.now();
-
-  factory ChatMessage.fromJson(Map<String, dynamic> json) {
-    return ChatMessage(
-      sessionId: json['session_id'] as String,
-      message: json['message'] as String,
-      isUser: json['is_user'] as bool,
-      localTimestamp: DateTime.parse(json['local_timestamp_str'] as String),
-      chatOffset: json['chat_offset'] as int? ?? 0,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'session_id': sessionId,
-      'message': message,
-      'is_user': isUser,
-      'local_timestamp_str': localTimestamp.toIso8601String(),
-      'chat_offset': chatOffset,
-    };
-  }
-
-  ChatMessage copyWith({
-    String? sessionId,
-    String? message,
-    bool? isUser,
-    DateTime? localTimestamp,
-    int? chatOffset,
-  }) {
-    return ChatMessage(
-      sessionId: sessionId ?? this.sessionId,
-      message: message ?? this.message,
-      isUser: isUser ?? this.isUser,
-      localTimestamp: localTimestamp ?? this.localTimestamp,
-      chatOffset: chatOffset ?? this.chatOffset,
-    );
-  }
-}
-
 class ChatMessageDTO {
   final int? id;
   final String userId;
   final String sessionId;
-  final String message;
+  final String? message;
   final bool isUser;
   final DateTime createdAt;
   final DateTime? clientLocalTimestamp;
@@ -64,7 +12,7 @@ class ChatMessageDTO {
     this.id,
     required this.userId,
     required this.sessionId,
-    required this.message,
+    this.message,
     required this.isUser,
     required this.createdAt,
     this.clientLocalTimestamp,
@@ -76,7 +24,7 @@ class ChatMessageDTO {
       id: json['id'] as int?,
       userId: json['user_id'] as String,
       sessionId: json['session_id'] as String,
-      message: json['message'] as String,
+      message: json['message'] as String?,
       isUser: json['is_user'] as bool,
       createdAt: DateTime.parse(json['created_at'] as String),
       clientLocalTimestamp: json['client_local_timestamp_iso'] != null

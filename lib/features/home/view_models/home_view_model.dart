@@ -18,14 +18,12 @@ final homeViewModelProvider =
 
 class HomeViewState {
   final List<BasicUserData> missingBasicData;
-  final List<ChatMessage> messages;
   final bool isProcessing;
   final bool isSaveMode;
   final ChatHelperType selectedHelperChip;
   final BodySimulatorStateSnapshotDTO? bodySimulatorState;
   HomeViewState({
     this.missingBasicData = const [],
-    this.messages = const [],
     this.isProcessing = false,
     this.isSaveMode = false,
     this.selectedHelperChip = ChatHelperType.ai,
@@ -35,7 +33,6 @@ class HomeViewState {
   HomeViewState copyWith({
     bool? showLoginPrompt,
     List<BasicUserData>? missingBasicData,
-    List<ChatMessage>? messages,
     bool? isProcessing,
     bool? isSaveMode,
     ChatHelperType? selectedHelperChip,
@@ -43,7 +40,6 @@ class HomeViewState {
   }) {
     return HomeViewState(
       missingBasicData: missingBasicData ?? this.missingBasicData,
-      messages: messages ?? this.messages,
       isProcessing: isProcessing ?? this.isProcessing,
       isSaveMode: isSaveMode ?? this.isSaveMode,
       selectedHelperChip: selectedHelperChip ?? this.selectedHelperChip,

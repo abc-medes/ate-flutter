@@ -1,16 +1,18 @@
 import 'package:flutter/cupertino.dart';
 import 'package:regene/common_libs.dart';
 import 'package:regene/core/services/session_service.dart';
+import 'package:regene/core/services/user_service.dart';
 import 'package:regene/data/models/chat_model.dart';
 
 class ChatInput extends ConsumerStatefulWidget {
-  final Function(ChatMessage cm)? onSubmit;
+  final Function(ChatMessageDTO cm)? onSubmit;
   final Function(String)? onChanged;
   final bool isDisabled;
   final TextEditingController? controller;
   final bool shouldSaveAsContext;
   final VoidCallback? onSaveModeToggle;
   final String? sessionId;
+  final bool isProcessing;
 
   const ChatInput({
     super.key,
@@ -21,6 +23,7 @@ class ChatInput extends ConsumerStatefulWidget {
     this.shouldSaveAsContext = false,
     this.onSaveModeToggle,
     this.sessionId,
+    this.isProcessing = false,
   });
 
   @override
@@ -64,10 +67,12 @@ class _ChatInputState extends ConsumerState<ChatInput> {
   }
 
   void _createAndSendChatMessage() {
-    final cm = ChatMessage(
+    final cm = ChatMessageDTO(
+      userId: ref.read(userServiceProvider).userId,
+      createdAt: DateTime.now(),
+      clientLocalTimestamp: DateTime.now(),
       sessionId: ref.read(sessionIdProvider),
       message: _chatInputController.text,
-      localTimestamp: DateTime.now(),
       isUser: true,
       chatOffset: _selectedHour,
     );

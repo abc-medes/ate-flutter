@@ -9,7 +9,7 @@ import 'package:regene/features/settings/views/screens/settings_view.dart';
 final appRoutes = [
   AppRoute(
     RouteNames.home,
-    (_) => HomeView(),
+    (_) => const HomeView(),
   ),
   AppRoute(
     RouteNames.settings,
@@ -22,18 +22,13 @@ final appRoutes = [
   AppRoute(
     RouteNames.chat,
     (state) {
-      String? message;
-      int? chatOffset;
-
-      if (state.extra is Map<String, dynamic>) {
-        final extra = state.extra as Map<String, dynamic>;
-        message = extra['message'] as String?;
-        chatOffset = extra['chatOffset'] as int?;
-      }
+      final extra = state.extra as Map<String, dynamic>?;
+      final selectedSessionId = extra?['sessionId'] as String?;
+      final initialMessage = extra?['initialMessage'] as ChatMessageDTO?;
 
       return ChatView(
-        initialMessage: message,
-        initialChatOffset: chatOffset,
+        selectedSessionId: selectedSessionId,
+        initialMessage: initialMessage,
       );
     },
   ),

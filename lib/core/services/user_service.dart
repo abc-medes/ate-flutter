@@ -13,6 +13,7 @@ class UserService {
   List<BasicUserData> get missingBasicUserData => _missingBasicUserData;
   bool get isBasicHealthDataComplete => _missingBasicUserData.isEmpty;
   bool get isInitialized => _initialized;
+  String get userId => _client.auth.currentUser!.id;
 
   Future<void> initialize() async {
     await refreshBasicHealthData();

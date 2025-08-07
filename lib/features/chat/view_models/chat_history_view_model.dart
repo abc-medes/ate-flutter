@@ -1,7 +1,4 @@
-import 'dart:collection';
-
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:regene/common_libs.dart';
 import 'package:regene/data/models/body_simulator_model.dart';
 import 'package:regene/data/models/chat_model.dart';
@@ -48,6 +45,12 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
     if (mounted) {
       state = state.copyWith(clearError: true);
     }
+  }
+
+  void refreshCurrentMonth() {
+    final monthKey = DateFormat('yyyy-MM').format(state.focusedMonth);
+    _loadedMonths.remove(monthKey);
+    onMonthChanged(state.focusedMonth);
   }
 
   Future<void> onMonthChanged(DateTime month) async {
@@ -109,13 +112,16 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
       String userId, DateTime firstDay, DateTime lastDay) async {
     final response = await Supabase.instance.client
         .from('chat_history')
-        .select()
+        .select('session_id, client_local_timestamp_iso, created_at, is_user')
         .eq('user_id', userId)
         .gte('client_local_timestamp_iso', firstDay.toIso8601String())
         .lte('client_local_timestamp_iso', lastDay.toIso8601String());
 
     final messages = (response as List)
-        .map((item) => ChatMessageDTO.fromJson(item))
+        .map((item) => ChatMessageDTO.fromJson({
+              ...item,
+              'user_id': userId, // Add default user_id
+            }))
         .toList();
     debugPrint(
         '[ChatHistoryViewModel] Fetched ${messages.length} chat messages for ${DateFormat('yyyy-MM').format(firstDay)}');
@@ -154,14 +160,14 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
     );
 
     messagesByDate.forEach((date, dailyMessages) {
-      final sessionsOnDate =
-          groupBy<ChatMessageDTO, String>(dailyMessages, (m) => m.sessionId);
+      final uniqueSessions =
+          dailyMessages.map((m) => m.sessionId).toSet().toList();
       eventsByDate.putIfAbsent(date, () => []);
-      sessionsOnDate.forEach((sessionId, sessionMessages) {
-        if (sessionMessages.isNotEmpty) {
-          eventsByDate[date]!.add(sessionMessages.first);
-        }
-      });
+      for (var sessionId in uniqueSessions) {
+        final representativeMessage =
+            dailyMessages.firstWhere((m) => m.sessionId == sessionId);
+        eventsByDate[date]!.add(representativeMessage);
+      }
     });
 
     final snapshotsByDate = groupBy<BodySimulatorStateSnapshotDTO, DateTime>(

@@ -14,7 +14,7 @@ class ApiService {
   static const String _wsUrl = 'ws://localhost:8080';
   static final SupabaseClient _supabase = Supabase.instance.client;
 
-  static Stream<String> sendChatMessage(ChatMessage chatMessage) async* {
+  static Stream<String> sendChatMessage(ChatMessageDTO chatMessage) async* {
     final client = http.Client();
     try {
       Future<http.StreamedResponse> _executeSendRequest(String token) async {

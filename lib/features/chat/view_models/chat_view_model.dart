@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'package:collection/collection.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:regene/core/services/api_service.dart';
-import 'package:regene/core/services/chat_service.dart';
-import 'package:regene/core/services/session_service.dart';
+import 'package:regene/common_libs.dart';
 import 'package:regene/data/models/chat_model.dart';
+import 'package:regene/core/services/chat_service.dart';
 
 final chatViewModelProvider =
     StateNotifierProvider.autoDispose<ChatViewModel, ChatViewState>(
@@ -15,36 +14,35 @@ final chatViewModelProvider =
 /// STATE
 /// ─────────────────────────────────────────
 class ChatViewState {
-  final Map<String, List<ChatMessage>> historicalSessions;
-  final List<String> orderedSessionIds;
-  final List<ChatMessage> currentSessionMessages;
-
-  final bool isProcessing;
+  final List<ChatMessageDTO> currentSessionMessages;
+  final Map<String, List<ChatMessageDTO>> messagesBySession;
+  final bool isLoading;
   final String? error;
+  final String? currentSessionId;
 
   const ChatViewState({
-    this.historicalSessions = const {},
-    this.orderedSessionIds = const [],
     this.currentSessionMessages = const [],
-    this.isProcessing = false,
+    this.messagesBySession = const {},
+    this.isLoading = false,
     this.error,
+    this.currentSessionId,
   });
 
   ChatViewState copyWith({
-    Map<String, List<ChatMessage>>? historicalSessions,
-    List<String>? orderedSessionIds,
-    List<ChatMessage>? currentSessionMessages,
-    bool? isProcessing,
+    List<ChatMessageDTO>? currentSessionMessages,
+    Map<String, List<ChatMessageDTO>>? messagesBySession,
+    bool? isLoading,
     String? error,
     bool clearError = false,
+    String? currentSessionId,
   }) {
     return ChatViewState(
-      historicalSessions: historicalSessions ?? this.historicalSessions,
-      orderedSessionIds: orderedSessionIds ?? this.orderedSessionIds,
       currentSessionMessages:
           currentSessionMessages ?? this.currentSessionMessages,
-      isProcessing: isProcessing ?? this.isProcessing,
-      error: clearError ? null : error ?? this.error,
+      messagesBySession: messagesBySession ?? this.messagesBySession,
+      isLoading: isLoading ?? this.isLoading,
+      error: clearError ? null : (error ?? this.error),
+      currentSessionId: currentSessionId ?? this.currentSessionId,
     );
   }
 }
@@ -53,10 +51,10 @@ class ChatViewState {
 /// VIEW-MODEL
 /// ─────────────────────────────────────────
 class ChatViewModel extends StateNotifier<ChatViewState> {
-  ChatViewModel(this._ref) : super(const ChatViewState()) {}
-
-  final Ref _ref;
+  final Ref ref;
   StreamSubscription<String>? _sub;
+
+  ChatViewModel(this.ref) : super(const ChatViewState());
 
   @override
   void dispose() {
@@ -64,69 +62,133 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
     super.dispose();
   }
 
-  void sendPrompt(ChatMessage cm) {
-    if (cm.message.trim().isEmpty || state.isProcessing) return;
+  Future<void> initializeChat({
+    String? selectedSessionId,
+    ChatMessageDTO? initialMessage,
+  }) async {
+    // Reset state
+    state = const ChatViewState();
 
-    final aiMsgPlaceholder = ChatMessage(
-      sessionId: _ref.read(sessionIdProvider),
+    if (selectedSessionId != null) {
+      await loadMessagesForSession(selectedSessionId);
+    }
+
+    // If there's an initial message, send it automatically
+    if (initialMessage != null) {
+      await sendMessage(initialMessage);
+    }
+  }
+
+  Future<void> loadMessagesForSession(String sessionId) async {
+    if (state.messagesBySession.containsKey(sessionId)) {
+      state = state.copyWith(
+        currentSessionMessages: state.messagesBySession[sessionId]!,
+        currentSessionId: sessionId,
+        isLoading: false,
+      );
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    try {
+      final chatService = ref.read(chatServiceProvider);
+      final messages = await chatService.getChatHistory();
+
+      // Filter messages for this session
+      final sessionMessages =
+          messages.where((msg) => msg.sessionId == sessionId).toList();
+
+      state = state.copyWith(
+        currentSessionMessages: sessionMessages,
+        messagesBySession: {
+          ...state.messagesBySession,
+          sessionId: sessionMessages,
+        },
+        currentSessionId: sessionId,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        error: e.toString(),
+        isLoading: false,
+      );
+    }
+  }
+
+  Future<void> sendMessage(ChatMessageDTO message) async {
+    if (message.message?.trim().isEmpty == true) return;
+
+    // Add user message immediately
+    final updatedMessages = [...state.currentSessionMessages, message];
+    state = state.copyWith(
+      currentSessionMessages: updatedMessages,
+      messagesBySession: {
+        ...state.messagesBySession,
+        message.sessionId: updatedMessages,
+      },
+    );
+
+    // Create AI message placeholder
+    final aiMessage = ChatMessageDTO(
+      userId: message.userId,
+      sessionId: message.sessionId,
       message: '',
       isUser: false,
-      chatOffset: cm.chatOffset,
+      createdAt: DateTime.now(),
+      clientLocalTimestamp: DateTime.now(),
+      chatOffset: message.chatOffset,
     );
 
-    if (!mounted) return;
+    // Add AI message placeholder
+    final messagesWithAI = [...updatedMessages, aiMessage];
     state = state.copyWith(
-      currentSessionMessages: [
-        ...state.currentSessionMessages,
-        cm,
-        aiMsgPlaceholder
-      ],
-      isProcessing: true,
-      clearError: true,
+      currentSessionMessages: messagesWithAI,
+      messagesBySession: {
+        ...state.messagesBySession,
+        message.sessionId: messagesWithAI,
+      },
+      isLoading: true,
     );
 
-    _sub = ApiService.sendChatMessage(cm).listen(
-      (chunk) {
-        if (!mounted) return;
-        final messages = List<ChatMessage>.from(state.currentSessionMessages);
-        final aiMessageIndex = messages.length - 1;
-        if (aiMessageIndex < 0) return;
-        final currentAiMessage = messages[aiMessageIndex];
-        messages[aiMessageIndex] = currentAiMessage.copyWith(
-          message: currentAiMessage.message + chunk,
-        );
-        state = state.copyWith(currentSessionMessages: messages);
+    // Start streaming using ChatService
+    final chatService = ref.read(chatServiceProvider);
+    chatService.sendPrompt(
+      message,
+      onChunk: (ChatMessageDTO chunkMessage) {
+        // Update the AI message with the chunk
+        final currentMessages = state.currentSessionMessages;
+        if (currentMessages.isNotEmpty && !currentMessages.last.isUser) {
+          final updatedAI = currentMessages.last.copyWith(
+            message: (currentMessages.last.message ?? '') +
+                (chunkMessage.message ?? ''),
+          );
+          final updatedMessages = [...currentMessages];
+          updatedMessages[updatedMessages.length - 1] = updatedAI;
+
+          state = state.copyWith(
+            currentSessionMessages: updatedMessages,
+            messagesBySession: {
+              ...state.messagesBySession,
+              message.sessionId: updatedMessages,
+            },
+          );
+        }
       },
       onDone: () {
-        if (!mounted) return;
-        state = state.copyWith(isProcessing: false);
+        state = state.copyWith(isLoading: false);
       },
-      onError: (e) {
-        if (!mounted) return;
-        final messages = List<ChatMessage>.from(state.currentSessionMessages);
-        final aiMessageIndex = messages.length - 1;
-
-        if (aiMessageIndex < 0) {
-          if (!mounted) return;
-          state = state.copyWith(
-            isProcessing: false,
-            error: 'Error sending message: $e',
-          );
-          return;
-        }
-
-        final currentAiMessage = messages[aiMessageIndex];
-        messages[aiMessageIndex] = currentAiMessage.copyWith(
-          message: '⚠︎ Error: $e',
-        );
-        if (!mounted) return;
+      onError: (String error) {
         state = state.copyWith(
-          currentSessionMessages: messages,
-          isProcessing: false,
-          error: 'Error sending message: $e',
+          error: error,
+          isLoading: false,
         );
       },
     );
+  }
+
+  void clearError() {
+    state = state.copyWith(clearError: true);
   }
 }
 

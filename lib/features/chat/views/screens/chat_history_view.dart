@@ -1,8 +1,7 @@
-import 'dart:collection';
-
 import 'package:intl/intl.dart';
 import 'package:regene/common_libs.dart';
 import 'package:regene/core/routes/route_names.dart';
+import 'package:regene/core/services/session_service.dart';
 import 'package:regene/core/widgets/chat_input.dart';
 import 'package:regene/core/widgets/circular_icon_button.dart';
 import 'package:regene/core/widgets/error_snackbar.dart';
@@ -18,7 +17,8 @@ class ChatHistoryView extends ConsumerStatefulWidget {
   ConsumerState<ChatHistoryView> createState() => _ChatHistoryViewState();
 }
 
-class _ChatHistoryViewState extends ConsumerState<ChatHistoryView> {
+class _ChatHistoryViewState extends ConsumerState<ChatHistoryView>
+    with WidgetsBindingObserver {
   late final PageController _pageController;
   final int _initialPage = 1200; // For "infinite" vertical scrolling
 
@@ -30,6 +30,7 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView> {
     super.initState();
     _pageController = PageController(initialPage: _initialPage);
     _selectedDay = _focusedDay;
+    WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
@@ -40,8 +41,32 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pageController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh when dependencies change (e.g., when returning from chat)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(chatHistoryViewModelProvider.notifier).refreshCurrentMonth();
+      }
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Use addPostFrameCallback to avoid setState during build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(chatHistoryViewModelProvider.notifier).refreshCurrentMonth();
+        }
+      });
+    }
   }
 
   DateTime _pageToMonth(int page) {
@@ -125,6 +150,30 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView> {
                               _selectedDay = selectedDay;
                             });
                           }
+
+                          final events = _getEventsForDay(selectedDay);
+                          final chatSessions = events
+                              .whereType<ChatMessageDTO>()
+                              .map((e) => e.sessionId)
+                              .toSet()
+                              .toList();
+
+                          if (chatSessions.isNotEmpty) {
+                            context.push(
+                              RouteNames.chat,
+                              extra: {
+                                'sessionId': chatSessions.first,
+                              },
+                            );
+                          } else {
+                            final newSessionId = ref.read(sessionIdProvider);
+                            context.push(
+                              RouteNames.chat,
+                              extra: {
+                                'sessionId': newSessionId,
+                              },
+                            );
+                          }
                         },
                         calendarBuilders: CalendarBuilders(
                           markerBuilder: (context, day, events) {
@@ -152,12 +201,15 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView> {
             ),
           ),
           ChatInput(
-            onSubmit: (ChatMessage chatMessage) {
-              if (chatMessage.message.isNotEmpty) {
-                context.go(RouteNames.chat, extra: {
-                  'message': chatMessage.message,
-                  'chatOffset': chatMessage.chatOffset,
-                });
+            onSubmit: (ChatMessageDTO chatMessage) {
+              if (chatMessage.message?.isNotEmpty == true) {
+                context.go(
+                  RouteNames.chat,
+                  extra: {
+                    'initialMessage': chatMessage,
+                    'sessionId': chatMessage.sessionId,
+                  },
+                );
               }
             },
           ),
@@ -169,7 +221,11 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView> {
   Widget _buildCellContent(DateTime day,
       {bool isToday = false, bool isSelected = false, bool isOutside = false}) {
     final events = _getEventsForDay(day);
-    final chatCount = events.whereType<ChatMessageDTO>().length;
+    final chatCount = events
+        .whereType<ChatMessageDTO>()
+        .map((e) => e.sessionId)
+        .toSet()
+        .length;
 
     return Container(
       width: double.infinity,
@@ -216,49 +272,65 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView> {
           ),
           if (events.isNotEmpty)
             Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                itemCount: events.length,
-                itemBuilder: (context, index) {
-                  final event = events[index];
-                  String title = 'Unknown event';
-                  IconData icon = Icons.event;
-                  Color iconColor = $styles.colors.caption;
-
-                  if (event is ChatMessageDTO) {
-                    title = event.message;
-                    icon = Icons.chat_bubble_outline;
-                    iconColor = $styles.colors.accent1;
-                  } else if (event is BodySimulatorStateSnapshotDTO) {
-                    title =
-                        'Body Score: ${event.healthScore.overallScore.toStringAsFixed(1)}';
-                    icon = Icons.monitor_heart_outlined;
-                    iconColor = $styles.colors.accent2;
-                  }
-
-                  return Row(
-                    children: [
-                      Icon(icon, size: 12, color: iconColor),
-                      SizedBox(width: $styles.insets.xxs),
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: $styles.text.caption.copyWith(
-                            color: isOutside
-                                ? $styles.colors.caption
-                                : $styles.colors.black,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
+              child: _buildEventList(events, isOutside),
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildEventList(List<dynamic> events, bool isOutside) {
+    final chatSessions = events
+        .whereType<ChatMessageDTO>()
+        .map((e) => e.sessionId)
+        .toSet()
+        .length;
+    final snapshots =
+        events.whereType<BodySimulatorStateSnapshotDTO>().toList();
+
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        if (chatSessions > 0)
+          _buildEventRow(
+            icon: Icons.chat_bubble_outline,
+            title: '$chatSessions chat sessions',
+            isOutside: isOutside,
+            iconColor: $styles.colors.accent1,
+          ),
+        ...snapshots.map(
+          (snapshot) => _buildEventRow(
+            icon: Icons.monitor_heart_outlined,
+            title:
+                'Body Score: ${snapshot.healthScore.overallScore.toStringAsFixed(1)}',
+            isOutside: isOutside,
+            iconColor: $styles.colors.accent2,
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildEventRow(
+      {required IconData icon,
+      required String title,
+      required bool isOutside,
+      required Color iconColor}) {
+    return Row(
+      children: [
+        Icon(icon, size: 12, color: iconColor),
+        SizedBox(width: $styles.insets.xxs),
+        Expanded(
+          child: Text(
+            title,
+            style: $styles.text.caption.copyWith(
+              color: isOutside ? $styles.colors.caption : $styles.colors.black,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+      ],
     );
   }
 

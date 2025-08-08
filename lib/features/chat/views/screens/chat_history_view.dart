@@ -49,12 +49,7 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Refresh when dependencies change (e.g., when returning from chat)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ref.read(chatHistoryViewModelProvider.notifier).refreshCurrentMonth();
-      }
-    });
+    // Removed to prevent setState during build error
   }
 
   @override
@@ -86,6 +81,7 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView>
     final viewModel = ref.watch(chatHistoryViewModelProvider.notifier);
     final state = ref.watch(chatHistoryViewModelProvider);
 
+    // Listen for state changes and handle errors
     ref.listen<ChatHistoryState>(chatHistoryViewModelProvider, (_, next) {
       if (next.error != null) {
         ErrorSnackbar.showChatHistoryError(
@@ -348,7 +344,7 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView>
               size: 48,
               iconColor: $styles.colors.black,
               backgroundColor: Colors.transparent,
-              onTap: () => context.pop()),
+              onTap: () => context.go(RouteNames.home)),
           Text(
             DateFormat.yMMMM().format(focusedMonth),
             style: $styles.text.h3,

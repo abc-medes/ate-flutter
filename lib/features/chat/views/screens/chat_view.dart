@@ -37,79 +37,69 @@ class _ChatViewState extends ConsumerState<ChatView> {
     final viewModel = ref.watch(chatViewModelProvider);
     final viewModelNotifier = ref.read(chatViewModelProvider.notifier);
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          context.go(RouteNames.chatHistory);
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('Chat'),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              context.go(RouteNames.chatHistory);
-            },
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Chat'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            context.go(RouteNames.chatHistory);
+          },
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: viewModel.isLoading &&
-                      viewModel.currentSessionMessages.isEmpty
-                  ? Center(child: CircularProgressIndicator())
-                  : viewModel.error != null
-                      ? Center(child: Text('Error: ${viewModel.error}'))
-                      : ListView.builder(
-                          padding: EdgeInsets.all($styles.insets.md),
-                          itemCount: viewModel.currentSessionMessages.length,
-                          itemBuilder: (context, index) {
-                            final message =
-                                viewModel.currentSessionMessages[index];
-                            return Container(
-                              margin:
-                                  EdgeInsets.only(bottom: $styles.insets.sm),
-                              child: Row(
-                                mainAxisAlignment: message.isUser
-                                    ? MainAxisAlignment.end
-                                    : MainAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    constraints: BoxConstraints(
-                                      maxWidth:
-                                          MediaQuery.of(context).size.width *
-                                              0.7,
-                                    ),
-                                    padding: EdgeInsets.all($styles.insets.sm),
-                                    decoration: BoxDecoration(
-                                      color: message.isUser
-                                          ? $styles.colors.accent1
-                                          : $styles.colors.caption,
-                                      borderRadius: BorderRadius.circular(
-                                          $styles.corners.md),
-                                    ),
-                                    child: Text(
-                                      message.message ?? '',
-                                      style: $styles.text.bodySmall
-                                          .copyWith(color: Colors.white),
-                                    ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: viewModel.isLoading &&
+                    viewModel.currentSessionMessages.isEmpty
+                ? Center(child: CircularProgressIndicator())
+                : viewModel.error != null
+                    ? Center(child: Text('Error: ${viewModel.error}'))
+                    : ListView.builder(
+                        padding: EdgeInsets.all($styles.insets.md),
+                        itemCount: viewModel.currentSessionMessages.length,
+                        itemBuilder: (context, index) {
+                          final message =
+                              viewModel.currentSessionMessages[index];
+                          return Container(
+                            margin: EdgeInsets.only(bottom: $styles.insets.sm),
+                            child: Row(
+                              mainAxisAlignment: message.isUser
+                                  ? MainAxisAlignment.end
+                                  : MainAxisAlignment.start,
+                              children: [
+                                Container(
+                                  constraints: BoxConstraints(
+                                    maxWidth:
+                                        MediaQuery.of(context).size.width * 0.7,
                                   ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-            ),
-            ChatInput(
-              onSubmit: (ChatMessageDTO message) {
-                viewModelNotifier.sendMessage(message);
-              },
-              isProcessing: viewModel.isLoading,
-            ),
-          ],
-        ),
+                                  padding: EdgeInsets.all($styles.insets.sm),
+                                  decoration: BoxDecoration(
+                                    color: message.isUser
+                                        ? $styles.colors.accent1
+                                        : $styles.colors.caption,
+                                    borderRadius: BorderRadius.circular(
+                                        $styles.corners.md),
+                                  ),
+                                  child: Text(
+                                    message.message ?? '',
+                                    style: $styles.text.bodySmall
+                                        .copyWith(color: Colors.white),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+          ),
+          ChatInput(
+            onSubmit: (ChatMessageDTO message) {
+              viewModelNotifier.sendMessage(message);
+            },
+            isProcessing: viewModel.isLoading,
+          ),
+        ],
       ),
     );
   }

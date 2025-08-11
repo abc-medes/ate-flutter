@@ -305,19 +305,11 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView>
               ? '${lastMessage.message!.substring(0, 30)}...'
               : lastMessage.message ?? '';
 
-          return GestureDetector(
-            onTap: () {
-              context.push(
-                RouteNames.chat,
-                extra: {'sessionId': sessionId},
-              );
-            },
-            child: _buildEventRow(
-              icon: Icons.chat_bubble_outline,
-              title: messagePreview,
-              isOutside: isOutside,
-              iconColor: $styles.colors.accent1,
-            ),
+          return _buildEventRow(
+            icon: Icons.chat_bubble_outline,
+            title: messagePreview,
+            isOutside: isOutside,
+            iconColor: $styles.colors.accent1,
           );
         }),
         // Body snapshots

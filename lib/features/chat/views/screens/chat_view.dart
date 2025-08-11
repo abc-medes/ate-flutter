@@ -1,11 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:regene/common_libs.dart';
 import 'package:regene/core/routes/route_names.dart';
 import 'package:regene/core/widgets/chat_input.dart';
 import 'package:regene/core/widgets/circular_icon_button.dart';
 import 'package:regene/data/models/chat_model.dart';
-import 'package:regene/features/chat/view_models/chat_history_view_model.dart';
 import 'package:regene/features/chat/view_models/chat_view_model.dart';
 
 class ChatView extends ConsumerStatefulWidget {
@@ -181,6 +179,19 @@ class _ChatViewState extends ConsumerState<ChatView> {
   Widget _buildHeader(
       BuildContext context, DateTime focusedMonth, WidgetRef ref) {
     final mq = MediaQuery.of(context);
+    final viewModel = ref.watch(chatViewModelProvider);
+
+    // Get the session date from the first message, or use current date as fallback
+    DateTime sessionDate = DateTime.now();
+    if (viewModel.currentSessionMessages.isNotEmpty) {
+      final firstMessage = viewModel.currentSessionMessages.first;
+      if (firstMessage.clientLocalTimestamp != null) {
+        sessionDate = firstMessage.clientLocalTimestamp!;
+      } else if (firstMessage.createdAt != null) {
+        sessionDate = firstMessage.createdAt!;
+      }
+    }
+
     return Container(
       padding: EdgeInsets.fromLTRB($styles.insets.md, mq.padding.top,
           $styles.insets.md, $styles.insets.md),
@@ -198,7 +209,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
             children: [
               Icon(Icons.calendar_month),
               SizedBox(width: $styles.insets.sm),
-              Text(DateFormat.yMMMMd().format(DateTime.now()),
+              Text(DateFormat.yMMMMd().format(sessionDate),
                   style: $styles.text.bodySmall),
             ],
           ),

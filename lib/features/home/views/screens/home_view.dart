@@ -59,7 +59,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   RouteNames.chat,
                   extra: {
                     'initialMessage': chatMessage,
-                    'sessionId': chatMessage.sessionId,
+                    'sessionIds': [chatMessage.sessionId],
+                    'selectedDate': DateTime.now(),
                   },
                 );
               }

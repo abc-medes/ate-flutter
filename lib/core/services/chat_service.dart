@@ -57,9 +57,6 @@ class ChatService {
       chatOffset: message.chatOffset ?? 0,
     );
 
-    // Call onChunk with the user message first
-    onChunk(message);
-
     // Start streaming response
     _sub = ApiService.sendChatMessage(message).listen(
       (chunk) {

@@ -23,12 +23,14 @@ final appRoutes = [
     RouteNames.chat,
     (state) {
       final extra = state.extra as Map<String, dynamic>?;
-      final selectedSessionId = extra?['sessionId'] as String?;
       final initialMessage = extra?['initialMessage'] as ChatMessageDTO?;
+      final sessionIds = extra?['sessionIds'] as List<String>?;
+      final selectedDate = extra?['selectedDate'] as DateTime?;
 
       return ChatView(
-        selectedSessionId: selectedSessionId,
         initialMessage: initialMessage,
+        sessionIds: sessionIds,
+        selectedDate: selectedDate,
       );
     },
   ),

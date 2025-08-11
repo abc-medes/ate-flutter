@@ -7,13 +7,15 @@ import 'package:regene/data/models/chat_model.dart';
 import 'package:regene/features/chat/view_models/chat_view_model.dart';
 
 class ChatView extends ConsumerStatefulWidget {
-  final String? selectedSessionId;
   final ChatMessageDTO? initialMessage;
+  final List<String>? sessionIds; // Add this for multiple sessions
+  final DateTime? selectedDate; // Add this for the selected date
 
   const ChatView({
     super.key,
-    this.selectedSessionId,
     this.initialMessage,
+    this.sessionIds,
+    this.selectedDate,
   });
 
   @override
@@ -21,25 +23,34 @@ class ChatView extends ConsumerStatefulWidget {
 }
 
 class _ChatViewState extends ConsumerState<ChatView> {
-  late ScrollController _scrollController;
+  late PageController _pageController;
+  int _currentPageIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
+
+    // Initialize page controller with the selected session index
+    if (widget.sessionIds != null && widget.sessionIds!.isNotEmpty) {
+      _currentPageIndex = 0; // Always start with first session
+    }
+
+    _pageController = PageController(initialPage: _currentPageIndex);
 
     // Initialize the chat with the view model
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(chatViewModelProvider.notifier).initializeChat(
-            selectedSessionId: widget.selectedSessionId,
-            initialMessage: widget.initialMessage,
-          );
+      if (widget.sessionIds != null && widget.sessionIds!.isNotEmpty) {
+        ref.read(chatViewModelProvider.notifier).initializeChat(
+              selectedSessionId: widget.sessionIds!.first,
+              initialMessage: widget.initialMessage,
+            );
+      }
     });
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -72,28 +83,131 @@ class _ChatViewState extends ConsumerState<ChatView> {
   }
 
   Widget _buildDynamicScrollView(ChatViewState viewModel) {
-    if (viewModel.currentSessionMessages.isEmpty) {
-      return Center(
-        child: Text(
-          'No messages yet',
-          style: $styles.text.body.copyWith(
-            color: $styles.colors.caption,
+    if (widget.sessionIds == null || widget.sessionIds!.isEmpty) {
+      // Single session mode - show messages directly
+      if (viewModel.currentSessionMessages.isEmpty) {
+        return Center(
+          child: Text(
+            'No messages yet',
+            style: $styles.text.body.copyWith(
+              color: $styles.colors.caption,
+            ),
+          ),
+        );
+      }
+
+      return SingleChildScrollView(
+        child: Column(
+          children: List.generate(
+            viewModel.currentSessionMessages.length,
+            (index) {
+              final message = viewModel.currentSessionMessages[index];
+              return _buildMessageItem(message, index);
+            },
           ),
         ),
       );
     }
 
-    return SingleChildScrollView(
-      controller: _scrollController,
-      child: Column(
-        children: List.generate(
-          viewModel.currentSessionMessages.length,
-          (index) {
-            final message = viewModel.currentSessionMessages[index];
-            return _buildMessageItem(message, index);
-          },
+    // Multiple sessions mode - show PageView with guide text
+    return Column(
+      children: [
+        Expanded(
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPageIndex = index;
+              });
+              // Load messages for the new session
+              final sessionId = widget.sessionIds![index];
+              ref
+                  .read(chatViewModelProvider.notifier)
+                  .loadMessagesForSession(sessionId);
+            },
+            itemBuilder: (context, index) {
+              final sessionId = widget.sessionIds![index];
+              final isCurrentSession = sessionId == viewModel.currentSessionId;
+
+              if (isCurrentSession) {
+                // Show messages for current session
+                if (viewModel.currentSessionMessages.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No messages in this session',
+                      style: $styles.text.body.copyWith(
+                        color: $styles.colors.caption,
+                      ),
+                    ),
+                  );
+                }
+
+                return SingleChildScrollView(
+                  child: Column(
+                    children: List.generate(
+                      viewModel.currentSessionMessages.length,
+                      (messageIndex) {
+                        final message =
+                            viewModel.currentSessionMessages[messageIndex];
+                        return _buildMessageItem(message, messageIndex);
+                      },
+                    ),
+                  ),
+                );
+              } else {
+                // Show loading for other sessions
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: $styles.insets.md),
+                      Text(
+                        'Loading session ${index + 1}',
+                        style: $styles.text.body.copyWith(
+                          color: $styles.colors.caption,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            },
+          ),
         ),
-      ),
+        // Guide text for horizontal scrolling
+        if (widget.sessionIds!.length > 1)
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              horizontal: $styles.insets.md,
+              vertical: $styles.insets.sm,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.swipe_left,
+                  size: 16,
+                  color: $styles.colors.caption,
+                ),
+                SizedBox(width: $styles.insets.xs),
+                Text(
+                  '좌우로 스와이프하여 다른 채팅 보기',
+                  style: $styles.text.caption.copyWith(
+                    color: $styles.colors.caption,
+                  ),
+                ),
+                SizedBox(width: $styles.insets.xs),
+                Icon(
+                  Icons.swipe_right,
+                  size: 16,
+                  color: $styles.colors.caption,
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
@@ -195,30 +309,49 @@ class _ChatViewState extends ConsumerState<ChatView> {
     return Container(
       padding: EdgeInsets.fromLTRB($styles.insets.md, mq.padding.top,
           $styles.insets.md, $styles.insets.md),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
         children: [
-          CircularIconButton(
-            icon: Icons.arrow_back,
-            size: 48,
-            iconColor: $styles.colors.black,
-            backgroundColor: Colors.transparent,
-            onTap: () => context.go(RouteNames.chatHistory),
-          ),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Icons.calendar_month),
-              SizedBox(width: $styles.insets.sm),
-              Text(DateFormat.yMMMMd().format(sessionDate),
-                  style: $styles.text.bodySmall),
+              CircularIconButton(
+                icon: Icons.arrow_back,
+                size: 48,
+                iconColor: $styles.colors.black,
+                backgroundColor: Colors.transparent,
+                onTap: () => context.go(RouteNames.chatHistory),
+              ),
+              Row(
+                children: [
+                  Icon(Icons.calendar_month),
+                  SizedBox(width: $styles.insets.sm),
+                  Text(DateFormat.yMMMMd().format(sessionDate),
+                      style: $styles.text.bodySmall),
+                ],
+              ),
+              CircularIconButton(
+                  size: 48,
+                  icon: Icons.settings,
+                  iconColor: $styles.colors.black,
+                  backgroundColor: Colors.transparent,
+                  onTap: () => context.go(RouteNames.settings)),
             ],
           ),
-          CircularIconButton(
-              size: 48,
-              icon: Icons.settings,
-              iconColor: $styles.colors.black,
-              backgroundColor: Colors.transparent,
-              onTap: () => context.go(RouteNames.settings)),
+          // Page indicator for multiple sessions
+          if (widget.sessionIds != null && widget.sessionIds!.length > 1) ...[
+            SizedBox(height: $styles.insets.sm),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Session ${_currentPageIndex + 1} of ${widget.sessionIds!.length}',
+                  style: $styles.text.caption.copyWith(
+                    color: $styles.colors.caption,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

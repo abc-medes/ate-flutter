@@ -157,7 +157,8 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView>
                             context.push(
                               RouteNames.chat,
                               extra: {
-                                'sessionId': chatSessions.first,
+                                'sessionIds': chatSessions,
+                                'selectedDate': selectedDay,
                               },
                             );
                           } else {
@@ -165,7 +166,8 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView>
                             context.push(
                               RouteNames.chat,
                               extra: {
-                                'sessionId': newSessionId,
+                                'sessionIds': [newSessionId],
+                                'selectedDate': selectedDay,
                               },
                             );
                           }
@@ -202,7 +204,8 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView>
                   RouteNames.chat,
                   extra: {
                     'initialMessage': chatMessage,
-                    'sessionId': chatMessage.sessionId,
+                    'sessionIds': [chatMessage.sessionId],
+                    'selectedDate': DateTime.now(),
                   },
                 );
               }
@@ -275,24 +278,49 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView>
   }
 
   Widget _buildEventList(List<dynamic> events, bool isOutside) {
-    final chatSessions = events
-        .whereType<ChatMessageDTO>()
-        .map((e) => e.sessionId)
-        .toSet()
-        .length;
+    final chatMessages = events.whereType<ChatMessageDTO>().toList();
     final snapshots =
         events.whereType<BodySimulatorStateSnapshotDTO>().toList();
+
+    // Group chat messages by session ID
+    final Map<String, List<ChatMessageDTO>> sessionsByDate = {};
+    for (final message in chatMessages) {
+      final sessionId = message.sessionId;
+      if (sessionsByDate.containsKey(sessionId)) {
+        sessionsByDate[sessionId]!.add(message);
+      } else {
+        sessionsByDate[sessionId] = [message];
+      }
+    }
 
     return ListView(
       padding: EdgeInsets.zero,
       children: [
-        if (chatSessions > 0)
-          _buildEventRow(
-            icon: Icons.chat_bubble_outline,
-            title: '$chatSessions chat sessions',
-            isOutside: isOutside,
-            iconColor: $styles.colors.accent1,
-          ),
+        // Chat sessions
+        ...sessionsByDate.entries.map((entry) {
+          final sessionId = entry.key;
+          final messages = entry.value;
+          final lastMessage = messages.last;
+          final messagePreview = (lastMessage.message?.length ?? 0) > 30
+              ? '${lastMessage.message!.substring(0, 30)}...'
+              : lastMessage.message ?? '';
+
+          return GestureDetector(
+            onTap: () {
+              context.push(
+                RouteNames.chat,
+                extra: {'sessionId': sessionId},
+              );
+            },
+            child: _buildEventRow(
+              icon: Icons.chat_bubble_outline,
+              title: messagePreview,
+              isOutside: isOutside,
+              iconColor: $styles.colors.accent1,
+            ),
+          );
+        }),
+        // Body snapshots
         ...snapshots.map(
           (snapshot) => _buildEventRow(
             icon: Icons.monitor_heart_outlined,

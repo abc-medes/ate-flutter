@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:regene/common_libs.dart';
 import 'package:regene/core/routes/route_names.dart';
 import 'package:regene/core/widgets/chat_input.dart';
@@ -99,7 +100,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   children: [
                     Icon(Icons.calendar_month),
                     SizedBox(width: $styles.insets.sm),
-                    Text("SAT, 25 JUN 2025", style: $styles.text.bodySmall),
+                    Text(DateFormat.yMMMMd().format(DateTime.now()),
+                        style: $styles.text.bodySmall),
                   ],
                 ),
               ),

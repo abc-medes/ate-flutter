@@ -81,7 +81,6 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView>
     final viewModel = ref.watch(chatHistoryViewModelProvider.notifier);
     final state = ref.watch(chatHistoryViewModelProvider);
 
-    // Listen for state changes and handle errors
     ref.listen<ChatHistoryState>(chatHistoryViewModelProvider, (_, next) {
       if (next.error != null) {
         ErrorSnackbar.showChatHistoryError(
@@ -340,18 +339,26 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CircularIconButton(
-              icon: Icons.arrow_back,
+            icon: Icons.arrow_back,
+            size: 48,
+            iconColor: $styles.colors.black,
+            backgroundColor: Colors.transparent,
+            onTap: () => context.go(RouteNames.home),
+          ),
+          Row(
+            children: [
+              Icon(Icons.calendar_month),
+              SizedBox(width: $styles.insets.sm),
+              Text(DateFormat.yMMMM().format(focusedMonth),
+                  style: $styles.text.bodySmall),
+            ],
+          ),
+          CircularIconButton(
               size: 48,
+              icon: Icons.settings,
               iconColor: $styles.colors.black,
               backgroundColor: Colors.transparent,
-              onTap: () => context.go(RouteNames.home)),
-          Text(
-            DateFormat.yMMMM().format(focusedMonth),
-            style: $styles.text.h3,
-          ),
-          SizedBox(
-              width: $styles
-                  .insets.xl), // To balance the back button with a sized box
+              onTap: () => context.go(RouteNames.settings)),
         ],
       ),
     );

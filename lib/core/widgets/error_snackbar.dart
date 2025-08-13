@@ -52,7 +52,7 @@ class ErrorSnackbar {
                   ),
                 ],
               ),
-              backgroundColor: AppColors.error,
+              backgroundColor: $styles.colors.error,
               duration: duration,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(

@@ -19,19 +19,71 @@ class _BodySimulatorSnapshotDetailsState
     extends ConsumerState<BodySimulatorSnapshotDetails> {
   StreamSubscription<BodySimulatorStateSnapshotDTO?>? _subscription;
   BodySimulatorStateSnapshotDTO? _bodyState;
+  bool _isLoading = true;
+  String? _errorMessage;
+  int _retryCount = 0;
+  static const int _maxRetries = 3;
 
   @override
   void initState() {
     super.initState();
+    _initializeBodyStateStream();
+  }
+
+  void _initializeBodyStateStream() {
     final sessionId = ref.read(sessionIdProvider);
-    _subscription = ApiService.bodyStateStream(sessionId: sessionId).listen(
-      (state) {
-        debugPrint(
-            '🩺  Body-state update → ${state.toJson()}'); // ← shows the model
-        setState(() => _bodyState = state);
-      },
-      onError: (err) => debugPrint('WS error: $err'),
-    );
+
+    try {
+      _subscription = ApiService.bodyStateStream(sessionId: sessionId).listen(
+        (state) {
+          debugPrint('  Body-state update → ${state.toJson()}');
+          if (mounted) {
+            setState(() {
+              _bodyState = state;
+              _isLoading = false;
+              _errorMessage = null;
+              _retryCount = 0; // Reset retry count on success
+            });
+          }
+        },
+        onError: (err) {
+          debugPrint('WS error: $err');
+          if (mounted) {
+            setState(() {
+              _errorMessage = '연결 오류: ${err.toString()}';
+              _isLoading = false;
+            });
+
+            // Attempt to retry with exponential backoff
+            if (_retryCount < _maxRetries) {
+              _retryCount++;
+              Future.delayed(Duration(seconds: _retryCount * 2), () {
+                if (mounted) {
+                  _initializeBodyStateStream();
+                }
+              });
+            }
+          }
+        },
+        onDone: () {
+          debugPrint('WS connection closed');
+          if (mounted && _bodyState == null) {
+            setState(() {
+              _isLoading = false;
+              _errorMessage = '연결이 종료되었습니다.';
+            });
+          }
+        },
+      );
+    } catch (e) {
+      debugPrint('Failed to initialize body state stream: $e');
+      if (mounted) {
+        setState(() {
+          _errorMessage = '스트림 초기화 실패: ${e.toString()}';
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -42,10 +94,6 @@ class _BodySimulatorSnapshotDetailsState
 
   @override
   Widget build(BuildContext context) {
-    if (_bodyState == null) {
-      return Center(child: CircularProgressIndicator());
-    }
-
     return Material(
       color: $styles.colors.background,
       borderRadius: BorderRadius.only(
@@ -77,8 +125,77 @@ class _BodySimulatorSnapshotDetailsState
                 ),
               ),
 
-              // ---------- sections ----------
-              ..._organSlivers(_bodyState!),
+              // Show loading, error, or content
+              if (_isLoading)
+                SliverToBoxAdapter(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.all($styles.insets.xl),
+                      child: Column(
+                        children: [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                $styles.colors.accent1),
+                          ),
+                          SizedBox(height: $styles.insets.md),
+                          Text(
+                            '신체 시뮬레이터 데이터를 불러오는 중...',
+                            style: $styles.text.body,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              else if (_errorMessage != null)
+                SliverToBoxAdapter(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.all($styles.insets.xl),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: $styles.colors.error,
+                          ),
+                          SizedBox(height: $styles.insets.md),
+                          Text(
+                            _errorMessage!,
+                            style: $styles.text.body,
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: $styles.insets.md),
+                          if (_retryCount < _maxRetries)
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isLoading = true;
+                                  _errorMessage = null;
+                                });
+                                _initializeBodyStateStream();
+                              },
+                              child: Text('다시 시도'),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              else if (_bodyState != null)
+                ..._organSlivers(_bodyState!)
+              else
+                SliverToBoxAdapter(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.all($styles.insets.xl),
+                      child: Text(
+                        '데이터를 불러올 수 없습니다.',
+                        style: $styles.text.body,
+                      ),
+                    ),
+                  ),
+                ),
 
               // bottom padding
               const SliverPadding(padding: EdgeInsets.only(bottom: 32)),

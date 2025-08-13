@@ -1,11 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:regene/common_libs.dart';
-import 'package:regene/core/services/api_service.dart';
 import 'package:regene/core/services/user_service.dart';
 import 'package:regene/data/models/body_simulator_model.dart';
-import 'package:regene/data/models/chat_model.dart';
 import 'package:regene/core/services/auth_service.dart';
 import 'package:regene/data/models/health_model.dart';
+import 'package:regene/data/models/insight_model.dart';
 import 'package:regene/features/home/views/widgets/_body_simultor_snapshot_details.dart';
 
 enum ChatHelperType { ai, alerts, waitlist, system, context }
@@ -13,7 +12,12 @@ enum ChatHelperType { ai, alerts, waitlist, system, context }
 final homeViewModelProvider =
     StateNotifierProvider<HomeViewModel, HomeViewState>((ref) {
   final authService = ref.watch(authServiceProvider).isAuthenticated;
-  return HomeViewModel(authService)..fetchBodySimulatorState(ref);
+  final viewModel = HomeViewModel(authService);
+
+  // Initialize both body state and insights
+  viewModel.fetchBodySimulatorState(ref);
+
+  return viewModel;
 });
 
 class HomeViewState {
@@ -22,12 +26,17 @@ class HomeViewState {
   final bool isSaveMode;
   final ChatHelperType selectedHelperChip;
   final BodySimulatorStateSnapshotDTO? bodySimulatorState;
+  final List<InsightItem> insights;
+  final bool isLoadingInsights;
+
   HomeViewState({
     this.missingBasicData = const [],
     this.isProcessing = false,
     this.isSaveMode = false,
     this.selectedHelperChip = ChatHelperType.ai,
     this.bodySimulatorState,
+    this.insights = const [], // Ensure this is never null
+    this.isLoadingInsights = false,
   });
 
   HomeViewState copyWith({
@@ -37,13 +46,16 @@ class HomeViewState {
     bool? isSaveMode,
     ChatHelperType? selectedHelperChip,
     BodySimulatorStateSnapshotDTO? bodySimulatorState,
+    List<InsightItem>? insights,
+    bool? isLoadingInsights,
   }) {
     return HomeViewState(
       missingBasicData: missingBasicData ?? this.missingBasicData,
       isProcessing: isProcessing ?? this.isProcessing,
-      isSaveMode: isSaveMode ?? this.isSaveMode,
       selectedHelperChip: selectedHelperChip ?? this.selectedHelperChip,
       bodySimulatorState: bodySimulatorState ?? this.bodySimulatorState,
+      insights: insights ?? this.insights,
+      isLoadingInsights: isLoadingInsights ?? this.isLoadingInsights,
     );
   }
 }
@@ -92,5 +104,27 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     final bodySimulatorState =
         await ref.read(userServiceProvider).bodySimulatorState();
     state = state.copyWith(bodySimulatorState: bodySimulatorState);
+
+    await fetchInsights(ref);
+  }
+
+  Future<void> fetchInsights(Ref ref) async {
+    if (state.isLoadingInsights) return;
+
+    state = state.copyWith(isLoadingInsights: true);
+
+    try {
+      final userId = ref.read(userServiceProvider).userId;
+      final insights =
+          await ref.read(userServiceProvider).getInsightsWithFallback(userId);
+
+      state = state.copyWith(
+        insights: insights,
+        isLoadingInsights: false,
+      );
+    } catch (e) {
+      print('Error fetching insights: $e');
+      state = state.copyWith(isLoadingInsights: false);
+    }
   }
 }

@@ -36,10 +36,10 @@ class AppColors {
   static const divider = Color(0xFFBDBDBD);
 
   // Feedback Colors
-  static const success = Color(0xFF4CAF50);
-  static const error = Color(0xFFE57373);
-  static const warning = Color(0xFFFFB74D);
-  static const info = Color(0xFF64B5F6);
+  Color get error => const Color(0xFFE57373);
+  Color get success => const Color(0xFF4CAF50);
+  Color get warning => const Color(0xFFFFB74D);
+  Color get info => const Color(0xFF64B5F6);
 
   /// Common
   final Color accent1 = Color(0xFF05804C);

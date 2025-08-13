@@ -18,6 +18,8 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView> {
+  int _currentPage = 0; // State variable to track current page
+
   @override
   Widget build(BuildContext context) {
     final viewModel = ref.watch(homeViewModelProvider.notifier);
@@ -130,69 +132,74 @@ class _HomeViewState extends ConsumerState<HomeView> {
   }
 
   Widget _buildInsightsList() {
-    final insights = [
-      {
-        'icon': Icons.local_fire_department_outlined,
-        'title': '염증 지수',
-        'value': '높음',
-        'advice': '항염증 식품을 섭취하고 충분한 휴식을 취하세요.'
-      },
-      {
-        'icon': Icons.sentiment_very_dissatisfied_outlined,
-        'title': '스트레스',
-        'value': '나쁨',
-        'advice': '명상이나 가벼운 운동으로 스트레스를 관리해보세요.'
-      },
-      {
-        'icon': Icons.directions_run_outlined,
-        'title': '다이어트 효율',
-        'value': '보통',
-        'advice': '식단에 단백질을 늘리고 규칙적인 운동을 시작해보세요.'
-      },
-      {
-        'icon': Icons.shield_outlined,
-        'title': '해독 능력',
-        'value': '좋음',
-        'advice': '몸의 해독 기능이 원활해요. 건강한 식단을 유지하세요.'
-      },
-      {
-        'icon': Icons.nightlight_round_outlined,
-        'title': '수면의 질',
-        'value': '매우 나쁨',
-        'advice': '자기 전 스마트폰 사용을 줄이고 일정한 시간에 잠자리에 들어보세요.'
-      },
-      {
-        'icon': Icons.psychology_outlined,
-        'title': '집중력 & 기분',
-        'value': '양호',
-        'advice': '집중력과 기분이 좋은 상태입니다. 꾸준히 유지하세요.'
-      },
-    ];
+    final state = ref.watch(homeViewModelProvider);
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
-      child: Column(
-        children: insights.map((insight) {
-          return _buildInsightCard(
-            insight['icon'] as IconData,
-            insight['title'] as String,
-            insight['value'] as String,
-            insight['advice'] as String,
-          );
-        }).toList(),
-      ),
+    final insights = state.insights;
+
+    if (insights.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
+        child: Text(
+          '인사이트를 불러오는 중입니다...',
+          style: $styles.text.bodySmall.copyWith(
+            color: $styles.colors.caption,
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 220,
+          child: PageView.builder(
+            itemCount: insights.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              final insight = insights[index];
+              return Padding(
+                padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
+                child: _buildInsightCard(
+                  insight.iconData,
+                  insight.title,
+                  insight.value,
+                  insight.advice,
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(height: $styles.insets.sm),
+        // Page indicator
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            insights.length,
+            (index) => Container(
+              width: 8,
+              height: 8,
+              margin: EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: index == _currentPage
+                    ? $styles.colors.accent1
+                    : $styles.colors.greyMedium,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildInsightCard(
       IconData icon, String title, String value, String advice) {
     return Card(
-      margin: EdgeInsets.only(bottom: $styles.insets.sm),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular($styles.corners.lg),
-      ),
-      elevation: 0,
-      color: $styles.colors.background,
+      elevation: 10,
       child: Padding(
         padding: EdgeInsets.all($styles.insets.md),
         child: Column(
@@ -200,22 +207,99 @@ class _HomeViewState extends ConsumerState<HomeView> {
           children: [
             Row(
               children: [
-                Icon(icon, size: 28, color: $styles.colors.accent1),
+                Icon(icon, size: 20, color: $styles.colors.accent1),
                 SizedBox(width: $styles.insets.sm),
-                Text(title, style: $styles.text.bodySmall),
-                const Spacer(),
-                Text(value,
-                    style: $styles.text.h3.copyWith(
-                      fontSize: 18,
-                      height: 1.2,
+                Expanded(
+                  child: Text(
+                    title,
+                    style: $styles.text.bodySmall.copyWith(
                       fontWeight: FontWeight.bold,
-                    )),
+                    ),
+                  ),
+                ),
+                Text(
+                  value,
+                  style: $styles.text.bodySmall.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: $styles.colors.accent1,
+                  ),
+                ),
               ],
             ),
             SizedBox(height: $styles.insets.sm),
-            Text(advice,
-                style: $styles.text.bodySmall
-                    .copyWith(color: $styles.colors.black)),
+            Text(
+              advice,
+              style: $styles.text.bodySmall.copyWith(
+                color: $styles.colors.body,
+                height: 1.3,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInsightCardSkeleton() {
+    return Card(
+      elevation: 8,
+      shadowColor: $styles.colors.black.withOpacity(0.15),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular($styles.corners.lg),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all($styles.insets.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min, // Add this
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: $styles.colors.greyMedium,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                SizedBox(width: $styles.insets.md),
+                Expanded(
+                  child: Container(
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: $styles.colors.greyMedium,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 60,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: $styles.colors.greyMedium,
+                    borderRadius: BorderRadius.circular($styles.corners.sm),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: $styles.insets.lg),
+            // Remove Expanded and use simple containers
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: List.generate(
+                3,
+                (index) => Container(
+                  width: double.infinity,
+                  height: 16,
+                  margin: EdgeInsets.only(bottom: index < 2 ? 8 : 0),
+                  decoration: BoxDecoration(
+                    color: $styles.colors.greyMedium,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

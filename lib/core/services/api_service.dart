@@ -181,6 +181,7 @@ class ApiService {
   }) {
     final controller = StreamController<BodySimulatorStateSnapshotDTO>();
     WebSocketChannel? channel;
+    bool hasReceivedData = false;
 
     Future<void> connect() async {
       if (controller.isClosed) return;
@@ -199,62 +200,74 @@ class ApiService {
       final wsUri = Uri.parse(
           '$_wsUrl/ws/body-state?token=$jwt&session_id=$sessionId&local_timestamp=$ts');
 
+      debugPrint('🌐 Attempting WebSocket connection to: $wsUri');
+
       try {
-        channel = IOWebSocketChannel.connect(
-          wsUri,
-        );
+        channel = IOWebSocketChannel.connect(wsUri);
+        debugPrint('🌐 WebSocket connection established');
 
         channel!.stream.listen(
           (message) {
             if (controller.isClosed) return;
             try {
               final data = jsonDecode(message);
-              debugPrint('🌐 got message ▶︎ $data');
+              debugPrint(
+                  '🌐 Received message: ${message.toString().substring(0, 100)}...');
               if (data is Map<String, dynamic>) {
+                hasReceivedData = true;
                 controller.add(BodySimulatorStateSnapshotDTO.fromJson(data));
               }
             } catch (_) {
-              debugPrint('🌐 parse error ▶︎ $_');
+              debugPrint('🌐 Parse error: $_');
             }
           },
           onError: (error) {
-            debugPrint('🌐 parse error ▶︎ $error');
+            debugPrint('🌐 WebSocket error: $error');
             if (!controller.isClosed) controller.addError(error);
           },
           cancelOnError: true,
           onDone: () async {
+            debugPrint('🌐 WebSocket connection done/closed');
             if (controller.isClosed) return;
 
             final code = channel?.closeCode;
+            debugPrint('🌐 Close code: $code');
+
+            // If we received data and connection closed normally, this is success
+            if (hasReceivedData &&
+                (code == ws_status.normalClosure || code == 1000)) {
+              debugPrint(
+                  '🌐 Connection closed after successful data transmission');
+              return;
+            }
+
+            // Only reconnect for unexpected closures
             if (code == 4001) {
+              debugPrint(
+                  '🌐 Authentication error, attempting to refresh session');
               final refreshed = await _supabase.auth.refreshSession();
               if (refreshed.session != null) {
                 await Future.delayed(reconnectDelay);
-                connect(); // 재연결 시도
+                connect();
                 return;
               }
             }
 
-            if (code != ws_status.normalClosure && !controller.isClosed) {
-              await Future.delayed(reconnectDelay);
-              connect();
-            }
+            debugPrint('🌐 Unexpected connection closure with code: $code');
           },
         );
       } catch (e) {
+        debugPrint('🌐 Connection error: $e');
         if (!controller.isClosed) {
-          debugPrint('🌐 connect error ▶︎ $e');
           controller.addError(e);
-          await Future.delayed(reconnectDelay);
-          connect();
         }
       }
     }
 
-    // kick-off
     connect();
 
     controller.onCancel = () async {
+      debugPrint('🌐 Stream cancelled, closing WebSocket');
       await controller.close();
       await channel?.sink.close(ws_status.normalClosure);
       channel = null;

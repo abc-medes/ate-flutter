@@ -1,6 +1,7 @@
 import 'package:regene/common_libs.dart';
 import 'package:regene/data/models/body_simulator_model.dart';
 import 'package:regene/data/models/health_model.dart';
+import 'package:regene/data/models/insight_model.dart';
 import 'package:regene/data/repositories/health_repository.dart';
 import 'package:regene/data/models/profiles/user_model.dart' as um;
 
@@ -190,6 +191,90 @@ class UserService {
             ? null
             : BodySimulatorStateSnapshotDTO.fromJson(rows.first));
   }
+
+  // ------------------------------------------------------------
+  ///                       Insights
+  // ------------------------------------------------------------
+  Future<List<InsightItem>> getCurrentInsights(String userId) async {
+    try {
+      final response = await _client
+          .from('personal_insights')
+          .select('insights')
+          .eq('user_id', userId)
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+
+      if (response == null || response['insights'] == null) {
+        print('[Insights] No previous insights for user=$userId');
+        return [];
+      }
+
+      final insightsData = response['insights'] as List<dynamic>;
+      return insightsData
+          .map((item) => InsightItem.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print('Error getting current insights for user $userId: $e');
+      return [];
+    }
+  }
+
+  Future<List<InsightItem>> getInsightsWithFallback(String userId) async {
+    final insights = await getCurrentInsights(userId);
+
+    if (insights.isNotEmpty) {
+      return insights;
+    }
+
+    // Return default insights when none exist
+    return [
+      InsightItem(
+        title: '염증 지수',
+        value: '보통',
+        advice: '건강한 식단을 유지하고 충분한 휴식을 취하세요.',
+        icon: 'local_fire_department_outlined',
+        priority: 3,
+      ),
+      InsightItem(
+        title: '스트레스',
+        value: '보통',
+        advice: '명상이나 가벼운 운동으로 스트레스를 관리해보세요.',
+        icon: 'sentiment_very_dissatisfied_outlined',
+        priority: 3,
+      ),
+      InsightItem(
+        title: '다이어트 효율',
+        value: '보통',
+        advice: '식단에 단백질을 늘리고 규칙적인 운동을 시작해보세요.',
+        icon: 'directions_run_outlined',
+        priority: 3,
+      ),
+      InsightItem(
+        title: '해독 능력',
+        value: '좋음',
+        advice: '몸의 해독 기능이 원활해요. 건강한 식단을 유지하세요.',
+        icon: 'shield_outlined',
+        priority: 3,
+      ),
+      InsightItem(
+        title: '수면의 질',
+        value: '보통',
+        advice: '일정한 시간에 잠자리에 들어보세요.',
+        icon: 'nightlight_round_outlined',
+        priority: 3,
+      ),
+      InsightItem(
+        title: '집중력 & 기분',
+        value: '양호',
+        advice: '집중력과 기분이 좋은 상태입니다. 꾸준히 유지하세요.',
+        icon: 'psychology_outlined',
+        priority: 3,
+      ),
+    ];
+  }
+
+  // ------------------------------------------------------------
 }
 
 final userServiceProvider = Provider<UserService>((ref) {

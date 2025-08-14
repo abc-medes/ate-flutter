@@ -1,28 +1,43 @@
-import 'package:regene/core/routes/route_names.dart';
-import 'package:flutter/material.dart';
-import 'package:uni_links/uni_links.dart';
-import 'dart:async';
+import 'package:regene/common_libs.dart';
 
 class DeepLinkLogic {
-  StreamSubscription? _sub;
+  WidgetRef? _ref;
 
-  void init(BuildContext context) {
-    _sub = uriLinkStream.listen((Uri? uri) {
-      if (uri != null) {
-        // Example: ateapp://reset-password?access_token=XYZ
-        if (uri.host == RouteNames.resetPassword) {
-          final token = uri.queryParameters['access_token'];
-          // Use your router or Navigator to go to the reset password screen
-          Navigator.pushNamed(context, RouteNames.resetPassword,
-              arguments: token);
+  DeepLinkLogic();
+
+  void init(WidgetRef ref) {
+    _ref = ref; // Store ref for later use
+    final router = ref.read(routerProvider);
+
+    // GoRouter automatically handles deep linking - no need for listeners!
+    // The router will automatically respond to deep link URLs
+    print('DeepLinkLogic initialized with router: ${router}');
+  }
+
+  // Method to programmatically navigate to deep links
+  void handleDeepLink(String path, {Map<String, String>? queryParams}) {
+    if (_ref == null) return; // Safety check
+
+    final router = _ref!.read(routerProvider);
+
+    switch (path) {
+      case '/reset-password':
+        final token = queryParams?['access_token'];
+        if (token != null) {
+          router.go('/reset-password?token=$token');
         }
-      }
-    }, onError: (err) {
-      // Handle errors
-    });
+        break;
+      case '/chat':
+        router.go('/chat');
+        break;
+      case '/home':
+        router.go('/home');
+        break;
+      // Add more cases as needed
+    }
   }
 
   void dispose() {
-    _sub?.cancel();
+    _ref = null; // Clear ref
   }
 }

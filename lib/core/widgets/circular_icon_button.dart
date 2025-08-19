@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:regene/common_libs.dart'; // Or wherever your $styles comes from
+import 'package:regene/common_libs.dart';
 
 class CircularIconButton extends StatelessWidget {
   const CircularIconButton({
@@ -7,7 +6,7 @@ class CircularIconButton extends StatelessWidget {
     required this.icon,
     required this.onTap,
     this.iconColor,
-    this.backgroundColor,
+    this.backgroundColor = Colors.transparent,
     this.size = 64,
     this.iconSize = 28,
   });
@@ -22,7 +21,7 @@ class CircularIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: backgroundColor ?? $styles.colors.accent1,
+      color: backgroundColor ?? Colors.transparent,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),

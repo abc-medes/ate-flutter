@@ -1,7 +1,7 @@
+import 'package:regene/data/models/profiles/_ai_settings.dart';
 import 'package:regene/data/models/profiles/_app_open_state.dart';
 import 'package:regene/data/models/profiles/_notification_settings.dart';
 import 'package:regene/data/models/profiles/_user_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 class User {
   final String id;
@@ -24,20 +24,6 @@ class User {
     required this.appOpenState,
   });
 
-  factory User.fromSupabase(
-      supabase.User supabaseUser, Map<String, dynamic> profileData) {
-    return User(
-      id: supabaseUser.id,
-      email: supabaseUser.email ?? '',
-      name: profileData['name'],
-      avatarUrl: profileData['avatar_url'],
-      createdAt: supabaseUser.createdAt as DateTime,
-      lastSignInAt: supabaseUser.lastSignInAt as DateTime,
-      preferences: UserPreferences.fromJson(profileData['preferences'] ?? {}),
-      appOpenState: OpenState.fromJson(profileData['app_open_state'] ?? {}),
-    );
-  }
-
   factory User.newUser({
     required String id,
     required String email,
@@ -54,8 +40,21 @@ class User {
       lastSignInAt: now,
       preferences: UserPreferences(
         notificationSettings: NotificationSettings(),
+        aiSettings: AISettings(),
       ),
       appOpenState: OpenState(),
+    );
+  }
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'],
+      email: json['email'],
+      name: json['name'],
+      createdAt: DateTime.parse(json['created_at']),
+      lastSignInAt: DateTime.parse(json['last_sign_in_at']),
+      preferences: UserPreferences.fromJson(json['preferences']),
+      appOpenState: OpenState.fromJson(json['app_open_state']),
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:regene/core/services/auth_service.dart';
 import 'package:regene/core/routes/route_names.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:regene/common_libs.dart';
 
 class SettingsView extends ConsumerWidget {
   const SettingsView({super.key});
@@ -15,12 +16,17 @@ class SettingsView extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text('Settings',
+            style: $styles.text.h2.copyWith(
+              color: $styles.colors.accent1,
+            )),
+        backgroundColor: $styles.colors.background,
       ),
+      backgroundColor: $styles.colors.background,
       body: SafeArea(
         child: ListView(
           children: [
-            const SizedBox(height: 16),
+            SizedBox(height: $styles.insets.md),
 
             // Account section
             _buildSectionHeader(context, 'Account'),
@@ -65,14 +71,22 @@ class SettingsView extends ConsumerWidget {
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: const Text('Reset Health Data'),
-                        content: const Text(
+                        title:
+                            Text('Reset Health Data', style: $styles.text.h3),
+                        content: Text(
                           'This will reset all your health-related data including height, weight, conditions, and more. This action cannot be undone.',
+                          style: $styles.text.body.copyWith(
+                            color: $styles.colors.body,
+                          ),
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('CANCEL'),
+                            child: Text('CANCEL',
+                                style: $styles.text.bodySmall.copyWith(
+                                  color: $styles.colors.accent1,
+                                  fontWeight: FontWeight.bold,
+                                )),
                           ),
                           TextButton(
                             onPressed: () async {
@@ -82,12 +96,17 @@ class SettingsView extends ConsumerWidget {
                                 context: context,
                                 barrierDismissible: false,
                                 builder: (BuildContext context) {
-                                  return const AlertDialog(
+                                  return AlertDialog(
                                     content: Row(
                                       children: [
-                                        CircularProgressIndicator(),
-                                        SizedBox(width: 20),
-                                        Text("Resetting health data..."),
+                                        CircularProgressIndicator(
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  $styles.colors.accent1),
+                                        ),
+                                        SizedBox(width: $styles.insets.md),
+                                        Text("Resetting health data...",
+                                            style: $styles.text.body),
                                       ],
                                     ),
                                   );
@@ -102,10 +121,14 @@ class SettingsView extends ConsumerWidget {
                                 if (context.mounted) {
                                   Navigator.of(context).pop();
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
+                                    SnackBar(
                                       content: Text(
-                                          'Health data reset successfully'),
-                                      backgroundColor: Colors.green,
+                                        'Health data reset successfully',
+                                        style: $styles.text.body.copyWith(
+                                          color: $styles.colors.white,
+                                        ),
+                                      ),
+                                      backgroundColor: $styles.colors.success,
                                     ),
                                   );
                                 }
@@ -115,15 +138,22 @@ class SettingsView extends ConsumerWidget {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                          'Error resetting health data: $e'),
-                                      backgroundColor: Colors.red,
+                                        'Error resetting health data: $e',
+                                        style: $styles.text.body.copyWith(
+                                          color: $styles.colors.white,
+                                        ),
+                                      ),
+                                      backgroundColor: $styles.colors.error,
                                     ),
                                   );
                                 }
                               }
                             },
-                            child: const Text('RESET',
-                                style: TextStyle(color: Colors.red)),
+                            child: Text('RESET',
+                                style: $styles.text.bodySmall.copyWith(
+                                  color: $styles.colors.error,
+                                  fontWeight: FontWeight.bold,
+                                )),
                           ),
                         ],
                       );
@@ -141,7 +171,7 @@ class SettingsView extends ConsumerWidget {
               ),
             ],
 
-            const Divider(),
+            Divider(color: $styles.colors.caption),
 
             // Appearance section
             _buildSectionHeader(context, 'Appearance'),
@@ -153,10 +183,11 @@ class SettingsView extends ConsumerWidget {
               trailing: Switch(
                 value: false, // Get this from a theme provider
                 onChanged: (_) {},
+                activeColor: $styles.colors.accent1,
               ),
             ),
 
-            const Divider(),
+            Divider(color: $styles.colors.caption),
 
             // About section
             _buildSectionHeader(context, 'About'),
@@ -165,8 +196,10 @@ class SettingsView extends ConsumerWidget {
               'App Version',
               Icons.info,
               () {},
-              trailing:
-                  const Text('1.0.0', style: TextStyle(color: Colors.grey)),
+              trailing: Text('1.0.0',
+                  style: $styles.text.bodySmall.copyWith(
+                    color: $styles.colors.caption,
+                  )),
             ),
             _buildSettingItem(
               context,
@@ -188,13 +221,16 @@ class SettingsView extends ConsumerWidget {
 
   Widget _buildSectionHeader(BuildContext context, String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 16, top: 16, bottom: 8),
+      padding: EdgeInsets.only(
+        left: $styles.insets.md,
+        top: $styles.insets.md,
+        bottom: $styles.insets.sm,
+      ),
       child: Text(
         title,
-        style: TextStyle(
-          fontSize: 16,
+        style: $styles.text.h3.copyWith(
+          color: $styles.colors.accent1,
           fontWeight: FontWeight.bold,
-          color: Theme.of(context).primaryColor,
         ),
       ),
     );
@@ -211,16 +247,24 @@ class SettingsView extends ConsumerWidget {
     return ListTile(
       leading: Icon(
         icon,
-        color: isDestructive ? Colors.red : null,
+        color: isDestructive ? $styles.colors.error : $styles.colors.accent1,
       ),
       title: Text(
         title,
-        style: TextStyle(
-          color: isDestructive ? Colors.red : null,
+        style: $styles.text.body.copyWith(
+          color: isDestructive ? $styles.colors.error : $styles.colors.black,
         ),
       ),
-      trailing: trailing ?? const Icon(Icons.chevron_right),
+      trailing: trailing ??
+          Icon(
+            Icons.chevron_right,
+            color: $styles.colors.caption,
+          ),
       onTap: onTap,
+      tileColor: $styles.colors.background,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular($styles.corners.sm),
+      ),
     );
   }
 }

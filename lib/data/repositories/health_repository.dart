@@ -141,7 +141,7 @@ class HealthRepository {
         userInputData: updatedUserInputData,
       );
 
-      await _saveHealthMetricsToStorage(updatedHealthMetrics);
+      await saveHealthMetricsToStorage(updatedHealthMetrics);
     } catch (e) {
       print('Error saving height and weight: $e');
     }
@@ -158,13 +158,13 @@ class HealthRepository {
         userInputData: updatedUserInputData,
       );
 
-      await _saveHealthMetricsToStorage(updatedHealthMetrics);
+      await saveHealthMetricsToStorage(updatedHealthMetrics);
     } catch (e) {
       print('Error saving body type: $e');
     }
   }
 
-  Future<void> saveMemorizedData(String data) async {
+  Future<void> saveMemorizedData(data) async {
     try {
       final healthMetrics = await getExistingHealthMetrics();
 
@@ -176,7 +176,7 @@ class HealthRepository {
         userInputData: updatedUserInputData,
       );
 
-      await _saveHealthMetricsToStorage(updatedHealthMetrics);
+      await saveHealthMetricsToStorage(updatedHealthMetrics);
     } catch (e) {
       print('Error saving memorized data: $e');
     }
@@ -194,7 +194,7 @@ class HealthRepository {
         userInputData: updatedUserInputData,
       );
 
-      await _saveHealthMetricsToStorage(updatedHealthMetrics);
+      await saveHealthMetricsToStorage(updatedHealthMetrics);
     } catch (e) {
       print('Error saving birth date: $e');
     }
@@ -215,14 +215,14 @@ class HealthRepository {
         userInputData: updatedUserInputData,
       );
 
-      await _saveHealthMetricsToStorage(updatedHealthMetrics);
+      await saveHealthMetricsToStorage(updatedHealthMetrics);
     } catch (e) {
       print('Error saving gender: $e');
       rethrow;
     }
   }
 
-  Future<void> _saveHealthMetricsToStorage(HealthMetrics metrics) async {
+  Future<void> saveHealthMetricsToStorage(HealthMetrics metrics) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('health_metrics', jsonEncode(metrics.toJson()));

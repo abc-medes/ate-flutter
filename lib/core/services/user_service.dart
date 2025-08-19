@@ -10,15 +10,36 @@ class UserService {
   final _healthRepository = healthRepository;
   List<BasicUserData> _missingBasicUserData = [];
   bool _initialized = false;
+  um.User? _user;
 
   List<BasicUserData> get missingBasicUserData => _missingBasicUserData;
   bool get isBasicHealthDataComplete => _missingBasicUserData.isEmpty;
   bool get isInitialized => _initialized;
   String get userId => _client.auth.currentUser!.id;
+  um.User? get user => _user;
 
   Future<void> initialize() async {
     await refreshBasicHealthData();
+    await _getHealthMetricsFromDatabase(userId);
+
     _initialized = true;
+  }
+
+  Future<void> _fetchUserProfile() async {
+    try {
+      if (_client.auth.currentUser != null) {
+        final profileData =
+            await fetchUserProfile(_client.auth.currentUser!.id);
+        _user = um.User.fromJson(profileData);
+      }
+    } catch (e) {
+      print('Error fetching user profile: $e');
+      _user = null;
+    }
+  }
+
+  Future<void> refreshUserProfile() async {
+    await _fetchUserProfile();
   }
 
   /// ------------------------------------------------------------
@@ -168,6 +189,30 @@ class UserService {
         );
   }
 
+  Future<Map<String, dynamic>?> _getHealthMetricsFromDatabase(
+      String userId) async {
+    try {
+      final response = await _client
+          .from('health_metrics')
+          .select('health_metrics')
+          .eq('user_id', userId)
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+
+      if (response != null && response['health_metrics'] != null) {
+        final healthMetrics =
+            HealthMetrics.fromJson(response['health_metrics']);
+        await _healthRepository.saveHealthMetricsToStorage(healthMetrics);
+      }
+
+      return null;
+    } catch (e) {
+      print('Error getting health metrics from database: $e');
+      return null;
+    }
+  }
+
   Future<BodySimulatorStateSnapshotDTO> bodySimulatorState() async {
     final response = await _client
         .from('user_body_state_snapshots')
@@ -274,6 +319,8 @@ class UserService {
     ];
   }
 
+  // ------------------------------------------------------------
+  ///                       Health Metrics
   // ------------------------------------------------------------
 }
 

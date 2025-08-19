@@ -327,7 +327,8 @@ class UserInputData {
       _data[UserInputField.medications] as List<Medication>?;
   List<Allergy>? get allergies =>
       _data[UserInputField.allergies] as List<Allergy>?;
-  String? get memorizedData => _data[UserInputField.memorizedData] as String?;
+  Map<String, dynamic>? get memorizedData =>
+      _data[UserInputField.memorizedData] as Map<String, dynamic>?;
   // HIGH PRIORITY - daily tracking
   NutritionData? get nutritionData =>
       _data[UserInputField.nutritionData] as NutritionData?;
@@ -349,7 +350,8 @@ class UserInputData {
     MoodData? moodData,
     SymptomData? symptoms,
     SleepQualityData? sleepQuality,
-    String? memorizedData,
+    Map<String, dynamic>?
+        memorizedData, // Change from String? to Map<String, dynamic>?
   }) {
     if (height != null) {
       _data[UserInputField.height] = height;
@@ -425,7 +427,9 @@ class UserInputData {
       sleepQuality: json['sleep_quality'] != null
           ? SleepQualityData.fromJson(json['sleep_quality'])
           : null,
-      memorizedData: json['memorized_data'],
+      memorizedData: json['memorized_data'] != null
+          ? Map<String, dynamic>.from(json['memorized_data']) // Convert to Map
+          : null,
     );
   }
 
@@ -505,7 +509,7 @@ class UserInputData {
     MoodData? moodData,
     SymptomData? symptoms,
     SleepQualityData? sleepQuality,
-    String? memorizedData,
+    Map<String, dynamic>? memorizedData,
   }) {
     final newData = UserInputData();
 

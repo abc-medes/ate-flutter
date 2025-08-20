@@ -8,6 +8,7 @@ import 'package:regene/core/widgets/chat_input.dart';
 import 'package:regene/data/models/chat_model.dart';
 import 'package:regene/data/repositories/health_repository.dart';
 import 'package:regene/core/widgets/circular_icon_button.dart';
+import 'package:regene/core/widgets/padded_divider.dart';
 
 class SettingsView extends ConsumerStatefulWidget {
   const SettingsView({super.key});
@@ -116,7 +117,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     isDestructive: true,
                   ),
 
-                  Divider(color: $styles.colors.caption),
+                  PaddedDivider.medium(color: $styles.colors.caption),
 
                   // AI Settings section
                   _buildSectionHeader(context, 'AI Settings'),
@@ -157,16 +158,19 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     ),
                   ),
 
+                  PaddedDivider.medium(color: $styles.colors.caption),
+
                   // Health Context section
                   _buildSectionHeader(context, 'Health Context'),
                   _buildHealthContextItems(context),
+
+                  PaddedDivider.medium(color: $styles.colors.caption),
 
                   // Memorized Data section
                   _buildSectionHeader(context, 'Memorized Context'),
                   _buildMemorizedDataItems(context),
 
-                  Divider(color: $styles.colors.caption),
-
+                  PaddedDivider.medium(color: $styles.colors.caption),
                   // Appearance section
                   _buildSectionHeader(context, 'Appearance'),
                   _buildSettingItem(
@@ -181,7 +185,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     ),
                   ),
 
-                  Divider(color: $styles.colors.caption),
+                  PaddedDivider.medium(color: $styles.colors.caption),
 
                   // About section
                   _buildSectionHeader(context, 'About'),
@@ -601,8 +605,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 ),
                 title: Text(
                   _formatDisplayName(key),
-                  style: $styles.text.body.copyWith(
-                    fontWeight: FontWeight.w600,
+                  style: $styles.text.bodySmall.copyWith(
+                    color: $styles.colors.black,
                   ),
                 ),
                 subtitle: Text(

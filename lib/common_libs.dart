@@ -18,6 +18,7 @@ export 'package:regene/core/routes/router_provider.dart';
 export 'package:sized_context/sized_context.dart';
 export 'package:regene/theme/styles.dart';
 export 'package:regene/core/widgets/app_scaffold.dart';
+export 'package:regene/core/widgets/padded_divider.dart';
 export 'package:get_it_mixin/get_it_mixin.dart';
 export 'package:regene/features/_common/themed_text.dart';
 export 'package:supabase_flutter/supabase_flutter.dart';

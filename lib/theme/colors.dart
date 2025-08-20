@@ -43,8 +43,8 @@ class AppColors {
 
   /// Common
   final Color accent1 = Color(0xFF05804C);
-  final Color accent2 = Color(0xFFBEABA1);
-  final Color accent3 = Color(0xFFC47642);
+  final Color accent2 = Color(0xFFC47642);
+  final Color accent3 = Color(0xFFBEABA1);
   final Color offWhite = Color(0xFFF8ECE5);
   final Color caption = const Color(0xFF7D7873);
   final Color body = const Color(0xFF514F4D);
@@ -73,8 +73,8 @@ class AppColors {
         brightness: isDark ? Brightness.dark : Brightness.light,
         primary: accent1,
         primaryContainer: accent1,
-        secondary: accent1,
-        secondaryContainer: accent1,
+        secondary: accent2,
+        secondaryContainer: accent2,
         surface: offWhite,
         onSurface: txtColor,
         onError: Colors.white,

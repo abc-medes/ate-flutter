@@ -1,14 +1,13 @@
 import 'package:regene/common_libs.dart';
 import 'package:regene/core/services/auth_service.dart';
 import 'package:regene/core/routes/route_names.dart';
-import 'package:go_router/go_router.dart';
+import 'package:regene/core/widgets/context_input.dart';
 import 'package:regene/data/models/health_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:regene/core/widgets/chat_input.dart';
 import 'package:regene/data/models/chat_model.dart';
 import 'package:regene/data/repositories/health_repository.dart';
 import 'package:regene/core/widgets/circular_icon_button.dart';
-import 'package:regene/core/widgets/padded_divider.dart';
 
 class SettingsView extends ConsumerStatefulWidget {
   const SettingsView({super.key});
@@ -19,8 +18,6 @@ class SettingsView extends ConsumerStatefulWidget {
 
 class _SettingsViewState extends ConsumerState<SettingsView> {
   final TextEditingController _chatController = TextEditingController();
-  bool _isSaveMode = false;
-  List<ChatMessageDTO> _chatHistory = [];
 
   @override
   void dispose() {
@@ -30,11 +27,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
   void _handleChatSubmit(ChatMessageDTO chatMessage) {
     if (chatMessage.message?.isNotEmpty == true) {
-      setState(() {
-        _chatHistory.add(chatMessage);
-      });
-
-      // Simulate AI response for now
       _simulateAIResponse(chatMessage.message!);
     }
   }
@@ -51,10 +43,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       isUser: false,
       chatOffset: 0,
     );
-
-    setState(() {
-      _chatHistory.add(aiMessage);
-    });
   }
 
   String _generateAIResponse(String userMessage) {
@@ -226,56 +214,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 topLeft: Radius.circular($styles.insets.lg),
                 topRight: Radius.circular($styles.insets.lg),
               ),
-              border: Border(
-                top: BorderSide(color: $styles.colors.accent1, width: 2),
-              ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Chat history preview
-                if (_chatHistory.isNotEmpty)
-                  Container(
-                    height: 120,
-                    padding: EdgeInsets.all($styles.insets.sm),
-                    child: ListView.builder(
-                      itemCount: _chatHistory.length,
-                      itemBuilder: (context, index) {
-                        final message = _chatHistory[index];
-                        return Container(
-                          margin: EdgeInsets.only(bottom: $styles.insets.xs),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: $styles.insets.sm,
-                            vertical: $styles.insets.xs,
-                          ),
-                          decoration: BoxDecoration(
-                            color: message.isUser
-                                ? $styles.colors.accent1
-                                : $styles.colors.accent2,
-                            borderRadius:
-                                BorderRadius.circular($styles.corners.sm),
-                          ),
-                          child: Text(
-                            message.message ?? '',
-                            style: $styles.text.bodySmall.copyWith(
-                              color: $styles.colors.white,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                // Chat input
-                ChatInput(
-                  shouldSaveAsContext: _isSaveMode,
-                  onSaveModeToggle: () =>
-                      setState(() => _isSaveMode = !_isSaveMode),
-                  onSubmit: _handleChatSubmit,
-                ),
-              ],
+            child: ContextInput(
+              onSubmit: _handleChatSubmit,
+              title: 'Personalize your assistant',
+              subtitle:
+                  'Share details that help responses stay relevant long-term — preferences, health history, routines, or goals.',
             ),
           ),
         ],

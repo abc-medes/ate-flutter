@@ -175,6 +175,50 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> processMemoryOnly(
+    ChatMessageDTO chatMessage,
+  ) async {
+    try {
+      final session = _supabase.auth.currentSession;
+      if (session == null) {
+        throw Exception('Not authenticated');
+      }
+      String accessToken = session.accessToken;
+
+      Future<http.Response> executeRequest(String token) {
+        final uri = Uri.parse('$_baseUrl/memory/process');
+        return http.post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode(chatMessage.toJson()),
+        );
+      }
+
+      var response = await executeRequest(accessToken);
+
+      if (response.statusCode == 401) {
+        final refreshed = await _supabase.auth.refreshSession();
+        if (refreshed.session == null ||
+            refreshed.session!.accessToken.isEmpty) {
+          throw Exception('Authentication failed');
+        }
+        accessToken = refreshed.session!.accessToken;
+        response = await executeRequest(accessToken);
+      }
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to process memory: ${response.body}');
+      }
+
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (e) {
+      throw Exception('Error processing memory: $e');
+    }
+  }
+
   static Stream<BodySimulatorStateSnapshotDTO> bodyStateStream({
     required String sessionId,
     Duration reconnectDelay = const Duration(seconds: 2),

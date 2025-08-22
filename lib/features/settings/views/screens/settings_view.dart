@@ -4,7 +4,6 @@ import 'package:regene/core/routes/route_names.dart';
 import 'package:regene/core/widgets/context_input.dart';
 import 'package:regene/data/models/health_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:regene/core/widgets/chat_input.dart';
 import 'package:regene/data/models/chat_model.dart';
 import 'package:regene/data/repositories/health_repository.dart';
 import 'package:regene/core/widgets/circular_icon_button.dart';
@@ -23,50 +22,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   void dispose() {
     _chatController.dispose();
     super.dispose();
-  }
-
-  void _handleChatSubmit(ChatMessageDTO chatMessage) {
-    if (chatMessage.message?.isNotEmpty == true) {
-      _simulateAIResponse(chatMessage.message!);
-    }
-  }
-
-  void _simulateAIResponse(String userMessage) {
-    String aiResponse = _generateAIResponse(userMessage);
-
-    final aiMessage = ChatMessageDTO(
-      userId: 'ai',
-      createdAt: DateTime.now(),
-      clientLocalTimestamp: DateTime.now(),
-      sessionId: 'settings_session',
-      message: aiResponse,
-      isUser: false,
-      chatOffset: 0,
-    );
-  }
-
-  String _generateAIResponse(String userMessage) {
-    final lowerMessage = userMessage.toLowerCase();
-
-    if (lowerMessage.contains('한국말') || lowerMessage.contains('korean')) {
-      return '네, 앞으로 한국어로 대화하겠습니다. 한국어 설정이 저장되었습니다.';
-    } else if (lowerMessage.contains('사근사근') ||
-        lowerMessage.contains('친근') ||
-        lowerMessage.contains('친근하게')) {
-      return '알겠어요! 앞으로 더 친근하고 따뜻한 말투로 대화하겠습니다. 😊';
-    } else if (lowerMessage.contains('흡연') ||
-        lowerMessage.contains('담배') ||
-        lowerMessage.contains('smoking')) {
-      return '흡연 이력 정보를 저장했습니다. 이 정보는 건강 인사이트에 반영됩니다.';
-    } else if (lowerMessage.contains('도움') || lowerMessage.contains('help')) {
-      return '다음과 같은 설정을 변경할 수 있습니다:\n\n' +
-          '• 언어 설정: "한국말로 계속말해줘"\n' +
-          '• 말투 설정: "나한테 사근사근하게 말해줘"\n' +
-          '• 건강 이력: "15년간 흡연했어요, 15세부터 시작했고 지금은 금연중이에요"\n' +
-          '• 기타 개인화 설정들';
-    } else {
-      return '설정을 변경하고 싶으시다면 말씀해 주세요. 언어, 말투, 건강 이력 등을 설정할 수 있습니다.';
-    }
   }
 
   @override
@@ -216,7 +171,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               ),
             ),
             child: ContextInput(
-              onSubmit: _handleChatSubmit,
               title: 'Personalize your assistant',
               subtitle:
                   'Share details that help responses stay relevant long-term — preferences, health history, routines, or goals.',

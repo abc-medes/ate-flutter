@@ -4,7 +4,6 @@ import 'package:regene/core/routes/route_names.dart';
 import 'package:regene/core/widgets/context_input.dart';
 import 'package:regene/data/models/health_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:regene/data/models/chat_model.dart';
 import 'package:regene/data/repositories/health_repository.dart';
 import 'package:regene/core/widgets/circular_icon_button.dart';
 

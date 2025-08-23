@@ -29,12 +29,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
       backgroundColor: $styles.colors.background,
       body: Column(
         children: [
+          _buildHeader(context, state, ref),
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(context, state, ref),
                   SizedBox(height: $styles.insets.lg),
                   Padding(
                     padding:

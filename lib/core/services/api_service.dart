@@ -161,7 +161,7 @@ class ApiService {
             'Failed to initialize body simulator: Status ${response.statusCode} - Body: ${response.body}');
       }
 
-      final responseBody = jsonDecode(response.body);
+      final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
       print(
           'Body simulator initialized successfully: ${responseBody['message']}');
     } catch (e) {
@@ -175,7 +175,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> processMemoryOnly(
+  static Future<Map<String, dynamic>> processSettingsOrMemory(
     ChatMessageDTO chatMessage,
   ) async {
     try {
@@ -210,12 +210,14 @@ class ApiService {
       }
 
       if (response.statusCode != 200) {
-        throw Exception('Failed to process memory: ${response.body}');
+        throw Exception(
+            'Failed to process settings or memory: ${response.body}');
       }
 
-      return jsonDecode(response.body) as Map<String, dynamic>;
+      final responseBody = utf8.decode(response.bodyBytes);
+      return jsonDecode(responseBody) as Map<String, dynamic>;
     } catch (e) {
-      throw Exception('Error processing memory: $e');
+      throw Exception('Error processing settings or memory: $e');
     }
   }
 

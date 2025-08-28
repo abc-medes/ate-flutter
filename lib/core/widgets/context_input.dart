@@ -5,6 +5,7 @@ import 'package:regene/core/services/session_service.dart';
 import 'package:regene/core/services/user_service.dart';
 import 'package:regene/core/widgets/input_snackbar.dart';
 import 'package:regene/data/models/chat_model.dart';
+import 'package:regene/features/settings/view_models/settings_view_model.dart';
 
 enum ContextPurpose { auto, memory, aiSettings }
 
@@ -98,7 +99,7 @@ class _ContextInputState extends ConsumerState<ContextInput> {
     InputSnackbar.showProcessing(context);
 
     try {
-      final res = await ApiService.processMemoryOnly(cm);
+      final res = await ApiService.processSettingsOrMemory(cm);
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       final rawResult = res['result'];
@@ -107,6 +108,18 @@ class _ContextInputState extends ConsumerState<ContextInput> {
               ? 'Saved to memory'
               : rawResult
           : (rawResult?.toString() ?? 'Saved to memory');
+
+      if (rawResult is Map<String, dynamic> &&
+          rawResult['path'] == 'ai_settings') {
+        await ref
+            .read(settingsViewModelProvider.notifier)
+            .setAISettingsFromRaw(rawResult);
+      } else if (rawResult is Map<String, dynamic> &&
+          rawResult['path'] == 'long_term_memory') {
+        await ref
+            .read(settingsViewModelProvider.notifier)
+            .setHealthContextFromRaw(rawResult);
+      }
 
       InputSnackbar.showSuccess(context, message: successMsg);
     } catch (e) {

@@ -1,74 +1,71 @@
 class AISettings {
-  final String? language;
-  final String? communicationStyle;
-  final Map<String, dynamic> healthContext;
-  final Map<String, dynamic> personalityTraits;
-  final DateTime? lastUpdated;
+  final String tone; // friendly|clinical|casual|coach|empathetic|concise
+  final String language; // en|ko|...
+  final String formality; // casual|neutral|formal
+  final String detailLevel; // low|medium|high
+  final String emojiUsage; // off|light|normal|rich
+  final String responseLength; // short|medium|long
+  final String goalFocus; // weight_loss|sleep|stress|digestion|general
+  final String summarizeStyle; // bullet|paragraph
 
-  AISettings({
-    this.language,
-    this.communicationStyle,
-    this.healthContext = const {},
-    this.personalityTraits = const {},
-    this.lastUpdated,
+  const AISettings({
+    this.tone = 'friendly',
+    this.language = 'ko',
+    this.formality = 'neutral',
+    this.detailLevel = 'medium',
+    this.emojiUsage = 'normal',
+    this.responseLength = 'medium',
+    this.goalFocus = 'general',
+    this.summarizeStyle = 'paragraph',
   });
 
   factory AISettings.fromJson(Map<String, dynamic> json) {
     return AISettings(
-      language: json['language'],
-      communicationStyle: json['communication_style'],
-      healthContext: json['health_context'] ?? {},
-      personalityTraits: json['personality_traits'] ?? {},
-      lastUpdated: json['last_updated'] != null
-          ? DateTime.parse(json['last_updated'])
-          : null,
+      tone: (json['tone'] as String?) ?? 'friendly',
+      language: (json['language'] as String?) ?? 'ko',
+      formality: (json['formality'] as String?) ?? 'neutral',
+      detailLevel: (json['detail_level'] as String?) ?? 'medium',
+      emojiUsage: (json['emoji_usage'] as String?) ?? 'normal',
+      responseLength: (json['response_length'] as String?) ?? 'medium',
+      goalFocus: (json['goal_focus'] as String?) ?? 'general',
+      summarizeStyle: (json['summarize_style'] as String?) ?? 'paragraph',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'tone': tone,
       'language': language,
-      'communication_style': communicationStyle,
-      'health_context': healthContext,
-      'personality_traits': personalityTraits,
-      'last_updated': lastUpdated?.toIso8601String(),
+      'formality': formality,
+      'detail_level': detailLevel,
+      'emoji_usage': emojiUsage,
+      'response_length': responseLength,
+      'goal_focus': goalFocus,
+      'summarize_style': summarizeStyle,
     };
   }
 
   AISettings copyWith({
+    String? tone,
     String? language,
-    String? communicationStyle,
-    Map<String, dynamic>? healthContext,
-    Map<String, dynamic>? personalityTraits,
-    DateTime? lastUpdated,
+    String? formality,
+    String? detailLevel,
+    String? emojiUsage,
+    String? responseLength,
+    String? goalFocus,
+    String? summarizeStyle,
   }) {
     return AISettings(
+      tone: tone ?? this.tone,
       language: language ?? this.language,
-      communicationStyle: communicationStyle ?? this.communicationStyle,
-      healthContext: healthContext ?? this.healthContext,
-      personalityTraits: personalityTraits ?? this.personalityTraits,
-      lastUpdated: lastUpdated ?? this.lastUpdated,
+      formality: formality ?? this.formality,
+      detailLevel: detailLevel ?? this.detailLevel,
+      emojiUsage: emojiUsage ?? this.emojiUsage,
+      responseLength: responseLength ?? this.responseLength,
+      goalFocus: goalFocus ?? this.goalFocus,
+      summarizeStyle: summarizeStyle ?? this.summarizeStyle,
     );
   }
 
-  // Helper methods for specific health context
-  String? get smokingHistory => healthContext['smoking_history'];
-  String? get alcoholConsumption => healthContext['alcohol_consumption'];
-  String? get exerciseHabits => healthContext['exercise_habits'];
-  String? get dietaryRestrictions => healthContext['dietary_restrictions'];
-  String? get medicalConditions => healthContext['medical_conditions'];
-  String? get medications => healthContext['medications'];
-
-  // Helper methods for personality traits
-  String? get preferredTone => personalityTraits['preferred_tone'];
-  String? get formalityLevel => personalityTraits['formality_level'];
-  String? get humorPreference => personalityTraits['humor_preference'];
-  String? get detailLevel => personalityTraits['detail_level'];
-
-  // Check if settings are configured
-  bool get isConfigured =>
-      language != null ||
-      communicationStyle != null ||
-      healthContext.isNotEmpty ||
-      personalityTraits.isNotEmpty;
+  bool get isConfigured => true;
 }

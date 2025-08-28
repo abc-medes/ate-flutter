@@ -202,15 +202,12 @@ class HealthRepository {
 
   Future<void> saveGender(Gender gender) async {
     try {
-      // Get existing health metrics if available
       final healthMetrics = await getExistingHealthMetrics();
 
-      // Update with new gender
       final updatedUserInputData = healthMetrics.userInputData.copyWith(
         gender: gender.toString().split('.').last, // Convert enum to string
       );
 
-      // Create updated health metrics
       final updatedHealthMetrics = healthMetrics.copyWith(
         userInputData: updatedUserInputData,
       );

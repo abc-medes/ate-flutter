@@ -1,4 +1,4 @@
-package com.insidesight.regene
+package com.haloai.bodai
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1075770224017",
+    "project_id": "bodai-5ce50",
+    "storage_bucket": "bodai-5ce50.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1075770224017:android:f114fcca62c3602193fe30",
+        "android_client_info": {
+          "package_name": "com.haloai.bodai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSKL2YYo78X6PxPG99c8gpmX58h7FTC2g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -15,7 +15,7 @@ class UserService {
   List<BasicUserData> get missingBasicUserData => _missingBasicUserData;
   bool get isBasicHealthDataComplete => _missingBasicUserData.isEmpty;
   bool get isInitialized => _initialized;
-  String get userId => _client.auth.currentUser!.id;
+  String get userId => _client.auth.currentUser?.id ?? '';
   um.User? get user => _user;
 
   Future<void> initialize() async {
@@ -191,6 +191,10 @@ class UserService {
 
   Future<Map<String, dynamic>?> _getHealthMetricsFromDatabase(
       String userId) async {
+    if (userId.isEmpty) {
+      return null;
+    }
+
     try {
       final response = await _client
           .from('health_metrics')

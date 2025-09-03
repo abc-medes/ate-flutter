@@ -7,6 +7,7 @@ import 'package:regene/l10n/l10n.dart';
 import 'package:regene/core/config/env.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:firebase_core/firebase_core.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,8 @@ Future<void> main() async {
     url: Env.supabaseUrl,
     anonKey: Env.supabaseAnonKey,
   );
+
+  await Firebase.initializeApp();
 
   await appLogic.bootstrap();
 

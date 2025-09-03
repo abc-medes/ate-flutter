@@ -32,6 +32,8 @@ dependencies:
   collection: ^1.19.1
   cupertino_icons: ^1.0.8
   extra_alignments: ^1.0.0+1
+  firebase_analytics: ^12.0.1
+  firebase_core: ^4.1.0
   flutter:
     sdk: flutter
   flutter_animate: ^4.5.0

@@ -56,7 +56,6 @@ class AuthService {
     await _client.auth.signInWithOAuth(
       OAuthProvider.google,
       authScreenLaunchMode: LaunchMode.externalApplication,
-      // redirectTo: 'bodai://login-callback',
     );
   }
 
@@ -65,7 +64,6 @@ class AuthService {
     await _client.auth.signInWithOAuth(
       OAuthProvider.apple,
       authScreenLaunchMode: LaunchMode.externalApplication,
-      // redirectTo: 'bodai://login-callback',
     );
   }
 

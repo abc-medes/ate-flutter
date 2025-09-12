@@ -142,7 +142,9 @@ class LoginViewModel extends StateNotifier<LoginState> {
   }
 
   Future<void> handleAppleSignIn() async {
-    try {} catch (e) {
+    try {
+      await _authService.signInWithApple();
+    } catch (e) {
       // Error is handled in AuthNotifier
     }
   }

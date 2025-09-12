@@ -1,4 +1,4 @@
-import 'package:regene/data/models/body_simulator_model.dart';
+import 'package:bodai/data/models/body_simulator_model.dart';
 
 /**
  * HEALTH DATA PRIORITY LEVELS

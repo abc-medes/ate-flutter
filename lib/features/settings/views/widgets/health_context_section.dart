@@ -1,6 +1,6 @@
-import 'package:regene/common_libs.dart';
-import 'package:regene/data/models/health_model.dart';
-import 'package:regene/data/repositories/health_repository.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/data/models/health_model.dart';
+import 'package:bodai/data/repositories/health_repository.dart';
 
 class HealthContextSection extends StatelessWidget {
   const HealthContextSection({super.key});

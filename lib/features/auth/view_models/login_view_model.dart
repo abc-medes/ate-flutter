@@ -1,6 +1,6 @@
-import 'package:regene/common_libs.dart';
-import 'package:regene/core/services/auth_service.dart';
-import 'package:regene/core/routes/route_names.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/core/services/auth_service.dart';
+import 'package:bodai/core/routes/route_names.dart';
 
 enum LoginStep {
   emailInput,
@@ -134,7 +134,9 @@ class LoginViewModel extends StateNotifier<LoginState> {
   }
 
   Future<void> handleGoogleSignIn() async {
-    try {} catch (e) {
+    try {
+      await _authService.signInWithGoogle();
+    } catch (e) {
       // Error is handled in AuthNotifier
     }
   }

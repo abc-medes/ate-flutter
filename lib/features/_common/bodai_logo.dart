@@ -1,8 +1,8 @@
-import 'package:regene/common_libs.dart';
+import 'package:bodai/common_libs.dart';
 
-class RegeneLogo extends StatelessWidget {
+class BodaiLogo extends StatelessWidget {
   /// Optional: let callers pick a size or colour if they want.
-  const RegeneLogo({
+  const BodaiLogo({
     super.key,
     required this.size,
   });
@@ -15,7 +15,7 @@ class RegeneLogo extends StatelessWidget {
       width: size,
       height: size,
       child: Image.asset(
-        'assets/logo/regene_logo.png', // make sure the path matches pubspec.yaml
+        'assets/logo/bodai_logo.png', // make sure the path matches pubspec.yaml
         fit: BoxFit.contain,
       ),
     );

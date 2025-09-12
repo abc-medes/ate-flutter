@@ -1,13 +1,13 @@
-import 'package:regene/common_libs.dart';
-import 'package:regene/core/services/auth_service.dart';
-import 'package:regene/core/routes/route_names.dart';
-import 'package:regene/core/widgets/context_input.dart';
-import 'package:regene/features/settings/view_models/settings_view_model.dart';
-import 'package:regene/features/settings/views/widgets/health_context_section.dart';
-import 'package:regene/features/settings/views/widgets/momorized_context_section.dart';
-import 'package:regene/features/settings/views/widgets/section_header.dart';
-import 'package:regene/features/settings/views/widgets/setting_header.dart';
-import 'package:regene/features/settings/views/widgets/setting_item.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/core/services/auth_service.dart';
+import 'package:bodai/core/routes/route_names.dart';
+import 'package:bodai/core/widgets/context_input.dart';
+import 'package:bodai/features/settings/view_models/settings_view_model.dart';
+import 'package:bodai/features/settings/views/widgets/health_context_section.dart';
+import 'package:bodai/features/settings/views/widgets/momorized_context_section.dart';
+import 'package:bodai/features/settings/views/widgets/section_header.dart';
+import 'package:bodai/features/settings/views/widgets/setting_header.dart';
+import 'package:bodai/features/settings/views/widgets/setting_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsView extends ConsumerStatefulWidget {

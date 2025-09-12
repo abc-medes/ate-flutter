@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:regene/main.dart';
+import 'package:bodai/main.dart';
 
 class BirthDatePickerWidget extends StatelessWidget {
   final DateTime selectedDate;

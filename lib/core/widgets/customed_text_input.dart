@@ -1,4 +1,4 @@
-import 'package:regene/common_libs.dart';
+import 'package:bodai/common_libs.dart';
 
 class CustomedTextInput extends StatelessWidget {
   final TextEditingController controller;

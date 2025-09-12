@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
-import 'package:regene/common_libs.dart';
-import 'package:regene/data/models/body_simulator_model.dart';
-import 'package:regene/data/models/chat_model.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/data/models/body_simulator_model.dart';
+import 'package:bodai/data/models/chat_model.dart';
 import 'package:intl/intl.dart';
 
 @immutable

@@ -1,6 +1,6 @@
-import 'package:regene/common_libs.dart';
-import 'package:regene/core/common/platform_info.dart';
-import 'package:regene/core/common/save_load_mixin.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/core/common/platform_info.dart';
+import 'package:bodai/core/common/save_load_mixin.dart';
 
 class SettingsLogic with ThrottledSaveLoadMixin {
   @override

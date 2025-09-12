@@ -1,10 +1,10 @@
-import 'package:regene/core/routes/route_names.dart';
-import 'package:regene/core/routes/router_wrapper.dart';
-import 'package:regene/features/auth/views/screens/email_login_input_view.dart';
-import 'package:regene/features/auth/views/screens/login_view.dart';
-import 'package:regene/features/auth/views/screens/reset_password_view.dart';
-import 'package:regene/features/auth/views/screens/signup_view.dart';
-import 'package:regene/features/onboarding/views/screens/onboarding_view.dart';
+import 'package:bodai/core/routes/route_names.dart';
+import 'package:bodai/core/routes/router_wrapper.dart';
+import 'package:bodai/features/auth/views/screens/email_login_input_view.dart';
+import 'package:bodai/features/auth/views/screens/login_view.dart';
+import 'package:bodai/features/auth/views/screens/reset_password_view.dart';
+import 'package:bodai/features/auth/views/screens/signup_view.dart';
+import 'package:bodai/features/onboarding/views/screens/onboarding_view.dart';
 
 final authRoutes = [
   AppRoute(

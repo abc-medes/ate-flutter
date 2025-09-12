@@ -1,5 +1,5 @@
-import 'package:regene/common_libs.dart';
-import 'package:regene/core/utils/duration_utils.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/core/utils/duration_utils.dart';
 
 export 'colors.dart';
 

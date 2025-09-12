@@ -1,10 +1,10 @@
-import 'package:regene/core/routes/router_wrapper.dart';
-import 'package:regene/data/models/chat_model.dart';
-import 'package:regene/features/chat/views/screens/chat_history_view.dart';
-import 'package:regene/features/chat/views/screens/chat_view.dart';
-import 'package:regene/features/home/views/screens/home_view.dart';
-import 'package:regene/core/routes/route_names.dart';
-import 'package:regene/features/settings/views/screens/settings_view.dart';
+import 'package:bodai/core/routes/router_wrapper.dart';
+import 'package:bodai/data/models/chat_model.dart';
+import 'package:bodai/features/chat/views/screens/chat_history_view.dart';
+import 'package:bodai/features/chat/views/screens/chat_view.dart';
+import 'package:bodai/features/home/views/screens/home_view.dart';
+import 'package:bodai/core/routes/route_names.dart';
+import 'package:bodai/features/settings/views/screens/settings_view.dart';
 
 final appRoutes = [
   AppRoute(

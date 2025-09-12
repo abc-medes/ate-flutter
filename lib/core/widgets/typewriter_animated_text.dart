@@ -67,7 +67,8 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
         });
 
         if (widget.enableVibration) {
-          HapticFeedback.lightImpact();
+          // TODO: Not for now. For testing purpose.
+          // HapticFeedback.lightImpact();
         }
 
         Future.delayed(widget.typingSpeed, _animateText);

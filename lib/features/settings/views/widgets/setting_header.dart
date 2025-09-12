@@ -1,6 +1,6 @@
-import 'package:regene/common_libs.dart';
-import 'package:regene/core/routes/route_names.dart';
-import 'package:regene/core/widgets/circular_icon_button.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/core/routes/route_names.dart';
+import 'package:bodai/core/widgets/circular_icon_button.dart';
 
 class SettingsHeader extends StatelessWidget {
   const SettingsHeader({super.key});

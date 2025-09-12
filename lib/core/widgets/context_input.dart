@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
-import 'package:regene/common_libs.dart';
-import 'package:regene/core/services/api_service.dart';
-import 'package:regene/core/services/session_service.dart';
-import 'package:regene/core/services/user_service.dart';
-import 'package:regene/core/widgets/input_snackbar.dart';
-import 'package:regene/data/models/chat_model.dart';
-import 'package:regene/features/settings/view_models/settings_view_model.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/core/services/api_service.dart';
+import 'package:bodai/core/services/session_service.dart';
+import 'package:bodai/core/services/user_service.dart';
+import 'package:bodai/core/widgets/input_snackbar.dart';
+import 'package:bodai/data/models/chat_model.dart';
+import 'package:bodai/features/settings/view_models/settings_view_model.dart';
 
 enum ContextPurpose { auto, memory, aiSettings }
 

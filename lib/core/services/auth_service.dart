@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:regene/common_libs.dart';
-import 'package:regene/core/routes/route_names.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/core/routes/route_names.dart';
 
 enum AuthStatus {
   initial,
@@ -30,7 +30,7 @@ class AuthService {
     final authResponse = await _client.auth.signUp(
         email: email,
         password: password,
-        emailRedirectTo: "regene://auth/signup",
+        emailRedirectTo: "bodai://auth/signup",
         data: {
           'name': name,
         });
@@ -48,14 +48,15 @@ class AuthService {
 
   Future<void> resetPassword(String email) async {
     await _client.auth.resetPasswordForEmail(email,
-        redirectTo: "regene://${RouteNames.resetPassword}");
+        redirectTo: "bodai://${RouteNames.resetPassword}");
   }
 
   // Sign in with Google
   Future<void> signInWithGoogle() async {
     await _client.auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: 'io.supabase.flutterquickstart://login-callback/',
+      authScreenLaunchMode: LaunchMode.externalApplication,
+      // redirectTo: 'bodai://login-callback',
     );
   }
 
@@ -63,7 +64,8 @@ class AuthService {
   Future<void> signInWithApple() async {
     await _client.auth.signInWithOAuth(
       OAuthProvider.apple,
-      redirectTo: 'io.supabase.flutterquickstart://login-callback/',
+      authScreenLaunchMode: LaunchMode.externalApplication,
+      // redirectTo: 'bodai://login-callback',
     );
   }
 
@@ -73,3 +75,17 @@ class AuthService {
 }
 
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());
+
+extension on AuthService {
+  Stream<Session?> get sessionChanges =>
+      _client.auth.onAuthStateChange.map((e) => e.session);
+}
+
+final sessionProvider = StreamProvider<Session?>((ref) {
+  final service = ref.watch(authServiceProvider);
+  return service.sessionChanges;
+});
+
+final isAuthedProvider = Provider<bool>((ref) {
+  return ref.watch(sessionProvider).value != null;
+});

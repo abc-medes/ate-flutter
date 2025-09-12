@@ -1,10 +1,10 @@
-import 'package:regene/common_libs.dart';
-import 'package:regene/core/services/app_lifecycle.dart';
-import 'package:regene/core/services/app_logic.dart';
-import 'package:regene/core/services/deep_link_logic.dart';
-import 'package:regene/core/services/user_service.dart';
-import 'package:regene/l10n/l10n.dart';
-import 'package:regene/core/config/env.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/core/services/app_lifecycle.dart';
+import 'package:bodai/core/services/app_logic.dart';
+import 'package:bodai/core/services/deep_link_logic.dart';
+import 'package:bodai/core/services/user_service.dart';
+import 'package:bodai/l10n/l10n.dart';
+import 'package:bodai/core/config/env.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:firebase_core/firebase_core.dart';
@@ -19,23 +19,26 @@ Future<void> main() async {
   await Supabase.initialize(
     url: Env.supabaseUrl,
     anonKey: Env.supabaseAnonKey,
+    authOptions: const FlutterAuthClientOptions(
+      authFlowType: AuthFlowType.pkce,
+    ),
   );
 
   await Firebase.initializeApp();
 
   await appLogic.bootstrap();
 
-  runApp(ProviderScope(child: Regene()));
+  runApp(ProviderScope(child: BodAI()));
 }
 
-class Regene extends ConsumerStatefulWidget {
-  const Regene({super.key});
+class BodAI extends ConsumerStatefulWidget {
+  const BodAI({super.key});
 
   @override
-  ConsumerState<Regene> createState() => _RegeneState();
+  ConsumerState<BodAI> createState() => _BodAIState();
 }
 
-class _RegeneState extends ConsumerState<Regene> {
+class _BodAIState extends ConsumerState<BodAI> {
   late final LifecycleLogic _lifecycle;
 
   @override

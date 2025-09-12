@@ -1,11 +1,11 @@
-import 'package:regene/core/services/api_service.dart';
-import 'package:regene/core/services/onboarding_service.dart';
-import 'package:regene/features/onboarding/views/widgets/body_type_pidcker.dart';
-import 'package:regene/features/onboarding/views/widgets/gender_picker.dart';
+import 'package:bodai/core/services/api_service.dart';
+import 'package:bodai/core/services/onboarding_service.dart';
+import 'package:bodai/features/onboarding/views/widgets/body_type_pidcker.dart';
+import 'package:bodai/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:regene/data/models/health_model.dart';
-import 'package:regene/data/repositories/health_repository.dart';
-import 'package:regene/core/services/user_service.dart';
+import 'package:bodai/data/models/health_model.dart';
+import 'package:bodai/data/repositories/health_repository.dart';
+import 'package:bodai/core/services/user_service.dart';
 
 class HealthOnboardingState {
   final int selectedHeight;

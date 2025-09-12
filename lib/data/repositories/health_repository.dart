@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'package:regene/data/models/body_simulator_model.dart';
-import 'package:regene/features/onboarding/views/widgets/body_type_pidcker.dart';
-import 'package:regene/features/onboarding/views/widgets/gender_picker.dart';
+import 'package:bodai/data/models/body_simulator_model.dart';
+import 'package:bodai/features/onboarding/views/widgets/body_type_pidcker.dart';
+import 'package:bodai/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:regene/data/models/health_model.dart';
+import 'package:bodai/data/models/health_model.dart';
 
 class HealthRepository {
   static const String _healthDataKey = 'health_metrics';

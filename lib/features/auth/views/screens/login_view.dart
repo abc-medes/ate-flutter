@@ -1,12 +1,13 @@
 import 'dart:io';
-import 'package:regene/common_libs.dart';
-import 'package:regene/core/widgets/typewriter_animated_text.dart';
-import 'package:regene/features/_common/regene_logo.dart';
-import 'package:regene/features/auth/view_models/login_view_model.dart';
-import 'package:regene/features/auth/views/widgets/social_login_button.dart';
-import 'package:regene/core/routes/route_names.dart';
-import 'package:regene/core/widgets/loading_view.dart';
-import 'package:regene/core/widgets/error_snackbar.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/core/services/user_service.dart';
+import 'package:bodai/core/widgets/typewriter_animated_text.dart';
+import 'package:bodai/features/_common/bodai_logo.dart';
+import 'package:bodai/features/auth/view_models/login_view_model.dart';
+import 'package:bodai/features/auth/views/widgets/social_login_button.dart';
+import 'package:bodai/core/routes/route_names.dart';
+import 'package:bodai/core/widgets/loading_view.dart';
+import 'package:bodai/core/widgets/error_snackbar.dart';
 
 class LoginView extends ConsumerStatefulWidget {
   const LoginView({super.key});
@@ -84,7 +85,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    RegeneLogo(size: $styles.sizes.maxContentWidth3 * 0.5),
+                    BodaiLogo(size: $styles.sizes.maxContentWidth3 * 0.5),
                     Gap($styles.insets.xs),
                     TypewriterAnimatedText(
                       loop: false,
@@ -231,6 +232,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
       Future<void> Function() signInMethod) async {
     final supabase = Supabase.instance.client;
     final viewModel = ref.read(loginViewModelProvider.notifier);
+    final userService = ref.read(userServiceProvider);
 
     try {
       await signInMethod();
@@ -238,23 +240,37 @@ class _LoginViewState extends ConsumerState<LoginView> {
       final user = supabase.auth.currentUser;
       if (user != null) {
         try {
-          final response = await supabase
+          final profile = await supabase
               .from('profiles')
               .select()
               .eq('id', user.id)
               .maybeSingle();
 
-          if (response == null && context.mounted) {
-            await supabase.auth.signOut();
-            context.push(RouteNames.signup);
+          if (profile == null) {
+            final email = user.email ?? '';
+            final meta = user.userMetadata ?? {};
+            final name = (meta['name'] ??
+                    meta['full_name'] ??
+                    meta['preferred_username'] ??
+                    (email.isNotEmpty ? email.split('@').first : ''))
+                .toString();
+
+            await userService.createProfile(
+              userId: user.id,
+              email: email,
+              name: name,
+            );
+            await userService.createEmptyUserHealthMetrics(user.id);
+
+            if (context.mounted) context.go(RouteNames.onboarding);
+          } else {
+            if (context.mounted) context.go(RouteNames.home);
           }
         } catch (e) {
-          print("Error checking profile: $e");
-          await supabase.auth.signOut();
-
+          print("Post-login handling error: $e");
           if (context.mounted) {
             LoadingScreen.dismiss(context);
-            context.push(RouteNames.signup);
+            context.go(RouteNames.onboarding);
           }
         }
       }
@@ -262,7 +278,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
       print("Social login error: $e");
       if (context.mounted) {
         LoadingScreen.dismiss(context);
-
         ErrorSnackbar.showLoginError(
           context: context,
           errorMessage: e.toString(),

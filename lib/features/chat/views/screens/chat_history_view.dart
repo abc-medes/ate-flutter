@@ -1,13 +1,13 @@
 import 'package:intl/intl.dart';
-import 'package:regene/common_libs.dart';
-import 'package:regene/core/routes/route_names.dart';
-import 'package:regene/core/services/session_service.dart';
-import 'package:regene/core/widgets/chat_input.dart';
-import 'package:regene/core/widgets/circular_icon_button.dart';
-import 'package:regene/core/widgets/error_snackbar.dart';
-import 'package:regene/data/models/body_simulator_model.dart';
-import 'package:regene/data/models/chat_model.dart';
-import 'package:regene/features/chat/view_models/chat_history_view_model.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/core/routes/route_names.dart';
+import 'package:bodai/core/services/session_service.dart';
+import 'package:bodai/core/widgets/chat_input.dart';
+import 'package:bodai/core/widgets/circular_icon_button.dart';
+import 'package:bodai/core/widgets/error_snackbar.dart';
+import 'package:bodai/data/models/body_simulator_model.dart';
+import 'package:bodai/data/models/chat_model.dart';
+import 'package:bodai/features/chat/view_models/chat_history_view_model.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class ChatHistoryView extends ConsumerStatefulWidget {

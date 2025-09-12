@@ -1,5 +1,5 @@
 // ignore_for_file: constant_identifier_names
-import 'package:regene/common_libs.dart';
+import 'package:bodai/common_libs.dart';
 
 class AppIcon extends StatelessWidget {
   const AppIcon(this.icon, {super.key, this.size = 22, this.color});

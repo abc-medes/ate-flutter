@@ -1,5 +1,5 @@
-import 'package:regene/common_libs.dart';
-import 'package:regene/features/home/view_models/home_view_model.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/features/home/view_models/home_view_model.dart';
 
 class ChatHelper extends StatelessWidget {
   final ChatHelperType? selectedChip;

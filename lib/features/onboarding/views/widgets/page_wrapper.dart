@@ -1,7 +1,7 @@
-import 'package:regene/common_libs.dart';
-import 'package:regene/core/widgets/typewriter_animated_text.dart';
-import 'package:regene/features/onboarding/view_models/onboarding_view_model.dart';
-import 'package:regene/features/onboarding/views/widgets/navigation_hint.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/core/widgets/typewriter_animated_text.dart';
+import 'package:bodai/features/onboarding/view_models/onboarding_view_model.dart';
+import 'package:bodai/features/onboarding/views/widgets/navigation_hint.dart';
 
 class OnboardingPageWrapper extends StatelessWidget {
   const OnboardingPageWrapper({

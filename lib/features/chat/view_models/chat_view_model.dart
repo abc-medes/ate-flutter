@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:regene/common_libs.dart';
-import 'package:regene/data/models/chat_model.dart';
-import 'package:regene/core/services/chat_service.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/data/models/chat_model.dart';
+import 'package:bodai/core/services/chat_service.dart';
 
 final chatViewModelProvider =
     StateNotifierProvider.autoDispose<ChatViewModel, ChatViewState>(

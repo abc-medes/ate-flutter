@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:developer' as dev;
 
-import 'package:regene/core/common/rest_utils.dart';
-import 'package:regene/core/common/string_utils.dart';
+import 'package:bodai/core/common/rest_utils.dart';
+import 'package:bodai/core/common/string_utils.dart';
 import 'package:http/http.dart' as http;
 
 enum NetErrorType {

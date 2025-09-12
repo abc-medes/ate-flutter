@@ -1,4 +1,4 @@
-import 'package:regene/common_libs.dart';
+import 'package:bodai/common_libs.dart';
 
 extension DurationExtensions on int {
   Duration get delayMs =>

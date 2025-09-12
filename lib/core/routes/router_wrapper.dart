@@ -1,4 +1,4 @@
-import 'package:regene/common_libs.dart';
+import 'package:bodai/common_libs.dart';
 import 'package:flutter/cupertino.dart';
 
 /// Custom GoRoute sub-class to make the router declaration easier to read

@@ -1,9 +1,9 @@
-import 'package:regene/common_libs.dart';
-import 'package:regene/data/models/body_simulator_model.dart';
-import 'package:regene/data/models/health_model.dart';
-import 'package:regene/data/models/insight_model.dart';
-import 'package:regene/data/repositories/health_repository.dart';
-import 'package:regene/data/models/profiles/user_model.dart' as um;
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/data/models/body_simulator_model.dart';
+import 'package:bodai/data/models/health_model.dart';
+import 'package:bodai/data/models/insight_model.dart';
+import 'package:bodai/data/repositories/health_repository.dart';
+import 'package:bodai/data/models/profiles/user_model.dart' as um;
 
 class UserService {
   final SupabaseClient _client = Supabase.instance.client;

@@ -1,4 +1,4 @@
-import 'package:regene/common_libs.dart';
+import 'package:bodai/common_libs.dart';
 import 'package:uuid/uuid.dart';
 
 final sessionIdProvider = StateProvider<String>((ref) => Uuid().v4());

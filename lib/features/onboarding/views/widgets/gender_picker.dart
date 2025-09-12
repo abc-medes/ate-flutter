@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:regene/common_libs.dart';
+import 'package:bodai/common_libs.dart';
 
 enum Gender {
   male,

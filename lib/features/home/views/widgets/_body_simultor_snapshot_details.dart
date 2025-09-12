@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:regene/common_libs.dart';
-import 'package:regene/core/services/api_service.dart';
-import 'package:regene/core/services/session_service.dart';
-import 'package:regene/data/models/body_simulator_model.dart';
-import 'package:regene/features/home/views/widgets/_animated_metric_value.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/core/services/api_service.dart';
+import 'package:bodai/core/services/session_service.dart';
+import 'package:bodai/data/models/body_simulator_model.dart';
+import 'package:bodai/features/home/views/widgets/_animated_metric_value.dart';
 
 class BodySimulatorSnapshotDetails extends ConsumerStatefulWidget {
   final String userId;

@@ -1,14 +1,14 @@
-import 'package:regene/common_libs.dart';
-import 'package:regene/core/routes/route_names.dart';
-import 'package:regene/core/widgets/live_typewriter.dart';
-import 'package:regene/features/onboarding/view_models/onboarding_view_model.dart';
-import 'package:regene/features/onboarding/views/widgets/birth_date_picker.dart';
-import 'package:regene/features/onboarding/views/widgets/body_type_pidcker.dart';
-import 'package:regene/features/onboarding/views/widgets/gender_picker.dart';
-import 'package:regene/features/onboarding/views/widgets/height_picker.dart';
-import 'package:regene/features/onboarding/views/widgets/page_wrapper.dart';
-import 'package:regene/features/onboarding/views/widgets/weight_picker.dart';
-import 'package:regene/data/models/health_model.dart';
+import 'package:bodai/common_libs.dart';
+import 'package:bodai/core/routes/route_names.dart';
+import 'package:bodai/core/widgets/live_typewriter.dart';
+import 'package:bodai/features/onboarding/view_models/onboarding_view_model.dart';
+import 'package:bodai/features/onboarding/views/widgets/birth_date_picker.dart';
+import 'package:bodai/features/onboarding/views/widgets/body_type_pidcker.dart';
+import 'package:bodai/features/onboarding/views/widgets/gender_picker.dart';
+import 'package:bodai/features/onboarding/views/widgets/height_picker.dart';
+import 'package:bodai/features/onboarding/views/widgets/page_wrapper.dart';
+import 'package:bodai/features/onboarding/views/widgets/weight_picker.dart';
+import 'package:bodai/data/models/health_model.dart';
 
 final onboardingPageProvider = StateProvider<int>((ref) => 0);
 

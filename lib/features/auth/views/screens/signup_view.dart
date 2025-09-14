@@ -1,7 +1,14 @@
+import 'dart:io';
+
 import 'package:bodai/common_libs.dart';
 import 'package:bodai/core/routes/route_names.dart';
+import 'package:bodai/core/services/auth_service.dart';
+import 'package:bodai/core/utils/social_auth_flow_utils.dart';
+import 'package:bodai/core/widgets/page_header.dart';
+import 'package:bodai/features/auth/view_models/login_view_model.dart';
 import 'package:bodai/features/auth/view_models/signup_view_model.dart';
 import 'package:bodai/features/auth/views/widgets/email_sent_step.dart';
+import 'package:bodai/features/auth/views/widgets/social_login_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bodai/core/widgets/loading_view.dart';
 import 'package:bodai/core/widgets/error_snackbar.dart';
@@ -52,90 +59,90 @@ class _SignupViewState extends ConsumerState<SignupView> {
     });
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: Text(
-          $strings.signUp,
-        ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      if (viewState.currentStep == SignupStep.detailsInput)
-                        _buildDetailsStep(context, viewModel, viewState),
-                      if (viewState.currentStep == SignupStep.emailSent)
-                        EmailSentStep(
-                          title: 'Verify Your Email',
-                          description:
-                              "We've sent an email to ${viewState.emailController.text} with a verification link. Please click the link in your email to complete your registration.",
-                          nextStepsTitle: 'Next steps:',
-                          nextSteps: [
-                            'Check your email inbox for a verification link from us',
-                            'Click on the link in the email to verify your account',
-                            'Return to the app to complete your registration',
+      backgroundColor: $styles.colors.background,
+      body: Column(
+        children: [
+          const PageHeader(title: 'Sign Up'),
+          Expanded(
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            if (viewState.currentStep ==
+                                SignupStep.detailsInput)
+                              _buildDetailsStep(context, viewModel, viewState),
+                            if (viewState.currentStep == SignupStep.emailSent)
+                              EmailSentStep(
+                                title: 'Verify Your Email',
+                                description:
+                                    "We've sent an email to ${viewState.emailController.text} with a verification link. Please click the link in your email to complete your registration.",
+                                nextStepsTitle: 'Next steps:',
+                                nextSteps: [
+                                  'Check your email inbox for a verification link from us',
+                                  'Click on the link in the email to verify your account',
+                                  'Return to the app to complete your registration',
+                                ],
+                                resendButtonText:
+                                    "Didn't receive the email? Resend",
+                                onResend: viewState.isLoading
+                                    ? null
+                                    : () async {/* resend logic */},
+                                backToLoginText: 'Back to Login',
+                                onBackToLogin: () =>
+                                    context.go(RouteNames.login),
+                                isLoading: viewState.isLoading,
+                              ),
                           ],
-                          resendButtonText: "Didn't receive the email? Resend",
-                          onResend: viewState.isLoading
-                              ? null
-                              : () async {/* resend logic */},
-                          backToLoginText: 'Back to Login',
-                          onBackToLogin: () => context.go(RouteNames.login),
-                          isLoading: viewState.isLoading,
                         ),
-                      // _buildEmailSentStep(context, viewModel, viewState),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: viewState.isLoading
-                      ? null
-                      : () async {
-                          switch (viewState.currentStep) {
-                            case SignupStep.detailsInput:
-                              await viewModel.signUp();
-                              break;
-                            case SignupStep.emailSent:
-                              await viewModel.wrapUpEmailSignUp(context);
-                              break;
-                            default:
-                              break;
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.surface,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    'Continue',
-                    style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                          color: AppColors.surface,
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: viewState.isLoading
+                            ? null
+                            : () async {
+                                switch (viewState.currentStep) {
+                                  case SignupStep.detailsInput:
+                                    await viewModel.signUp();
+                                    break;
+                                  case SignupStep.emailSent:
+                                    await viewModel.wrapUpEmailSignUp(context);
+                                    break;
+                                  default:
+                                    break;
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.surface,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                  ),
+                        child: Text(
+                          'Continue',
+                          style:
+                              Theme.of(context).textTheme.labelLarge!.copyWith(
+                                    color: AppColors.surface,
+                                  ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -145,75 +152,131 @@ class _SignupViewState extends ConsumerState<SignupView> {
     SignupViewModel viewModel,
     SignupState viewState,
   ) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Email field
-          CustomedTextInput(
-            controller: viewState.emailController,
-            hintText: 'Email',
-            isRequired: true,
-            keyboardType: TextInputType.emailAddress,
-            onChanged: (_) => viewModel.validateEmail(),
-            errorText: !viewState.isEmailValid
-                ? 'Please enter a valid email address'
-                : null,
-          ),
-          const SizedBox(height: 24),
+    final bool isAndroid = Platform.isAndroid;
+    final bool isIOS = Platform.isIOS;
 
-          // Name field
-          CustomedTextInput(
-            controller: viewState.nameController,
-            hintText: 'Full Name',
-            isRequired: true,
-          ),
-          const SizedBox(height: 24),
-
-          // Password field
-          CustomedTextInput(
-            controller: viewState.passwordController,
-            hintText: 'Password',
-            isRequired: true,
-            obscureText: !viewState.isPasswordVisible,
-            onChanged: (_) => viewModel.validatePassword(),
-            errorText: !viewState.isPasswordValid
-                ? 'Password must be at least 8 characters with at least 1 number'
-                : null,
-            suffixIcon: IconButton(
-              icon: Icon(
-                viewState.isPasswordVisible
-                    ? Icons.visibility_off
-                    : Icons.visibility,
-                color: AppColors.textTertiary,
-              ),
-              onPressed: viewModel.togglePasswordVisibility,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomedTextInput(
+          controller: viewState.emailController,
+          hintText: 'Email',
+          isRequired: true,
+          keyboardType: TextInputType.emailAddress,
+          onChanged: (_) => viewModel.validateEmail(),
+          errorText: !viewState.isEmailValid
+              ? 'Please enter a valid email address'
+              : null,
+        ),
+        const SizedBox(height: 16),
+        CustomedTextInput(
+          controller: viewState.nameController,
+          hintText: 'Full Name',
+          isRequired: true,
+        ),
+        const SizedBox(height: 16),
+        CustomedTextInput(
+          controller: viewState.passwordController,
+          hintText: 'Password',
+          isRequired: true,
+          obscureText: !viewState.isPasswordVisible,
+          onChanged: (_) => viewModel.validatePassword(),
+          errorText: !viewState.isPasswordValid
+              ? 'Password must be at least 8 characters with at least 1 number'
+              : null,
+          suffixIcon: IconButton(
+            icon: Icon(
+              viewState.isPasswordVisible
+                  ? Icons.visibility_off
+                  : Icons.visibility,
+              color: AppColors.textTertiary,
             ),
+            onPressed: viewModel.togglePasswordVisibility,
           ),
-          const SizedBox(height: 24),
-
-          // Confirm Password field
-          CustomedTextInput(
-            controller: viewState.confirmPasswordController,
-            hintText: 'Confirm Password',
-            isRequired: true,
-            obscureText: !viewState.isConfirmPasswordVisible,
-            onChanged: (_) => viewModel.validatePasswordsMatch(),
-            errorText:
-                !viewState.doPasswordsMatch ? 'Passwords do not match' : null,
-            suffixIcon: IconButton(
-              icon: Icon(
-                viewState.isConfirmPasswordVisible
-                    ? Icons.visibility_off
-                    : Icons.visibility,
-                color: AppColors.textTertiary,
-              ),
-              onPressed: viewModel.toggleConfirmPasswordVisibility,
+        ),
+        const SizedBox(height: 16),
+        CustomedTextInput(
+          controller: viewState.confirmPasswordController,
+          hintText: 'Confirm Password',
+          isRequired: true,
+          obscureText: !viewState.isConfirmPasswordVisible,
+          onChanged: (_) => viewModel.validatePasswordsMatch(),
+          errorText:
+              !viewState.doPasswordsMatch ? 'Passwords do not match' : null,
+          suffixIcon: IconButton(
+            icon: Icon(
+              viewState.isConfirmPasswordVisible
+                  ? Icons.visibility_off
+                  : Icons.visibility,
+              color: AppColors.textTertiary,
             ),
+            onPressed: viewModel.toggleConfirmPasswordVisibility,
           ),
-          const SizedBox(height: 40),
+        ),
+        const SizedBox(height: 24),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(child: Divider(color: $styles.colors.greyMedium)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                $strings.or,
+                style: TextStyle(height: 1, color: $styles.colors.greyMedium),
+              ),
+            ),
+            Expanded(child: Divider(color: $styles.colors.greyMedium)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        SocialAuthButton(
+          ref: ref,
+          text: 'Sign up with Google',
+          icon: Icons.g_mobiledata_rounded,
+          iconColor: $styles.colors.black,
+          onPressed: () {
+            _handleSocialLogin(
+                context, ref, ref.read(authServiceProvider).signInWithGoogle);
+          },
+        ),
+        if ((isIOS || !isAndroid)) ...[
+          const SizedBox(height: 12),
+          SocialAuthButton(
+            ref: ref,
+            text: 'Sign up with Apple',
+            icon: Icons.apple,
+            iconColor: $styles.colors.black,
+            onPressed: () {
+              _handleSocialLogin(
+                  context, ref, ref.read(authServiceProvider).signInWithApple);
+            },
+          ),
         ],
-      ),
+        const SizedBox(height: 40),
+      ],
     );
+  }
+
+  void _handleSocialLogin(BuildContext context, WidgetRef ref,
+      Future<void> Function() signInMethod) async {
+    final viewModel = ref.read(loginViewModelProvider.notifier);
+
+    try {
+      await socialSignInAndFinalize(context, ref, signInMethod);
+    } catch (e) {
+      if (context.mounted) {
+        LoadingScreen.dismiss(context);
+        ErrorSnackbar.showLoginError(
+          context: context,
+          errorMessage: e.toString(),
+          clearError: () {
+            viewModel.clearError();
+          },
+          onTryAgain: () {
+            signInMethod();
+          },
+        );
+      }
+    }
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:bodai/common_libs.dart';
 import 'package:bodai/core/services/user_service.dart';
+import 'package:bodai/core/utils/social_auth_flow_utils.dart';
 import 'package:bodai/core/widgets/typewriter_animated_text.dart';
 import 'package:bodai/features/_common/bodai_logo.dart';
 import 'package:bodai/features/auth/view_models/login_view_model.dart';
@@ -230,52 +231,11 @@ class _LoginViewState extends ConsumerState<LoginView> {
 
   void _handleSocialLogin(BuildContext context, WidgetRef ref,
       Future<void> Function() signInMethod) async {
-    final supabase = Supabase.instance.client;
     final viewModel = ref.read(loginViewModelProvider.notifier);
-    final userService = ref.read(userServiceProvider);
 
     try {
-      await signInMethod();
-
-      final user = supabase.auth.currentUser;
-      if (user != null) {
-        try {
-          final profile = await supabase
-              .from('profiles')
-              .select()
-              .eq('id', user.id)
-              .maybeSingle();
-
-          if (profile == null) {
-            final email = user.email ?? '';
-            final meta = user.userMetadata ?? {};
-            final name = (meta['name'] ??
-                    meta['full_name'] ??
-                    meta['preferred_username'] ??
-                    (email.isNotEmpty ? email.split('@').first : ''))
-                .toString();
-
-            await userService.createProfile(
-              userId: user.id,
-              email: email,
-              name: name,
-            );
-            await userService.createEmptyUserHealthMetrics(user.id);
-
-            if (context.mounted) context.go(RouteNames.onboarding);
-          } else {
-            if (context.mounted) context.go(RouteNames.home);
-          }
-        } catch (e) {
-          print("Post-login handling error: $e");
-          if (context.mounted) {
-            LoadingScreen.dismiss(context);
-            context.go(RouteNames.onboarding);
-          }
-        }
-      }
+      await socialSignInAndFinalize(context, ref, signInMethod);
     } catch (e) {
-      print("Social login error: $e");
       if (context.mounted) {
         LoadingScreen.dismiss(context);
         ErrorSnackbar.showLoginError(

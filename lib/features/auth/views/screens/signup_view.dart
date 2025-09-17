@@ -67,7 +67,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
             child: SafeArea(
               top: false,
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: EdgeInsets.all($styles.insets.md),
                 child: Column(
                   children: [
                     Expanded(
@@ -104,7 +104,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
                     ),
                     SizedBox(
                       width: double.infinity,
-                      height: 54,
+                      height: $styles.insets.xl,
                       child: ElevatedButton(
                         onPressed: viewState.isLoading
                             ? null
@@ -121,19 +121,19 @@ class _SignupViewState extends ConsumerState<SignupView> {
                                 }
                               },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.surface,
+                          backgroundColor: $styles.colors.accent1,
+                          foregroundColor: $styles.colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius:
+                                BorderRadius.circular($styles.corners.md),
                           ),
                         ),
                         child: Text(
                           'Continue',
-                          style:
-                              Theme.of(context).textTheme.labelLarge!.copyWith(
-                                    color: AppColors.surface,
-                                  ),
+                          style: $styles.text.bodyBold.copyWith(
+                            color: $styles.colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -167,14 +167,28 @@ class _SignupViewState extends ConsumerState<SignupView> {
           errorText: !viewState.isEmailValid
               ? 'Please enter a valid email address'
               : null,
+          textStyle: $styles.text.bodySmall,
+          hintTextStyle:
+              $styles.text.bodySmall.copyWith(color: $styles.colors.greyMedium),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: $styles.insets.sm,
+            vertical: $styles.insets.sm,
+          ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: $styles.insets.sm),
         CustomedTextInput(
           controller: viewState.nameController,
           hintText: 'Full Name',
           isRequired: true,
+          textStyle: $styles.text.bodySmall,
+          hintTextStyle:
+              $styles.text.bodySmall.copyWith(color: $styles.colors.greyMedium),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: $styles.insets.sm,
+            vertical: $styles.insets.sm,
+          ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: $styles.insets.sm),
         CustomedTextInput(
           controller: viewState.passwordController,
           hintText: 'Password',
@@ -189,12 +203,19 @@ class _SignupViewState extends ConsumerState<SignupView> {
               viewState.isPasswordVisible
                   ? Icons.visibility_off
                   : Icons.visibility,
-              color: AppColors.textTertiary,
+              color: $styles.colors.greyMedium,
             ),
             onPressed: viewModel.togglePasswordVisibility,
           ),
+          textStyle: $styles.text.bodySmall,
+          hintTextStyle:
+              $styles.text.bodySmall.copyWith(color: $styles.colors.greyMedium),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: $styles.insets.sm,
+            vertical: $styles.insets.sm,
+          ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: $styles.insets.sm),
         CustomedTextInput(
           controller: viewState.confirmPasswordController,
           hintText: 'Confirm Password',
@@ -208,18 +229,25 @@ class _SignupViewState extends ConsumerState<SignupView> {
               viewState.isConfirmPasswordVisible
                   ? Icons.visibility_off
                   : Icons.visibility,
-              color: AppColors.textTertiary,
+              color: $styles.colors.greyMedium,
             ),
             onPressed: viewModel.toggleConfirmPasswordVisibility,
           ),
+          textStyle: $styles.text.bodySmall,
+          hintTextStyle:
+              $styles.text.bodySmall.copyWith(color: $styles.colors.greyMedium),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: $styles.insets.sm,
+            vertical: $styles.insets.sm,
+          ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: $styles.insets.xl),
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(child: Divider(color: $styles.colors.greyMedium)),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: $styles.insets.sm),
               child: Text(
                 $strings.or,
                 style: TextStyle(height: 1, color: $styles.colors.greyMedium),
@@ -228,7 +256,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
             Expanded(child: Divider(color: $styles.colors.greyMedium)),
           ],
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: $styles.insets.xl),
         SocialAuthButton(
           ref: ref,
           text: 'Sign up with Google',
@@ -240,7 +268,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
           },
         ),
         if ((isIOS || !isAndroid)) ...[
-          const SizedBox(height: 12),
+          SizedBox(height: $styles.insets.xs),
           SocialAuthButton(
             ref: ref,
             text: 'Sign up with Apple',

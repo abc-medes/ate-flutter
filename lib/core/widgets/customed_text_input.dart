@@ -10,6 +10,9 @@ class CustomedTextInput extends StatelessWidget {
   final Widget? suffixIcon;
   final bool enabled;
   final String? errorText;
+  final TextStyle? textStyle;
+  final TextStyle? hintTextStyle;
+  final EdgeInsetsGeometry? contentPadding;
 
   const CustomedTextInput({
     super.key,
@@ -22,6 +25,9 @@ class CustomedTextInput extends StatelessWidget {
     this.suffixIcon,
     this.enabled = true,
     this.errorText,
+    this.textStyle,
+    this.hintTextStyle,
+    this.contentPadding,
   });
 
   @override
@@ -36,13 +42,14 @@ class CustomedTextInput extends StatelessWidget {
           ),
           child: TextField(
             controller: controller,
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: textStyle ?? Theme.of(context).textTheme.bodyMedium,
             obscureText: obscureText,
             enabled: enabled,
             decoration: InputDecoration(
               hintText: isRequired ? '$hintText *' : hintText,
-              hintStyle: TextStyle(color: AppColors.textTertiary),
-              contentPadding:
+              hintStyle:
+                  hintTextStyle ?? TextStyle(color: AppColors.textTertiary),
+              contentPadding: contentPadding ??
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
               border: InputBorder.none,
               suffixIcon: suffixIcon,

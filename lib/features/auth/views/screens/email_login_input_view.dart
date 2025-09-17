@@ -2,6 +2,7 @@ import 'package:bodai/common_libs.dart';
 import 'package:bodai/core/routes/route_names.dart';
 import 'package:bodai/features/auth/view_models/login_view_model.dart';
 import 'package:bodai/core/widgets/customed_text_input.dart';
+import 'package:bodai/core/widgets/page_header.dart';
 
 class EmailLoginInputView extends ConsumerStatefulWidget {
   const EmailLoginInputView({super.key});
@@ -25,59 +26,60 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
     final viewState = ref.watch(loginViewModelProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            ref.invalidate(loginViewModelProvider);
-
-            Navigator.pop(context);
-          },
-        ),
-        title: Text(
-          $strings.logIn,
-        ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              if (viewState.currentStep == LoginStep.emailInput)
-                Expanded(
-                  child: EmailAndPasswordInputStep(
-                      viewState: viewState, viewModel: viewModel),
-                ),
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: viewState.isLoading
-                      ? null
-                      : () async {
-                          await viewModel.handlePasswordLogin(context);
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.surface,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+      backgroundColor: $styles.colors.background,
+      body: Column(
+        children: [
+          PageHeader(
+            title: $strings.logIn,
+            onBack: () {
+              ref.invalidate(loginViewModelProvider);
+              Navigator.of(context).maybePop();
+            },
+          ),
+          Expanded(
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.all($styles.insets.md),
+                child: Column(
+                  children: [
+                    if (viewState.currentStep == LoginStep.emailInput)
+                      Expanded(
+                        child: EmailAndPasswordInputStep(
+                            viewState: viewState, viewModel: viewModel),
+                      ),
+                    SizedBox(
+                      width: double.infinity,
+                      height: $styles.insets.xl,
+                      child: ElevatedButton(
+                        onPressed: viewState.isLoading
+                            ? null
+                            : () async {
+                                await viewModel.handlePasswordLogin(context);
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: $styles.colors.accent1,
+                          foregroundColor: $styles.colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular($styles.corners.md),
+                          ),
+                        ),
+                        child: Text(
+                          $strings.logIn,
+                          style: $styles.text.btn.copyWith(
+                            color: $styles.colors.white,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    $strings.logIn,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -105,9 +107,16 @@ class EmailAndPasswordInputStep extends StatelessWidget {
           enabled: !viewState.isLoading,
           errorText:
               !viewState.isEmailValid ? 'Please enter a valid email' : null,
+          textStyle: $styles.text.bodySmall,
+          hintTextStyle:
+              $styles.text.bodySmall.copyWith(color: $styles.colors.greyMedium),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: $styles.insets.sm,
+            vertical: $styles.insets.sm,
+          ),
         ),
 
-        const SizedBox(height: 16),
+        SizedBox(height: $styles.insets.sm),
 
         CustomedTextInput(
           controller: viewState.passwordController,
@@ -118,27 +127,33 @@ class EmailAndPasswordInputStep extends StatelessWidget {
               viewState.isPasswordVisible
                   ? Icons.visibility_off
                   : Icons.visibility,
-              color: AppColors.textTertiary,
+              color: $styles.colors.greyMedium,
             ),
             onPressed: viewModel.togglePasswordVisibility,
           ),
+          textStyle: $styles.text.bodySmall,
+          hintTextStyle:
+              $styles.text.bodySmall.copyWith(color: $styles.colors.greyMedium),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: $styles.insets.sm,
+            vertical: $styles.insets.sm,
+          ),
         ),
 
-        const SizedBox(height: 16),
+        SizedBox(height: $styles.insets.sm),
 
         // Forgot password link
         Padding(
-          padding: const EdgeInsets.only(top: 12.0),
+          padding: EdgeInsets.only(top: $styles.insets.xs),
           child: Center(
             child: GestureDetector(
               onTap: () {
                 context.replace(RouteNames.resetPassword);
-                // viewModel.handleForgotPassword(context);
               },
               child: Text(
                 $strings.forgotPassword,
                 style: TextStyle(
-                  color: AppColors.primary,
+                  color: $styles.colors.accent1,
                 ),
               ),
             ),

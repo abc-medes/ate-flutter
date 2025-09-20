@@ -9,6 +9,10 @@ Future<void> socialSignInAndFinalize(
   Future<void> Function() signInMethod,
 ) async {
   await signInMethod();
+
+  await Supabase.instance.client.auth.onAuthStateChange
+      .firstWhere((e) => e.session != null);
+
   await finalizeAfterOAuth(context, ref);
 }
 
@@ -25,6 +29,8 @@ Future<void> finalizeAfterOAuth(BuildContext context, WidgetRef ref) async {
         .select()
         .eq('id', user.id)
         .maybeSingle();
+
+    print('profile: $profile');
 
     if (profile == null) {
       final email = user.email ?? '';

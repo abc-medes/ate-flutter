@@ -2,8 +2,8 @@ import 'package:bodido/common_libs.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/data/models/insight_model.dart';
-import 'package:bodido/data/repositories/health_repository.dart';
 import 'package:bodido/data/models/profiles/user_model.dart' as um;
+import 'package:bodido/data/repositories/health_repository.dart';
 
 class UserService {
   final SupabaseClient _client = Supabase.instance.client;
@@ -52,8 +52,8 @@ class UserService {
         .from('profiles')
         .select('open_state')
         .eq('id', userId)
-        .single();
-    return Map<String, dynamic>.from(res['open_state'] ?? {});
+        .maybeSingle();
+    return Map<String, dynamic>.from(res?['open_state'] ?? {});
   }
 
   Future<void> _saveOpenStateMap(

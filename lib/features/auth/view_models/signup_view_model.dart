@@ -1,9 +1,7 @@
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
-import 'package:bodido/core/services/user_service.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bodido/core/services/auth_service.dart';
+import 'package:bodido/core/services/user_service.dart';
 
 enum SignupStep {
   detailsInput,

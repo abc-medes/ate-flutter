@@ -1,6 +1,9 @@
 import 'dart:async';
+
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
+import 'package:url_launcher/url_launcher.dart'
+    show closeInAppWebView, LaunchMode;
 
 enum AuthStatus {
   initial,
@@ -30,7 +33,7 @@ class AuthService {
     final authResponse = await _client.auth.signUp(
         email: email,
         password: password,
-        emailRedirectTo: "bodido://auth/signup",
+        emailRedirectTo: "bodido.app://auth/signup",
         data: {
           'name': name,
         });
@@ -48,23 +51,44 @@ class AuthService {
 
   Future<void> resetPassword(String email) async {
     await _client.auth.resetPasswordForEmail(email,
-        redirectTo: "bodido://${RouteNames.resetPassword}");
+        redirectTo: "bodido.app://${RouteNames.resetPassword}");
   }
 
   // Sign in with Google
   Future<void> signInWithGoogle() async {
+    final done = _client.auth.onAuthStateChange
+        .firstWhere((e) =>
+            e.event == AuthChangeEvent.signedIn ||
+            e.event == AuthChangeEvent.userUpdated)
+        .then((_) => closeInAppWebView());
+
+    const redirectTo = 'bodido.app://auth/login-callback';
+
     await _client.auth.signInWithOAuth(
       OAuthProvider.google,
-      authScreenLaunchMode: LaunchMode.externalApplication,
+      redirectTo: redirectTo,
+      authScreenLaunchMode: LaunchMode.platformDefault,
     );
+
+    await done;
   }
 
   // Sign in with Apple
   Future<void> signInWithApple() async {
+    final done = _client.auth.onAuthStateChange
+        .firstWhere((e) =>
+            e.event == AuthChangeEvent.signedIn ||
+            e.event == AuthChangeEvent.userUpdated)
+        .then((_) => closeInAppWebView());
+    const redirectTo = 'bodido.app://auth/login-callback';
+
     await _client.auth.signInWithOAuth(
-      OAuthProvider.apple,
-      authScreenLaunchMode: LaunchMode.externalApplication,
+      OAuthProvider.google,
+      redirectTo: redirectTo,
+      authScreenLaunchMode: LaunchMode.platformDefault,
     );
+
+    await done;
   }
 
   Future<void> signOut() async {

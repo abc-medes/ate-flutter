@@ -1,6 +1,6 @@
 import 'package:bodido/common_libs.dart';
-import 'package:bodido/core/services/auth_service.dart';
 import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/services/auth_service.dart';
 
 enum LoginStep {
   emailInput,
@@ -134,19 +134,11 @@ class LoginViewModel extends StateNotifier<LoginState> {
   }
 
   Future<void> handleGoogleSignIn() async {
-    try {
-      await _authService.signInWithGoogle();
-    } catch (e) {
-      // Error is handled in AuthNotifier
-    }
+    await _authService.signInWithGoogle();
   }
 
   Future<void> handleAppleSignIn() async {
-    try {
-      await _authService.signInWithApple();
-    } catch (e) {
-      // Error is handled in AuthNotifier
-    }
+    await _authService.signInWithApple();
   }
 
   void redirectToSignup(BuildContext context) {

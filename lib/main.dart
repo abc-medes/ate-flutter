@@ -1,10 +1,10 @@
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/core/services/app_lifecycle.dart';
-import 'package:bodai/core/services/app_logic.dart';
-import 'package:bodai/core/services/deep_link_logic.dart';
-import 'package:bodai/core/services/user_service.dart';
-import 'package:bodai/l10n/l10n.dart';
-import 'package:bodai/core/config/env.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/services/app_lifecycle.dart';
+import 'package:bodido/core/services/app_logic.dart';
+import 'package:bodido/core/services/deep_link_logic.dart';
+import 'package:bodido/core/services/user_service.dart';
+import 'package:bodido/l10n/l10n.dart';
+import 'package:bodido/core/config/env.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:firebase_core/firebase_core.dart';
@@ -28,17 +28,17 @@ Future<void> main() async {
 
   await appLogic.bootstrap();
 
-  runApp(ProviderScope(child: BodAI()));
+  runApp(ProviderScope(child: Bodido()));
 }
 
-class BodAI extends ConsumerStatefulWidget {
-  const BodAI({super.key});
+class Bodido extends ConsumerStatefulWidget {
+  const Bodido({super.key});
 
   @override
-  ConsumerState<BodAI> createState() => _BodAIState();
+  ConsumerState<Bodido> createState() => _BodidoState();
 }
 
-class _BodAIState extends ConsumerState<BodAI> {
+class _BodidoState extends ConsumerState<Bodido> {
   late final LifecycleLogic _lifecycle;
 
   @override

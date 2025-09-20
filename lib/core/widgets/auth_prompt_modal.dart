@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
-import 'package:bodai/core/routes/route_names.dart';
+import 'package:bodido/core/routes/route_names.dart';
 
 /// Helper class for showing authentication prompts throughout the app
 class AuthPromptHelper {

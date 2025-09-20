@@ -1,7 +1,7 @@
 // lib/core/utils/auth_flow_utils.dart
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/core/routes/route_names.dart';
-import 'package:bodai/core/services/user_service.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/services/user_service.dart';
 
 Future<void> socialSignInAndFinalize(
   BuildContext context,

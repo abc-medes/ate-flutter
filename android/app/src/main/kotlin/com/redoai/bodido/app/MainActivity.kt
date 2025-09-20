@@ -1,4 +1,4 @@
-package com.haloai.bodai
+package com.redoai.bodido.app
 
 import io.flutter.embedding.android.FlutterActivity
 

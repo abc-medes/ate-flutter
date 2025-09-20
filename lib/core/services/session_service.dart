@@ -1,4 +1,4 @@
-import 'package:bodai/common_libs.dart';
+import 'package:bodido/common_libs.dart';
 import 'package:uuid/uuid.dart';
 
 final sessionIdProvider = StateProvider<String>((ref) => Uuid().v4());

@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:bodai/core/services/user_service.dart';
-import 'package:bodai/data/models/health_model.dart';
-import 'package:bodai/data/models/profiles/_ai_settings.dart';
-import 'package:bodai/data/repositories/health_repository.dart';
+import 'package:bodido/core/services/user_service.dart';
+import 'package:bodido/data/models/health_model.dart';
+import 'package:bodido/data/models/profiles/_ai_settings.dart';
+import 'package:bodido/data/repositories/health_repository.dart';
 
 class SettingsState {
   final Map<String, dynamic>? healthContext;

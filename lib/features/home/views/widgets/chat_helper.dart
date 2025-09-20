@@ -1,5 +1,5 @@
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/features/home/view_models/home_view_model.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/features/home/view_models/home_view_model.dart';
 
 class ChatHelper extends StatelessWidget {
   final ChatHelperType? selectedChip;

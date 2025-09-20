@@ -1,4 +1,4 @@
-name: bodai
+name: bodido
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -81,15 +81,15 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: assets/logo/bodai_logo.png        
+  image_path: assets/logo/bodido_logo.png        
 
   remove_alpha_ios: true                       
   adaptive_icon_background: "#05804C"       
-  adaptive_icon_foreground: assets/logo/bodai_logo.png
+  adaptive_icon_foreground: assets/logo/bodido_logo.png
 
 flutter_native_splash:
   color: "#FDF8e7"
-  image: assets/logo/bodai_logo.png
+  image: assets/logo/bodido_logo.png
   android: true
   ios: true
 
@@ -102,7 +102,7 @@ flutter:
     - .env
     - assets/organs/
     - assets/organs/lottie/
-    - assets/logo/bodai_logo.png
+    - assets/logo/bodido_logo.png
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

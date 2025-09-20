@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/core/services/api_service.dart';
-import 'package:bodai/data/models/chat_model.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/services/api_service.dart';
+import 'package:bodido/data/models/chat_model.dart';
 
 class ChatService {
   final SupabaseClient _client = Supabase.instance.client;

@@ -1,5 +1,5 @@
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/data/models/health_model.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/data/models/health_model.dart';
 
 class OnboardingService {
   final _client = Supabase.instance.client;

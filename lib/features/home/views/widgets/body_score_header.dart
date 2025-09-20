@@ -1,4 +1,4 @@
-import 'package:bodai/common_libs.dart';
+import 'package:bodido/common_libs.dart';
 
 class BodyScoreHeader extends ConsumerWidget {
   final int bodyScore;

@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:async';
 
 import 'package:http/http.dart' as http;
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/data/models/body_simulator_model.dart';
-import 'package:bodai/data/models/chat_model.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/data/models/body_simulator_model.dart';
+import 'package:bodido/data/models/chat_model.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/status.dart' as ws_status;
 import 'package:web_socket_channel/web_socket_channel.dart';

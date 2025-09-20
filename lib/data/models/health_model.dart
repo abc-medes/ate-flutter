@@ -1,4 +1,4 @@
-import 'package:bodai/data/models/body_simulator_model.dart';
+import 'package:bodido/data/models/body_simulator_model.dart';
 
 /**
  * HEALTH DATA PRIORITY LEVELS

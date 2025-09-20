@@ -1,5 +1,5 @@
 // lib/features/settings/views/widgets/section_header.dart
-import 'package:bodai/common_libs.dart';
+import 'package:bodido/common_libs.dart';
 
 class SectionHeader extends StatelessWidget {
   final String title;

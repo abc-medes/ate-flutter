@@ -1,6 +1,6 @@
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/core/services/auth_service.dart';
-import 'package:bodai/features/auth/view_models/login_view_model.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/services/auth_service.dart';
+import 'package:bodido/features/auth/view_models/login_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SocialAuthButton extends StatelessWidget {

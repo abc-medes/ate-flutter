@@ -1,13 +1,13 @@
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/core/services/auth_service.dart';
-import 'package:bodai/core/routes/route_names.dart';
-import 'package:bodai/core/widgets/context_input.dart';
-import 'package:bodai/features/settings/view_models/settings_view_model.dart';
-import 'package:bodai/features/settings/views/widgets/health_context_section.dart';
-import 'package:bodai/features/settings/views/widgets/momorized_context_section.dart';
-import 'package:bodai/features/settings/views/widgets/section_header.dart';
-import 'package:bodai/features/settings/views/widgets/setting_header.dart';
-import 'package:bodai/features/settings/views/widgets/setting_item.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/services/auth_service.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/widgets/context_input.dart';
+import 'package:bodido/features/settings/view_models/settings_view_model.dart';
+import 'package:bodido/features/settings/views/widgets/health_context_section.dart';
+import 'package:bodido/features/settings/views/widgets/momorized_context_section.dart';
+import 'package:bodido/features/settings/views/widgets/section_header.dart';
+import 'package:bodido/features/settings/views/widgets/setting_header.dart';
+import 'package:bodido/features/settings/views/widgets/setting_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsView extends ConsumerStatefulWidget {

@@ -1,4 +1,4 @@
-import 'package:bodai/common_libs.dart';
+import 'package:bodido/common_libs.dart';
 
 class TappableScore extends StatefulWidget {
   const TappableScore({super.key, required this.score, required this.onTap});

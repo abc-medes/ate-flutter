@@ -1,5 +1,5 @@
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/core/utils/color_utils.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/utils/color_utils.dart';
 
 class AppColors {
   // TODO: for temporary use, will be removed later------------------------------------------------

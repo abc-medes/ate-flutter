@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:bodai/main.dart';
+import 'package:bodido/main.dart';
 
 class WeightPickerWidget extends StatelessWidget {
   final int selectedWeight;

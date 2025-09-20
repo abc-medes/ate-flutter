@@ -1,14 +1,14 @@
 import 'dart:io';
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/core/services/user_service.dart';
-import 'package:bodai/core/utils/social_auth_flow_utils.dart';
-import 'package:bodai/core/widgets/typewriter_animated_text.dart';
-import 'package:bodai/features/_common/bodai_logo.dart';
-import 'package:bodai/features/auth/view_models/login_view_model.dart';
-import 'package:bodai/features/auth/views/widgets/social_login_button.dart';
-import 'package:bodai/core/routes/route_names.dart';
-import 'package:bodai/core/widgets/loading_view.dart';
-import 'package:bodai/core/widgets/error_snackbar.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/services/user_service.dart';
+import 'package:bodido/core/utils/social_auth_flow_utils.dart';
+import 'package:bodido/core/widgets/typewriter_animated_text.dart';
+import 'package:bodido/features/_common/bodido_logo.dart';
+import 'package:bodido/features/auth/view_models/login_view_model.dart';
+import 'package:bodido/features/auth/views/widgets/social_login_button.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/widgets/loading_view.dart';
+import 'package:bodido/core/widgets/error_snackbar.dart';
 
 class LoginView extends ConsumerStatefulWidget {
   const LoginView({super.key});
@@ -86,7 +86,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    BodaiLogo(size: $styles.sizes.maxContentWidth3 * 0.5),
+                    BodidoLogo(size: $styles.sizes.maxContentWidth3 * 0.5),
                     Gap($styles.insets.xs),
                     TypewriterAnimatedText(
                       loop: false,

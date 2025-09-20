@@ -1,6 +1,6 @@
 // ... existing code ...
 import 'package:flutter/material.dart';
-import 'package:bodai/theme/colors.dart';
+import 'package:bodido/theme/colors.dart';
 
 class EmailSentStep extends StatelessWidget {
   final String title;

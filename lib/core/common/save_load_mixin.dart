@@ -1,5 +1,5 @@
-import 'package:bodai/core/common/json_prefs_file.dart';
-import 'package:bodai/core/common/throttler.dart';
+import 'package:bodido/core/common/json_prefs_file.dart';
+import 'package:bodido/core/common/throttler.dart';
 import 'package:flutter/foundation.dart';
 
 mixin ThrottledSaveLoadMixin {

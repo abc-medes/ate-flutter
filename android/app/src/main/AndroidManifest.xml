@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="BodAI"
+        android:label="bodido"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -30,9 +30,8 @@
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data
-                    android:scheme="bodai"
-                    android:host="reset-password"/>
+                <data android:scheme="bodido.app" android:host="auth" android:path="/login-callback"/>
+                <data android:scheme="bodido.app" android:host="auth" android:path="/reset-password"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

@@ -1,6 +1,6 @@
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/core/services/auth_service.dart';
-import 'package:bodai/core/routes/route_names.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/services/auth_service.dart';
+import 'package:bodido/core/routes/route_names.dart';
 
 enum LoginStep {
   emailInput,

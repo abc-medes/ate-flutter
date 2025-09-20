@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/data/models/body_simulator_model.dart';
-import 'package:bodai/data/models/chat_model.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/data/models/body_simulator_model.dart';
+import 'package:bodido/data/models/chat_model.dart';
 import 'package:intl/intl.dart';
 
 @immutable

@@ -1,6 +1,6 @@
-import 'package:bodai/core/routes/route_names.dart';
-import 'package:bodai/core/services/user_service.dart';
-import 'package:bodai/core/utils/keyboard_dismiss_on_navigation_observer.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/services/user_service.dart';
+import 'package:bodido/core/utils/keyboard_dismiss_on_navigation_observer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart';

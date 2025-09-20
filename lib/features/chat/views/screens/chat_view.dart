@@ -1,10 +1,10 @@
 import 'package:intl/intl.dart';
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/core/routes/route_names.dart';
-import 'package:bodai/core/widgets/chat_input.dart';
-import 'package:bodai/core/widgets/circular_icon_button.dart';
-import 'package:bodai/data/models/chat_model.dart';
-import 'package:bodai/features/chat/view_models/chat_view_model.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/widgets/chat_input.dart';
+import 'package:bodido/core/widgets/circular_icon_button.dart';
+import 'package:bodido/data/models/chat_model.dart';
+import 'package:bodido/features/chat/view_models/chat_view_model.dart';
 
 class ChatView extends ConsumerStatefulWidget {
   final ChatMessageDTO? initialMessage;

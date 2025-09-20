@@ -1,10 +1,10 @@
-import 'package:bodai/core/routes/router_wrapper.dart';
-import 'package:bodai/data/models/chat_model.dart';
-import 'package:bodai/features/chat/views/screens/chat_history_view.dart';
-import 'package:bodai/features/chat/views/screens/chat_view.dart';
-import 'package:bodai/features/home/views/screens/home_view.dart';
-import 'package:bodai/core/routes/route_names.dart';
-import 'package:bodai/features/settings/views/screens/settings_view.dart';
+import 'package:bodido/core/routes/router_wrapper.dart';
+import 'package:bodido/data/models/chat_model.dart';
+import 'package:bodido/features/chat/views/screens/chat_history_view.dart';
+import 'package:bodido/features/chat/views/screens/chat_view.dart';
+import 'package:bodido/features/home/views/screens/home_view.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/features/settings/views/screens/settings_view.dart';
 
 final appRoutes = [
   AppRoute(

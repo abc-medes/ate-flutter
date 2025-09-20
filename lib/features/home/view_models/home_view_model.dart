@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/core/services/user_service.dart';
-import 'package:bodai/data/models/body_simulator_model.dart';
-import 'package:bodai/core/services/auth_service.dart';
-import 'package:bodai/data/models/health_model.dart';
-import 'package:bodai/data/models/insight_model.dart';
-import 'package:bodai/features/home/views/widgets/_body_simultor_snapshot_details.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/services/user_service.dart';
+import 'package:bodido/data/models/body_simulator_model.dart';
+import 'package:bodido/core/services/auth_service.dart';
+import 'package:bodido/data/models/health_model.dart';
+import 'package:bodido/data/models/insight_model.dart';
+import 'package:bodido/features/home/views/widgets/_body_simultor_snapshot_details.dart';
 
 enum ChatHelperType { ai, alerts, waitlist, system, context }
 

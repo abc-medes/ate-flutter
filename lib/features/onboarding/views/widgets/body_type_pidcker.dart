@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:bodai/common_libs.dart';
+import 'package:bodido/common_libs.dart';
 
 /// 5가지 체형 분류
 enum BodyType {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:bodai/main.dart';
+import 'package:bodido/main.dart';
 
 class HeightPickerWidget extends StatelessWidget {
   final int selectedHeight;

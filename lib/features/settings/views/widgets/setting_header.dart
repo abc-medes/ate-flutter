@@ -1,6 +1,6 @@
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/core/routes/route_names.dart';
-import 'package:bodai/core/widgets/circular_icon_button.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/widgets/circular_icon_button.dart';
 
 class SettingsHeader extends StatelessWidget {
   const SettingsHeader({super.key});

@@ -1,5 +1,5 @@
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/core/utils/duration_utils.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/utils/duration_utils.dart';
 
 export 'colors.dart';
 

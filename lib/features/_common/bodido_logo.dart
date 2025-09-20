@@ -1,8 +1,8 @@
-import 'package:bodai/common_libs.dart';
+import 'package:bodido/common_libs.dart';
 
-class BodaiLogo extends StatelessWidget {
+class BodidoLogo extends StatelessWidget {
   /// Optional: let callers pick a size or colour if they want.
-  const BodaiLogo({
+  const BodidoLogo({
     super.key,
     required this.size,
   });
@@ -15,7 +15,7 @@ class BodaiLogo extends StatelessWidget {
       width: size,
       height: size,
       child: Image.asset(
-        'assets/logo/bodai_logo.png', // make sure the path matches pubspec.yaml
+        'assets/logo/bodido_logo.png', // make sure the path matches pubspec.yaml
         fit: BoxFit.contain,
       ),
     );

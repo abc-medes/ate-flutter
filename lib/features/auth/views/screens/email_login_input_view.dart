@@ -1,8 +1,8 @@
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/core/routes/route_names.dart';
-import 'package:bodai/features/auth/view_models/login_view_model.dart';
-import 'package:bodai/core/widgets/customed_text_input.dart';
-import 'package:bodai/core/widgets/page_header.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/features/auth/view_models/login_view_model.dart';
+import 'package:bodido/core/widgets/customed_text_input.dart';
+import 'package:bodido/core/widgets/page_header.dart';
 
 class EmailLoginInputView extends ConsumerStatefulWidget {
   const EmailLoginInputView({super.key});

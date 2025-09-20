@@ -1,5 +1,5 @@
-import 'package:bodai/data/models/profiles/_notification_settings.dart';
-import 'package:bodai/data/models/profiles/_ai_settings.dart';
+import 'package:bodido/data/models/profiles/_notification_settings.dart';
+import 'package:bodido/data/models/profiles/_ai_settings.dart';
 
 class UserPreferences {
   final bool darkMode;

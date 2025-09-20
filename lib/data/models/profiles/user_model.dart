@@ -1,7 +1,7 @@
-import 'package:bodai/data/models/profiles/_ai_settings.dart';
-import 'package:bodai/data/models/profiles/_app_open_state.dart';
-import 'package:bodai/data/models/profiles/_notification_settings.dart';
-import 'package:bodai/data/models/profiles/_user_preferences.dart';
+import 'package:bodido/data/models/profiles/_ai_settings.dart';
+import 'package:bodido/data/models/profiles/_app_open_state.dart';
+import 'package:bodido/data/models/profiles/_notification_settings.dart';
+import 'package:bodido/data/models/profiles/_user_preferences.dart';
 
 class User {
   final String id;

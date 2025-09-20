@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:bodai/common_libs.dart';
-import 'package:bodai/core/routes/route_names.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/routes/route_names.dart';
 
 enum AuthStatus {
   initial,
@@ -30,7 +30,7 @@ class AuthService {
     final authResponse = await _client.auth.signUp(
         email: email,
         password: password,
-        emailRedirectTo: "bodai://auth/signup",
+        emailRedirectTo: "bodido://auth/signup",
         data: {
           'name': name,
         });
@@ -48,7 +48,7 @@ class AuthService {
 
   Future<void> resetPassword(String email) async {
     await _client.auth.resetPasswordForEmail(email,
-        redirectTo: "bodai://${RouteNames.resetPassword}");
+        redirectTo: "bodido://${RouteNames.resetPassword}");
   }
 
   // Sign in with Google

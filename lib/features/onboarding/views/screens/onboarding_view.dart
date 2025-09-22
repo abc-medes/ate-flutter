@@ -1,6 +1,7 @@
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/widgets/live_typewriter.dart';
+import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/features/onboarding/view_models/onboarding_view_model.dart';
 import 'package:bodido/features/onboarding/views/widgets/birth_date_picker.dart';
 import 'package:bodido/features/onboarding/views/widgets/body_type_pidcker.dart';
@@ -8,7 +9,6 @@ import 'package:bodido/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:bodido/features/onboarding/views/widgets/height_picker.dart';
 import 'package:bodido/features/onboarding/views/widgets/page_wrapper.dart';
 import 'package:bodido/features/onboarding/views/widgets/weight_picker.dart';
-import 'package:bodido/data/models/health_model.dart';
 
 final onboardingPageProvider = StateProvider<int>((ref) => 0);
 
@@ -233,13 +233,24 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
     List<String> logs =
         state.progressMessages.isEmpty ? [] : state.progressMessages;
 
+    // Navigate when finalizing and saving are both done (run once)
+    if (!state.isFinalizing && !state.isSaving && !_wrapUpTriggered) {
+      // ensure finalizeOnboarding was triggered first
+    }
+    if (!state.isFinalizing && !state.isSaving && _wrapUpTriggered) {
+      _wrapUpTriggered = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !context.mounted) return;
+        context.go(RouteNames.home);
+      });
+    }
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         LiveTypewriter(
           lines: logs,
           expectedLineCount: 2,
-          onComplete: _scheduleNavigation,
           charDelay: const Duration(milliseconds: 50),
           linePause: const Duration(milliseconds: 200),
           style: $styles.text.h4.copyWith(
@@ -247,16 +258,9 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
           ),
         ),
         SizedBox(height: $styles.insets.md),
-        if (state.isSaving) const CircularProgressIndicator(),
+        if (state.isFinalizing || state.isSaving)
+          const CircularProgressIndicator(),
       ],
     );
-  }
-
-  void _scheduleNavigation() {
-    if (mounted && context.mounted) {
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        context.go(RouteNames.home);
-      });
-    }
   }
 }

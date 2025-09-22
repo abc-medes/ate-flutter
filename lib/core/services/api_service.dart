@@ -1,17 +1,21 @@
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/config/env.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/chat_model.dart';
+import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/status.dart' as ws_status;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://localhost:8080/api';
-  static const String _wsUrl = 'ws://localhost:8080';
+  // static const String _baseUrl = 'http://localhost:8080/api';
+  static String get _baseUrl => Env.apiBaseUrl;
+
+  static String get _wsUrl => Env.wsBaseUrl;
+
   static final SupabaseClient _supabase = Supabase.instance.client;
 
   static Stream<String> sendChatMessage(ChatMessageDTO chatMessage) async* {
@@ -320,6 +324,43 @@ class ApiService {
     };
 
     return controller.stream;
+  }
+
+  static Future<bool> checkServerHealth(
+      {Duration timeout = const Duration(seconds: 5)}) async {
+    final candidates = <Uri>[];
+    try {
+      final base = Uri.parse(_baseUrl);
+      final origin = Uri(
+        scheme: base.scheme,
+        host: base.host,
+        port: base.hasPort ? base.port : null,
+      );
+      candidates.add(origin.replace(path: '/')); // GET /
+      candidates.add(origin.replace(path: '/health')); // GET /health
+      candidates.add(base.replace(
+        path: base.path.endsWith('/')
+            ? '${base.path}health'
+            : '${base.path}/health',
+      ));
+    } catch (e) {
+      debugPrint('Health URL parse error: $e');
+    }
+
+    for (final url in candidates) {
+      try {
+        final res = await http.get(url).timeout(timeout);
+        if (res.statusCode == 200) {
+          debugPrint('✅ Backend health OK at $url');
+          return true;
+        } else {
+          debugPrint('⚠️ Health check non-200 at $url: ${res.statusCode}');
+        }
+      } catch (e) {
+        debugPrint('❌ Health check failed at $url: $e');
+      }
+    }
+    return false;
   }
 }
 

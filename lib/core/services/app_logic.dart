@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/common/platform_info.dart';
+import 'package:bodido/core/services/api_service.dart';
 import 'package:bodido/features/_utils/page_routes.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
@@ -37,6 +38,9 @@ class AppLogic {
 
     // Localizations
     await localeLogic.load();
+
+    // inside bootstrap():
+    unawaited(ApiService.checkServerHealth());
 
     // Wait at least 1 frame to give GoRouter time to catch the initial deeplink
     await Future.delayed(1.milliseconds);

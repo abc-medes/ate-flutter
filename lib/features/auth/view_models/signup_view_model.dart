@@ -247,7 +247,7 @@ class SignupViewModel extends StateNotifier<SignupState> {
           email: state.emailController.text,
           name: state.nameController.text);
 
-      await _userService.createEmptyUserHealthMetrics(res.user?.id ?? '');
+      await _userService.createEmptyUserHealthMetrics(res.user!.id);
 
       state = state.copyWith(isLoading: false);
 

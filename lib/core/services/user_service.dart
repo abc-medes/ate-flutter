@@ -224,8 +224,8 @@ class UserService {
         .eq('user_id', _client.auth.currentUser!.id)
         .order('created_at', ascending: false)
         .limit(1)
-        .maybeSingle();
-    return BodySimulatorStateSnapshotDTO.fromJson(response ?? {});
+        .single();
+    return BodySimulatorStateSnapshotDTO.fromJson(response);
   }
 
   Stream<BodySimulatorStateSnapshotDTO?> bodySimulatorStateStream(

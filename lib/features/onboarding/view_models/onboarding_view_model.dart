@@ -1,11 +1,11 @@
 import 'package:bodido/core/services/api_service.dart';
 import 'package:bodido/core/services/onboarding_service.dart';
+import 'package:bodido/core/services/user_service.dart';
+import 'package:bodido/data/models/health_model.dart';
+import 'package:bodido/data/repositories/health_repository.dart';
 import 'package:bodido/features/onboarding/views/widgets/body_type_pidcker.dart';
 import 'package:bodido/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:bodido/data/models/health_model.dart';
-import 'package:bodido/data/repositories/health_repository.dart';
-import 'package:bodido/core/services/user_service.dart';
 
 class HealthOnboardingState {
   final int selectedHeight;
@@ -155,18 +155,6 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
     return await _healthRepository.getMissingBasicUserData();
   }
 
-  Future<bool> initializeBodySimulatorState() async {
-    state = state.copyWith(isSaving: true);
-    try {
-      await ApiService.initializeBodySimulatorState();
-      return true;
-    } catch (e) {
-      return false;
-    } finally {
-      state = state.copyWith(isSaving: false);
-    }
-  }
-
   void clearProgressMessages() {
     state = state.copyWith(progressMessages: []);
   }
@@ -183,7 +171,7 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
       final healthMetrics = await _healthRepository.getExistingHealthMetrics();
       await OnboardingService().saveHealthMetricsToDatabase(healthMetrics);
       _log('Saving health-metrics to database - done');
-      await initializeBodySimulatorState();
+      await ApiService.initializeBodySimulatorState();
       _log('Initializing body simulator state - done');
 
       return true;

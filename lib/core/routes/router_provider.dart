@@ -3,9 +3,10 @@ import 'package:bodido/core/services/user_service.dart';
 import 'package:bodido/core/utils/keyboard_dismiss_on_navigation_observer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../services/auth_service.dart';
-import 'auth_routes.dart';
 import 'app_routes.dart';
+import 'auth_routes.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final isAuthed = ref.watch(isAuthedProvider);

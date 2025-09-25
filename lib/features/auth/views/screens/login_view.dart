@@ -1,14 +1,13 @@
 import 'dart:io';
+
 import 'package:bodido/common_libs.dart';
-import 'package:bodido/core/services/user_service.dart';
-import 'package:bodido/core/utils/social_auth_flow_utils.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/widgets/error_snackbar.dart';
+import 'package:bodido/core/widgets/loading_view.dart';
 import 'package:bodido/core/widgets/typewriter_animated_text.dart';
 import 'package:bodido/features/_common/bodido_logo.dart';
 import 'package:bodido/features/auth/view_models/login_view_model.dart';
 import 'package:bodido/features/auth/views/widgets/social_login_button.dart';
-import 'package:bodido/core/routes/route_names.dart';
-import 'package:bodido/core/widgets/loading_view.dart';
-import 'package:bodido/core/widgets/error_snackbar.dart';
 
 class LoginView extends ConsumerStatefulWidget {
   const LoginView({super.key});
@@ -133,10 +132,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       icon: Icons.g_mobiledata_rounded,
                       iconColor: $styles.colors.black,
                       onPressed: () {
-                        if (!isLoading) {
-                          _handleSocialLogin(
-                              context, ref, viewModel.handleGoogleSignIn);
-                        }
+                        viewModel.handleGoogleSignIn();
                       },
                     ),
                     if ((isIOS || !isAndroid)) ...[
@@ -147,10 +143,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                         icon: Icons.apple,
                         iconColor: $styles.colors.black,
                         onPressed: () {
-                          if (!isLoading) {
-                            _handleSocialLogin(
-                                context, ref, viewModel.handleAppleSignIn);
-                          }
+                          viewModel.handleAppleSignIn();
                         },
                       ),
                     ],
@@ -227,28 +220,5 @@ class _LoginViewState extends ConsumerState<LoginView> {
         ],
       ),
     );
-  }
-
-  void _handleSocialLogin(BuildContext context, WidgetRef ref,
-      Future<void> Function() signInMethod) async {
-    final viewModel = ref.read(loginViewModelProvider.notifier);
-
-    try {
-      await socialSignInAndFinalize(context, ref, signInMethod);
-    } catch (e) {
-      if (context.mounted) {
-        LoadingScreen.dismiss(context);
-        ErrorSnackbar.showLoginError(
-          context: context,
-          errorMessage: e.toString(),
-          clearError: () {
-            viewModel.clearError();
-          },
-          onTryAgain: () {
-            signInMethod();
-          },
-        );
-      }
-    }
   }
 }

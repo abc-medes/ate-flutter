@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/data/models/body_simulator_model.dart';
+import 'package:bodido/data/models/health_model.dart';
+import 'package:bodido/data/models/profiles/user_model.dart' as um;
 import 'package:url_launcher/url_launcher.dart'
     show closeInAppWebView, LaunchMode;
 
@@ -15,14 +18,10 @@ enum AuthStatus {
 
 class AuthService {
   final SupabaseClient _client = Supabase.instance.client;
-
   User? get currentUser => _client.auth.currentUser;
-
   bool get isAuthenticated => currentUser != null;
-
   Stream<bool> get authStateChanges =>
       _client.auth.onAuthStateChange.map((state) => state.session != null);
-
   Stream<String?> get userIdStream =>
       _client.auth.onAuthStateChange.map((state) => state.session?.user.id);
 
@@ -40,13 +39,12 @@ class AuthService {
     return authResponse;
   }
 
-  Future<AuthResponse> signInWithEmail(
+  Future<void> signInWithEmail(
       {required String email, required String password}) async {
-    final authResponse = await _client.auth.signInWithPassword(
+    await _client.auth.signInWithPassword(
       email: email,
       password: password,
     );
-    return authResponse;
   }
 
   Future<void> resetPassword(String email) async {
@@ -63,7 +61,6 @@ class AuthService {
     );
   }
 
-  // Sign in with Google
   Future<void> signInWithGoogle() async {
     final done = _client.auth.onAuthStateChange
         .firstWhere((e) =>
@@ -82,7 +79,6 @@ class AuthService {
     await done;
   }
 
-  // Sign in with Apple
   Future<void> signInWithApple() async {
     final done = _client.auth.onAuthStateChange
         .firstWhere((e) =>
@@ -103,6 +99,63 @@ class AuthService {
   Future<void> signOut() async {
     await _client.auth.signOut();
   }
+
+  // ------------------------------------------------------------
+  ///                       Profile
+  // ------------------------------------------------------------
+  Future<void> createProfile({
+    required String userId,
+    required String email,
+    required String name,
+  }) async {
+    final existingProfile = await _client
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (existingProfile != null) {
+      final updatedUser = um.User.newUser(
+        id: userId,
+        email: email,
+        name: name,
+      );
+
+      await _client
+          .from('profiles')
+          .update(updatedUser.toJson())
+          .eq('id', userId);
+    } else {
+      final newUser = um.User.newUser(
+        id: userId,
+        email: email,
+        name: name,
+      );
+      await _client.from('profiles').insert(newUser.toJson());
+    }
+  }
+
+  Future<void> createEmptyUserHealthMetrics(String userId) async {
+    final emptyHealthMetrics = HealthMetrics(
+      userInputData: UserInputData(),
+      autoDetectedData: AutoDetectedData(),
+      environmentalData: EnvironmentalData(),
+      bodySimulatorData: BodySimulatorState.empty(),
+    );
+
+    final now = DateTime.now();
+    final healthData = {
+      'user_id': userId,
+      'created_at': now.toIso8601String(),
+      'updated_at': now.toIso8601String(),
+      'health_metrics': emptyHealthMetrics.toJson(),
+    };
+
+    await _client.from('health_metrics').insert(
+          healthData,
+        );
+  }
+  // ------------------------------------------------------------
 }
 
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());

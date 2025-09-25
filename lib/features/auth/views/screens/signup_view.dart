@@ -2,13 +2,10 @@ import 'dart:io';
 
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
-import 'package:bodido/core/services/auth_service.dart';
-import 'package:bodido/core/utils/social_auth_flow_utils.dart';
 import 'package:bodido/core/widgets/customed_text_input.dart';
 import 'package:bodido/core/widgets/error_snackbar.dart';
 import 'package:bodido/core/widgets/loading_view.dart';
 import 'package:bodido/core/widgets/page_header.dart';
-import 'package:bodido/features/auth/view_models/login_view_model.dart';
 import 'package:bodido/features/auth/view_models/signup_view_model.dart';
 import 'package:bodido/features/auth/views/widgets/email_sent_step.dart';
 import 'package:bodido/features/auth/views/widgets/social_login_button.dart';
@@ -132,7 +129,8 @@ class _SignupViewState extends ConsumerState<SignupView> {
                                     await viewModel.signUp();
                                     break;
                                   case SignupStep.emailSent:
-                                    await viewModel.wrapUpEmailSignUp(context);
+                                    await viewModel.handleLogin(
+                                        context, SignupMethod.email);
                                     break;
                                   default:
                                     break;
@@ -281,8 +279,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
           icon: Icons.g_mobiledata_rounded,
           iconColor: $styles.colors.black,
           onPressed: () {
-            _handleSocialLogin(
-                context, ref, ref.read(authServiceProvider).signInWithGoogle);
+            viewModel.handleLogin(context, SignupMethod.google);
           },
         ),
         if ((isIOS || !isAndroid)) ...[
@@ -293,8 +290,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
             icon: Icons.apple,
             iconColor: $styles.colors.black,
             onPressed: () {
-              _handleSocialLogin(
-                  context, ref, ref.read(authServiceProvider).signInWithApple);
+              viewModel.handleLogin(context, SignupMethod.apple);
             },
           ),
         ],
@@ -303,26 +299,26 @@ class _SignupViewState extends ConsumerState<SignupView> {
     );
   }
 
-  void _handleSocialLogin(BuildContext context, WidgetRef ref,
-      Future<void> Function() signInMethod) async {
-    final viewModel = ref.read(loginViewModelProvider.notifier);
+  // void _handleSocialLogin(BuildContext context, WidgetRef ref,
+  //     Future<void> Function() signInMethod) async {
+  //   final viewModel = ref.read(loginViewModelProvider.notifier);
 
-    try {
-      await socialSignInAndFinalize(context, ref, signInMethod);
-    } catch (e) {
-      if (context.mounted) {
-        LoadingScreen.dismiss(context);
-        ErrorSnackbar.showLoginError(
-          context: context,
-          errorMessage: e.toString(),
-          clearError: () {
-            viewModel.clearError();
-          },
-          onTryAgain: () {
-            signInMethod();
-          },
-        );
-      }
-    }
-  }
+  //   try {
+  //     await socialSignInAndFinalize(context, ref, signInMethod);
+  //   } catch (e) {
+  //     if (context.mounted) {
+  //       LoadingScreen.dismiss(context);
+  //       ErrorSnackbar.showLoginError(
+  //         context: context,
+  //         errorMessage: e.toString(),
+  //         clearError: () {
+  //           viewModel.clearError();
+  //         },
+  //         onTryAgain: () {
+  //           signInMethod();
+  //         },
+  //       );
+  //     }
+  //   }
+  // }
 }

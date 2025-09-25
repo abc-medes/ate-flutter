@@ -86,10 +86,10 @@ class ErrorSnackbar {
     });
   }
 
-  /// Shows a bottom sheet with all available actions for the error
-  static void _showActionSheet(
-      BuildContext context, String reg_message, List<ErrorAction> actions) {
-    showModalBottomSheet(
+  static Future<void> _showActionSheet(
+      BuildContext context, String reg_message, List<ErrorAction> actions,
+      {VoidCallback? onDismiss}) async {
+    await showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -144,6 +144,7 @@ class ErrorSnackbar {
         ),
       ),
     );
+    if (onDismiss != null) onDismiss();
   }
 
   static void showLoginError({
@@ -154,7 +155,7 @@ class ErrorSnackbar {
     VoidCallback? onResetPassword,
     VoidCallback? onCreateAccount,
   }) {
-    final String userFriendlyError = errorMessage;
+    final String rawMessage = errorMessage; // keep as-is
     final String errorLower = errorMessage.toLowerCase();
     final List<ErrorAction> actions = [];
 
@@ -162,12 +163,10 @@ class ErrorSnackbar {
       if (onTryAgain != null) {
         actions.add(ErrorAction(
           label: 'Try again',
-          onPressed: () {
-            onTryAgain();
-          },
+          onPressed: onTryAgain,
+          isPrimary: true,
         ));
       }
-
       if (onResetPassword != null) {
         actions.add(ErrorAction(
           label: 'Reset password',
@@ -195,12 +194,9 @@ class ErrorSnackbar {
       }
     }
 
-    show(
-      context: context,
-      message: userFriendlyError,
-      actions: actions,
-      onDismiss: clearError,
-    );
+    actions.add(ErrorAction(label: 'Dismiss', onPressed: clearError));
+
+    _showActionSheet(context, rawMessage, actions, onDismiss: clearError);
   }
 
   static void showSignupError({
@@ -210,11 +206,10 @@ class ErrorSnackbar {
     VoidCallback? onTryAgain,
     VoidCallback? onGoToLogin,
   }) {
-    final String userFriendlyError = errorMessage;
+    final String rawMessage = errorMessage;
     final String errorLower = errorMessage.toLowerCase();
     final List<ErrorAction> actions = [];
 
-    // Add appropriate actions based on error type
     if (errorLower.contains('email') &&
         (errorLower.contains('exists') || errorLower.contains('already'))) {
       if (onGoToLogin != null) {
@@ -235,12 +230,9 @@ class ErrorSnackbar {
       }
     }
 
-    show(
-      context: context,
-      message: userFriendlyError,
-      actions: actions,
-      onDismiss: clearError,
-    );
+    actions.add(ErrorAction(label: 'Dismiss', onPressed: clearError));
+
+    _showActionSheet(context, rawMessage, actions, onDismiss: clearError);
   }
 
   static void showChatHistoryError({

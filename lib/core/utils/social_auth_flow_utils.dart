@@ -10,8 +10,7 @@ Future<void> socialSignInAndFinalize(
 ) async {
   await signInMethod();
 
-  await Supabase.instance.client.auth.onAuthStateChange
-      .firstWhere((e) => e.session != null);
+
 
   await finalizeAfterOAuth(context, ref);
 }

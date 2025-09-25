@@ -1,7 +1,12 @@
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/services/auth_service.dart';
-import 'package:bodido/core/services/user_service.dart';
+
+enum SignupMethod {
+  email,
+  google,
+  apple,
+}
 
 enum SignupStep {
   detailsInput,
@@ -107,11 +112,11 @@ class SignupState {
 }
 
 class SignupViewModel extends StateNotifier<SignupState> {
+  final SupabaseClient _client = Supabase.instance.client;
   final AuthService _authService;
-  final UserService _userService;
   bool _isDisposed = false;
 
-  SignupViewModel(this._authService, this._userService, String email)
+  SignupViewModel(this._authService, String email)
       : super(SignupState(
           email: email,
           emailController: TextEditingController(text: email),
@@ -247,22 +252,51 @@ class SignupViewModel extends StateNotifier<SignupState> {
     state = state.copyWith(isLoading: false);
   }
 
-  Future<void> wrapUpEmailSignUp(BuildContext context) async {
+  Future<void> handleLogin(
+      BuildContext context, SignupMethod signupMethod) async {
+    if (!context.mounted) return;
+    if (_isDisposed) return;
+    state = state.copyWith(isLoading: true);
+
+    if (signupMethod == SignupMethod.email) {
+      await _authService.signInWithEmail(
+          email: state.emailController.text,
+          password: state.passwordController.text);
+    } else if (signupMethod == SignupMethod.google) {
+      await _authService.signInWithGoogle();
+    } else if (signupMethod == SignupMethod.apple) {
+      await _authService.signInWithApple();
+    }
+
+    await Supabase.instance.client.auth.onAuthStateChange
+        .firstWhere((e) => e.session != null);
+
+    final profile = await _client
+        .from('profiles')
+        .select()
+        .eq('id', _authService.currentUser!.id)
+        .maybeSingle();
+
+    if (profile == null) {
+      await wrapUpSignUp(context);
+    } else {
+      if (context.mounted) context.go(RouteNames.home);
+    }
+  }
+
+  Future<void> wrapUpSignUp(BuildContext context) async {
     if (!context.mounted) return;
     if (_isDisposed) return;
     state = state.copyWith(isLoading: true);
 
     try {
-      final res = await _authService.signInWithEmail(
-          email: state.emailController.text,
-          password: state.passwordController.text);
-
-      await _userService.createProfile(
-          userId: res.user?.id ?? '',
-          email: state.emailController.text,
-          name: state.nameController.text);
-
-      await _userService.createEmptyUserHealthMetrics(res.user!.id);
+      await _authService.createProfile(
+        userId: _authService.currentUser!.id,
+        email: state.emailController.text,
+        name: state.nameController.text,
+      );
+      await _authService
+          .createEmptyUserHealthMetrics(_authService.currentUser!.id);
 
       state = state.copyWith(isLoading: false);
 
@@ -285,7 +319,6 @@ final signupViewModelProvider = StateNotifierProvider.family
     .autoDispose<SignupViewModel, SignupState, String>(
   (ref, email) {
     final authService = ref.watch(authServiceProvider);
-    final userService = ref.watch(userServiceProvider);
-    return SignupViewModel(authService, userService, email);
+    return SignupViewModel(authService, email);
   },
 );

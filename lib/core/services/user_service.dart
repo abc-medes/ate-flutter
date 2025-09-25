@@ -10,36 +10,23 @@ class UserService {
   final _healthRepository = healthRepository;
   List<BasicUserData> _missingBasicUserData = [];
   bool _initialized = false;
-  um.User? _user;
+  late um.User _user;
 
   List<BasicUserData> get missingBasicUserData => _missingBasicUserData;
   bool get isBasicHealthDataComplete => _missingBasicUserData.isEmpty;
   bool get isInitialized => _initialized;
-  String get userId => _client.auth.currentUser?.id ?? '';
-  um.User? get user => _user;
+  String get userId => _client.auth.currentUser!.id;
+  um.User get user => _user;
 
   Future<void> initialize() async {
     await refreshBasicHealthData();
     await _getHealthMetricsFromDatabase(userId);
-
+    await refreshUserProfile();
     _initialized = true;
   }
 
-  Future<void> _fetchUserProfile() async {
-    try {
-      if (_client.auth.currentUser != null) {
-        final profileData =
-            await fetchUserProfile(_client.auth.currentUser!.id);
-        _user = um.User.fromJson(profileData);
-      }
-    } catch (e) {
-      print('Error fetching user profile: $e');
-      _user = null;
-    }
-  }
-
   Future<void> refreshUserProfile() async {
-    await _fetchUserProfile();
+    _user = um.User.fromJson(await fetchUserProfile(userId));
   }
 
   /// ------------------------------------------------------------
@@ -115,6 +102,8 @@ class UserService {
               rows.isEmpty ? false : (rows.first['has_opened_app'] ?? false),
         );
   }
+
+  /// ------------------------------End of App-open logic--------------
 
   Future<void> refreshBasicHealthData() async {
     _missingBasicUserData = await _healthRepository.getMissingBasicUserData();

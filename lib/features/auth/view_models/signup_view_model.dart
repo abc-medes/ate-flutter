@@ -150,7 +150,7 @@ class SignupViewModel extends StateNotifier<SignupState> {
 
   bool validateEmail() {
     if (_isDisposed) return false;
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}\$');
     final isValid = emailRegex.hasMatch(state.emailController.text);
     state = state.copyWith(isEmailValid: isValid);
     return isValid;
@@ -230,6 +230,21 @@ class SignupViewModel extends StateNotifier<SignupState> {
         error: e.toString(),
       );
     }
+  }
+
+  Future<void> resendVerificationEmail() async {
+    if (_isDisposed) return;
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _authService.resendSignupVerification(state.emailController.text);
+    } on AuthException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+      rethrow;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+    state = state.copyWith(isLoading: false);
   }
 
   Future<void> wrapUpEmailSignUp(BuildContext context) async {

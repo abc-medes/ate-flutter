@@ -54,6 +54,15 @@ class AuthService {
         redirectTo: "bodido.app://${RouteNames.resetPassword}");
   }
 
+  Future<void> resendSignupVerification(String email) async {
+    const redirectTo = 'bodido.app://auth/signup';
+    await _client.auth.resend(
+      email: email,
+      type: OtpType.signup,
+      emailRedirectTo: redirectTo,
+    );
+  }
+
   // Sign in with Google
   Future<void> signInWithGoogle() async {
     final done = _client.auth.onAuthStateChange
@@ -83,7 +92,7 @@ class AuthService {
     const redirectTo = 'bodido.app://auth/login-callback';
 
     await _client.auth.signInWithOAuth(
-      OAuthProvider.google,
+      OAuthProvider.apple,
       redirectTo: redirectTo,
       authScreenLaunchMode: LaunchMode.platformDefault,
     );

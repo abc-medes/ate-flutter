@@ -4,15 +4,14 @@ import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/services/auth_service.dart';
 import 'package:bodido/core/utils/social_auth_flow_utils.dart';
+import 'package:bodido/core/widgets/customed_text_input.dart';
+import 'package:bodido/core/widgets/error_snackbar.dart';
+import 'package:bodido/core/widgets/loading_view.dart';
 import 'package:bodido/core/widgets/page_header.dart';
 import 'package:bodido/features/auth/view_models/login_view_model.dart';
 import 'package:bodido/features/auth/view_models/signup_view_model.dart';
 import 'package:bodido/features/auth/views/widgets/email_sent_step.dart';
 import 'package:bodido/features/auth/views/widgets/social_login_button.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:bodido/core/widgets/loading_view.dart';
-import 'package:bodido/core/widgets/error_snackbar.dart';
-import 'package:bodido/core/widgets/customed_text_input.dart';
 
 class SignupView extends ConsumerStatefulWidget {
   final String email;
@@ -92,7 +91,26 @@ class _SignupViewState extends ConsumerState<SignupView> {
                                     "Didn't receive the email? Resend",
                                 onResend: viewState.isLoading
                                     ? null
-                                    : () async {/* resend logic */},
+                                    : () async {
+                                        try {
+                                          await viewModel
+                                              .resendVerificationEmail();
+                                          if (!mounted) return;
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: const Text(
+                                                  'Verification email resent'),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                              backgroundColor:
+                                                  $styles.colors.accent1,
+                                              duration:
+                                                  const Duration(seconds: 2),
+                                            ),
+                                          );
+                                        } catch (_) {}
+                                      },
                                 backToLoginText: 'Back to Login',
                                 onBackToLogin: () =>
                                     context.go(RouteNames.login),

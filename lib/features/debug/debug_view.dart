@@ -18,7 +18,7 @@ class DebugView extends ConsumerWidget {
       body: Column(
         children: [
           CupertinoButton(
-            child: const Text("Go to Home"),
+            child: const Text("Logout"),
             onPressed: () async {
               await authService.signOut();
               if (context.mounted) {
@@ -27,10 +27,26 @@ class DebugView extends ConsumerWidget {
             },
           ),
           CupertinoButton(
-            child: const Text("Go to Home"),
+            child: const Text("delete health metrics"),
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();
               await prefs.remove('health_metrics');
+            },
+          ),
+          CupertinoButton(
+            child: const Text("회원 탈퇴 (dev)"),
+            onPressed: () async {
+              final authService = ref.read(authServiceProvider);
+              try {
+                await authService.devAccountDeleteSoft();
+                if (context.mounted) context.go(RouteNames.home);
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e')),
+                  );
+                }
+              }
             },
           ),
         ],

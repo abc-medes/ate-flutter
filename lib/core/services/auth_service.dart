@@ -158,6 +158,48 @@ class AuthService {
         );
   }
   // ------------------------------------------------------------
+
+  // DEV ONLY: Wipes all app-side data rows for a given user id.
+  // Deletes from children first to avoid FK violations, then profile last.
+  Future<void> devWipeUserData(String uid) async {
+    final c = _client;
+    try {
+      await c.from('chat_history').delete().eq('user_id', uid);
+    } catch (_) {}
+    try {
+      await c.from('user_body_state_snapshots').delete().eq('user_id', uid);
+    } catch (_) {}
+    try {
+      await c.from('personal_insights').delete().eq('user_id', uid);
+    } catch (_) {}
+    try {
+      await c.from('health_metrics').delete().eq('user_id', uid);
+    } catch (_) {}
+    try {
+      await c.from('profiles').delete().eq('id', uid);
+    } catch (_) {}
+  }
+
+  // DEV ONLY: Wipes current user’s app data; requires an authenticated session.
+  Future<void> devWipeCurrentUserData() async {
+    final uid = currentUser?.id;
+    if (uid == null) {
+      throw Exception('Not signed in');
+    }
+    await devWipeUserData(uid);
+  }
+
+  // DEV ONLY: "회원 탈퇴" (soft) – wipe app data then sign out.
+  // Note: You cannot delete the auth.users row from a client without service role.
+  Future<void> devAccountDeleteSoft() async {
+    final uid = currentUser?.id;
+    if (uid == null) {
+      await signOut();
+      return;
+    }
+    await devWipeUserData(uid);
+    await signOut();
+  }
 }
 
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());

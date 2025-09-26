@@ -1,4 +1,5 @@
 import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/services/auth_service.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/data/models/insight_model.dart';
@@ -39,8 +40,8 @@ class UserService {
         .from('profiles')
         .select('open_state')
         .eq('id', userId)
-        .maybeSingle();
-    return Map<String, dynamic>.from(res?['open_state'] ?? {});
+        .single();
+    return Map<String, dynamic>.from(res['open_state']);
   }
 
   Future<void> _saveOpenStateMap(
@@ -123,59 +124,6 @@ class UserService {
   Future<void> updateUserProfile(
       String userId, Map<String, dynamic> data) async {
     await _client.from('profiles').update(data).eq('id', userId);
-  }
-
-  Future<void> createProfile({
-    required String userId,
-    required String email,
-    required String name,
-  }) async {
-    final existingProfile = await _client
-        .from('profiles')
-        .select('id')
-        .eq('id', userId)
-        .maybeSingle();
-
-    if (existingProfile != null) {
-      final updatedUser = um.User.newUser(
-        id: userId,
-        email: email,
-        name: name,
-      );
-
-      await _client
-          .from('profiles')
-          .update(updatedUser.toJson())
-          .eq('id', userId);
-    } else {
-      final newUser = um.User.newUser(
-        id: userId,
-        email: email,
-        name: name,
-      );
-      await _client.from('profiles').insert(newUser.toJson());
-    }
-  }
-
-  Future<void> createEmptyUserHealthMetrics(String userId) async {
-    final emptyHealthMetrics = HealthMetrics(
-      userInputData: UserInputData(),
-      autoDetectedData: AutoDetectedData(),
-      environmentalData: EnvironmentalData(),
-      bodySimulatorData: BodySimulatorState.empty(),
-    );
-
-    final now = DateTime.now();
-    final healthData = {
-      'user_id': userId,
-      'created_at': now.toIso8601String(),
-      'updated_at': now.toIso8601String(),
-      'health_metrics': emptyHealthMetrics.toJson(),
-    };
-
-    await _client.from('health_metrics').insert(
-          healthData,
-        );
   }
 
   Future<Map<String, dynamic>?> _getHealthMetricsFromDatabase(
@@ -265,7 +213,6 @@ class UserService {
       return insights;
     }
 
-    // Return default insights when none exist
     return [
       InsightItem(
         title: '염증 지수',
@@ -319,6 +266,9 @@ class UserService {
 
 final userServiceProvider = Provider<UserService>((ref) {
   final service = UserService();
-  service.initialize();
+  final authed = ref.watch(isAuthedProvider);
+  if (authed) {
+    service.initialize();
+  }
   return service;
 });

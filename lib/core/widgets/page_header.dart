@@ -19,10 +19,10 @@ class PageHeader extends StatelessWidget {
     final mq = MediaQuery.of(context);
     return Container(
       padding: EdgeInsets.fromLTRB(
-        $styles.insets.md,
+        $styles.insets.sm,
         mq.padding.top,
-        $styles.insets.md,
-        $styles.insets.md,
+        $styles.insets.sm,
+        $styles.insets.sm,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

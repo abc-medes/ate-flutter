@@ -1,6 +1,5 @@
 import 'package:bodido/core/services/api_service.dart';
 import 'package:bodido/core/services/onboarding_service.dart';
-import 'package:bodido/core/services/user_service.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/data/repositories/health_repository.dart';
 import 'package:bodido/features/onboarding/views/widgets/body_type_pidcker.dart';
@@ -58,9 +57,8 @@ class HealthOnboardingState {
 
 class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
   final HealthRepository _healthRepository;
-  final UserService _userService;
 
-  HealthOnboardingViewModel(this._healthRepository, this._userService)
+  HealthOnboardingViewModel(this._healthRepository)
       : super(HealthOnboardingState());
 
   void updateCurrentPage(int page) {
@@ -82,7 +80,7 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
       await _healthRepository.saveHeightAndWeight(
           state.selectedHeight, state.selectedWeight);
 
-      await _userService.refreshBasicHealthData();
+      // await _userService.refreshBasicHealthData();
 
       state = state.copyWith(isSaving: false);
       return true;
@@ -102,7 +100,7 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
     try {
       await _healthRepository.saveBirthDate(state.selectedBirthDate);
 
-      await _userService.refreshBasicHealthData();
+      // await _userService.refreshBasicHealthData();
 
       state = state.copyWith(isSaving: false);
       return true;
@@ -121,7 +119,7 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
 
     try {
       await _healthRepository.saveGender(state.selectedGender);
-      await _userService.refreshBasicHealthData();
+      // await _userService.refreshBasicHealthData();
 
       state = state.copyWith(isSaving: false);
       return true;
@@ -139,7 +137,7 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
     state = state.copyWith(isSaving: true);
     try {
       await _healthRepository.saveBodyType(state.selectedBodyType);
-      await _userService.refreshBasicHealthData();
+      // await _userService.refreshBasicHealthData();
 
       state = state.copyWith(isSaving: false);
       return true;
@@ -187,6 +185,5 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
 final healthOnboardingProvider =
     StateNotifierProvider<HealthOnboardingViewModel, HealthOnboardingState>(
         (ref) {
-  final userService = ref.watch(userServiceProvider);
-  return HealthOnboardingViewModel(HealthRepository(), userService);
+  return HealthOnboardingViewModel(HealthRepository());
 });

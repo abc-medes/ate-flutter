@@ -24,7 +24,8 @@ class SignupState {
   final bool isLoading;
   final bool isPasswordVisible;
   final bool isConfirmPasswordVisible;
-  final String? error;
+  final String? error; // system/network/supabase errors -> popup
+  final String? plainError; // input/validation errors -> inline
   final bool isPasswordValid;
   final bool doPasswordsMatch;
   final SignupStep currentStep;
@@ -42,6 +43,7 @@ class SignupState {
     this.isPasswordVisible = false,
     this.isConfirmPasswordVisible = false,
     this.error,
+    this.plainError,
     this.isPasswordValid = true,
     this.doPasswordsMatch = true,
     this.currentStep = SignupStep.detailsInput,
@@ -60,7 +62,9 @@ class SignupState {
     bool? isPasswordVisible,
     bool? isConfirmPasswordVisible,
     String? error,
+    String? plainError,
     bool clearError = false,
+    bool clearPlainError = false,
     bool? isPasswordValid,
     bool? doPasswordsMatch,
     SignupStep? currentStep,
@@ -80,6 +84,7 @@ class SignupState {
       isConfirmPasswordVisible:
           isConfirmPasswordVisible ?? this.isConfirmPasswordVisible,
       error: clearError ? null : error ?? this.error,
+      plainError: clearPlainError ? null : plainError ?? this.plainError,
       isPasswordValid: isPasswordValid ?? this.isPasswordValid,
       doPasswordsMatch: doPasswordsMatch ?? this.doPasswordsMatch,
       currentStep: currentStep ?? this.currentStep,
@@ -155,8 +160,8 @@ class SignupViewModel extends StateNotifier<SignupState> {
 
   bool validateEmail() {
     if (_isDisposed) return false;
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}\$');
-    final isValid = emailRegex.hasMatch(state.emailController.text);
+    final email = state.emailController.text.trim();
+    final isValid = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email);
     state = state.copyWith(isEmailValid: isValid);
     return isValid;
   }
@@ -188,19 +193,23 @@ class SignupViewModel extends StateNotifier<SignupState> {
     if (_isDisposed) return;
 
     if (!validateEmail()) {
-      throw AuthException("Please enter a valid email address");
+      state = state.copyWith(plainError: "Please enter a valid email address");
+      return;
     }
-
     if (!validatePassword() || !validatePasswordsMatch()) {
-      throw AuthException(
-          "Please correct the errors in the form before continuing");
+      state = state.copyWith(
+          plainError:
+              "Please correct the errors in the form before continuing");
+      return;
     }
-
     if (!state.isFormValid) {
-      throw AuthException("Please fill in all required fields correctly");
+      state = state.copyWith(
+          plainError: "Please fill in all required fields correctly");
+      return;
     }
 
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(
+        isLoading: true, clearError: true, clearPlainError: true);
 
     try {
       if (_isDisposed) return;
@@ -211,13 +220,15 @@ class SignupViewModel extends StateNotifier<SignupState> {
           name: state.nameController.text);
 
       if (res.user == null) {
-        throw AuthException('User not found');
+        state = state.copyWith(error: "Failed to create user");
+        return;
       }
 
       final bool userAlreadyExists = res.user?.identities?.isEmpty ?? false;
 
       if (userAlreadyExists) {
-        throw AuthException('User already registered');
+        state = state.copyWith(error: "User already registered");
+        return;
       }
 
       state = state.copyWith(
@@ -256,31 +267,25 @@ class SignupViewModel extends StateNotifier<SignupState> {
       BuildContext context, SignupMethod signupMethod) async {
     if (!context.mounted) return;
     if (_isDisposed) return;
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      if (signupMethod == SignupMethod.email) {
+        await _authService.signInWithEmail(
+            email: state.emailController.text,
+            password: state.passwordController.text);
+      } else if (signupMethod == SignupMethod.google) {
+        await _authService.signInWithGoogle();
+      } else if (signupMethod == SignupMethod.apple) {
+        await _authService.signInWithApple();
+      }
 
-    if (signupMethod == SignupMethod.email) {
-      await _authService.signInWithEmail(
-          email: state.emailController.text,
-          password: state.passwordController.text);
-    } else if (signupMethod == SignupMethod.google) {
-      await _authService.signInWithGoogle();
-    } else if (signupMethod == SignupMethod.apple) {
-      await _authService.signInWithApple();
-    }
+      await _client.auth.onAuthStateChange.firstWhere((e) => e.session != null);
 
-    await Supabase.instance.client.auth.onAuthStateChange
-        .firstWhere((e) => e.session != null);
-
-    final profile = await _client
-        .from('profiles')
-        .select()
-        .eq('id', _authService.currentUser!.id)
-        .maybeSingle();
-
-    if (profile == null) {
       await wrapUpSignUp(context);
-    } else {
-      if (context.mounted) context.go(RouteNames.home);
+    } on AuthException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -300,12 +305,14 @@ class SignupViewModel extends StateNotifier<SignupState> {
 
       state = state.copyWith(isLoading: false);
 
-      if (context.mounted) context.go(RouteNames.home);
+      if (context.mounted) context.go(RouteNames.onboarding);
     } on AuthException catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: e.message,
       );
+    } on PostgrestException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,

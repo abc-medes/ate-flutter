@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/services/app_lifecycle.dart';
+import 'package:bodido/core/services/user_service.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/data/models/profiles/user_model.dart' as um;
@@ -172,4 +174,17 @@ final sessionProvider = StreamProvider<Session?>((ref) {
 
 final isAuthedProvider = Provider<bool>((ref) {
   return ref.watch(sessionProvider).value != null;
+});
+
+final lifecycleProvider = Provider<LifecycleLogic?>((ref) {
+  final authed = ref.watch(isAuthedProvider);
+  if (!authed) return null;
+
+  final userService = ref.watch(userServiceProvider);
+  final logic = LifecycleLogic(userService, ref as WidgetRef);
+
+  ref.onDispose(() {
+    logic.dispose();
+  });
+  return logic;
 });

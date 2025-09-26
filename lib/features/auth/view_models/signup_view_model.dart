@@ -129,7 +129,19 @@ class SignupViewModel extends StateNotifier<SignupState> {
           passwordController: TextEditingController(),
           confirmPasswordController: TextEditingController(),
           otpController: TextEditingController(),
-        ));
+        )) {
+    // DEV DEFAULTS: prefill signup form for development.
+    assert(() {
+      state.emailController.text = 'baikjyo@naver.com';
+      state.nameController.text = 'aaa';
+      state.passwordController.text = '12341234a';
+      state.confirmPasswordController.text = '12341234a';
+      validateEmail();
+      validatePassword();
+      validatePasswordsMatch();
+      return true;
+    }());
+  }
 
   @override
   void dispose() {
@@ -220,14 +232,16 @@ class SignupViewModel extends StateNotifier<SignupState> {
           name: state.nameController.text);
 
       if (res.user == null) {
-        state = state.copyWith(error: "Failed to create user");
+        state =
+            state.copyWith(isLoading: false, error: "Failed to create user");
         return;
       }
 
       final bool userAlreadyExists = res.user?.identities?.isEmpty ?? false;
 
       if (userAlreadyExists) {
-        state = state.copyWith(error: "User already registered");
+        state =
+            state.copyWith(isLoading: false, error: "User already registered");
         return;
       }
 

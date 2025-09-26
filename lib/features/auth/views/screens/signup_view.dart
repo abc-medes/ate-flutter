@@ -298,27 +298,4 @@ class _SignupViewState extends ConsumerState<SignupView> {
       ],
     );
   }
-
-  // void _handleSocialLogin(BuildContext context, WidgetRef ref,
-  //     Future<void> Function() signInMethod) async {
-  //   final viewModel = ref.read(loginViewModelProvider.notifier);
-
-  //   try {
-  //     await socialSignInAndFinalize(context, ref, signInMethod);
-  //   } catch (e) {
-  //     if (context.mounted) {
-  //       LoadingScreen.dismiss(context);
-  //       ErrorSnackbar.showLoginError(
-  //         context: context,
-  //         errorMessage: e.toString(),
-  //         clearError: () {
-  //           viewModel.clearError();
-  //         },
-  //         onTryAgain: () {
-  //           signInMethod();
-  //         },
-  //       );
-  //     }
-  //   }
-  // }
 }

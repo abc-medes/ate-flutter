@@ -1,7 +1,6 @@
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/services/auth_service.dart';
-import 'package:bodido/core/services/user_service.dart';
 
 enum LoginStep {
   emailInput,
@@ -50,11 +49,11 @@ class LoginState {
 }
 
 class LoginViewModel extends StateNotifier<LoginState> {
+  final SupabaseClient _client = Supabase.instance.client;
   final AuthService _authService;
-  final UserService _userService;
   bool _isDisposed = false;
 
-  LoginViewModel(this._authService, this._userService)
+  LoginViewModel(this._authService)
       : super(LoginState(
           emailController: TextEditingController(),
           passwordController: TextEditingController(),
@@ -112,19 +111,20 @@ class LoginViewModel extends StateNotifier<LoginState> {
   Future<void> handlePasswordLogin(BuildContext context) async {
     if (_isDisposed || state.isLoading) return;
     try {
-      final email = state.emailController.text.trim();
-      final password = state.passwordController.text.trim();
-
-      if (password.isEmpty) {
-        throw AuthException("Please enter your password");
+      if (state.passwordController.text.isEmpty) {
+        state = state.copyWith(error: "Please enter your password");
+        return;
       }
 
       state = state.copyWith(isLoading: true, clearError: true);
-      await _authService.signInWithEmail(email: email, password: password);
+      await _authService.signInWithEmail(
+          email: state.emailController.text.trim(),
+          password: state.passwordController.text.trim());
 
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isLoading: false, error: null);
 
-      if (context.mounted) context.go(RouteNames.home);
+      await Supabase.instance.client.auth.onAuthStateChange
+          .firstWhere((e) => e.session != null);
     } catch (e) {
       if (e is AuthException) {
         state = state.copyWith(
@@ -170,38 +170,10 @@ class LoginViewModel extends StateNotifier<LoginState> {
     state.passwordController.dispose();
     state.currentStep = LoginStep.emailInput;
   }
-
-  void wrapUpSocialOAuth(BuildContext context) async {
-    if (!context.mounted) return;
-    if (_isDisposed) return;
-    state = state.copyWith(isLoading: true);
-
-    final user = _authService.currentUser;
-    if (user == null) return;
-
-    final profile = await _userService.fetchUserProfile(user.id);
-    if (profile == null) {
-      final email = user.email ?? '';
-      final meta = user.userMetadata ?? {};
-      final name = (meta['name'] ??
-              meta['full_name'] ??
-              meta['preferred_username'] ??
-              (email.isNotEmpty ? email.split('@').first : ''))
-          .toString();
-
-      await _userService.createProfile(
-        userId: user.id,
-        email: email,
-        name: name,
-      );
-      await _userService.createEmptyUserHealthMetrics(user.id);
-    }
-  }
 }
 
 final loginViewModelProvider =
     StateNotifierProvider.autoDispose<LoginViewModel, LoginState>((ref) {
   final authService = ref.watch(authServiceProvider);
-  final userService = ref.watch(userServiceProvider);
-  return LoginViewModel(authService, userService);
+  return LoginViewModel(authService);
 });

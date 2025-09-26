@@ -1,13 +1,10 @@
 import 'package:bodido/common_libs.dart';
-import 'package:bodido/core/services/app_lifecycle.dart';
-import 'package:bodido/core/services/app_logic.dart';
-import 'package:bodido/core/services/deep_link_logic.dart';
-import 'package:bodido/core/services/user_service.dart';
-import 'package:bodido/l10n/l10n.dart';
 import 'package:bodido/core/config/env.dart';
+import 'package:bodido/core/services/app_logic.dart';
+import 'package:bodido/l10n/l10n.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:timezone/data/latest.dart' as tz;
-import 'package:firebase_core/firebase_core.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,24 +36,19 @@ class Bodido extends ConsumerStatefulWidget {
 }
 
 class _BodidoState extends ConsumerState<Bodido> {
-  late final LifecycleLogic _lifecycle;
-
   @override
   void initState() {
     super.initState();
-    GetIt.I.get<DeepLinkLogic>();
-    _lifecycle = LifecycleLogic(ref.read(userServiceProvider), ref);
   }
 
   @override
   void dispose() {
-    _lifecycle.dispose();
-    GetIt.I.get<DeepLinkLogic>().dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // ref.watch(lifecycleProvider);
     return MaterialApp.router(
       routerConfig: ref.watch(routerProvider),
       debugShowCheckedModeBanner: false,
@@ -75,7 +67,6 @@ void registerSingletons() {
   GetIt.I.registerSingleton<AppLogic>(AppLogic());
   GetIt.I.registerSingleton<LocaleLogic>(LocaleLogic());
   GetIt.I.registerSingleton<SettingsLogic>(SettingsLogic());
-  GetIt.I.registerSingleton<DeepLinkLogic>(DeepLinkLogic());
 }
 
 // AppLogic get appLogic => GetIt.I.get<AppLogic>();

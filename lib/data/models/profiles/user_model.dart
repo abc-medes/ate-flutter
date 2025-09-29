@@ -54,7 +54,7 @@ class User {
       createdAt: DateTime.parse(json['created_at']),
       lastSignInAt: DateTime.parse(json['last_sign_in_at']),
       preferences: UserPreferences.fromJson(json['preferences']),
-      appOpenState: OpenState.fromJson(json['app_open_state']),
+      appOpenState: OpenState.fromJson(json['open_state']),
     );
   }
 
@@ -67,7 +67,7 @@ class User {
       'created_at': createdAt.toIso8601String(),
       'last_sign_in_at': lastSignInAt.toIso8601String(),
       'preferences': preferences.toJson(),
-      'app_open_state': appOpenState.toJson(),
+      'open_state': appOpenState.toJson(),
     };
   }
 

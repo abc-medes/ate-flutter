@@ -70,12 +70,12 @@ class AuthService {
             e.event == AuthChangeEvent.userUpdated)
         .then((_) => closeInAppWebView());
 
-    const redirectTo = 'bodido.app://auth/login-callback';
+    const redirectTo = 'bodido.app://auth/signup';
 
     await _client.auth.signInWithOAuth(
       OAuthProvider.google,
       redirectTo: redirectTo,
-      authScreenLaunchMode: LaunchMode.platformDefault,
+      authScreenLaunchMode: LaunchMode.externalApplication,
     );
 
     await done;
@@ -87,7 +87,7 @@ class AuthService {
             e.event == AuthChangeEvent.signedIn ||
             e.event == AuthChangeEvent.userUpdated)
         .then((_) => closeInAppWebView());
-    const redirectTo = 'bodido.app://auth/login-callback';
+    const redirectTo = 'bodido.app://auth/signup';
 
     await _client.auth.signInWithOAuth(
       OAuthProvider.apple,

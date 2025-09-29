@@ -1,9 +1,10 @@
 import 'dart:convert';
+
 import 'package:bodido/data/models/body_simulator_model.dart';
+import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/features/onboarding/views/widgets/body_type_pidcker.dart';
 import 'package:bodido/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:bodido/data/models/health_model.dart';
 
 class HealthRepository {
   static const String _healthDataKey = 'health_metrics';
@@ -227,6 +228,29 @@ class HealthRepository {
       print('Error saving health metrics: $e');
     }
   }
+
+  // ------------------------------------------------------------
+  // Onboarding Complete
+  // ------------------------------------------------------------
+  Future<void> saveOnboardingComplete() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('onboarding_complete', true);
+    } catch (e) {
+      print('Error saving onboarding complete: $e');
+    }
+  }
+
+  Future<bool> isOnboardingComplete() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool('onboarding_complete') ?? false;
+    } catch (e) {
+      print('Error checking onboarding complete: $e');
+      return false;
+    }
+  }
+  // ------------------------------------------------------------
 }
 
 final healthRepository = HealthRepository();

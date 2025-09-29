@@ -226,20 +226,30 @@ class SignupViewModel extends StateNotifier<SignupState> {
     try {
       if (_isDisposed) return;
 
+      print(
+          '[Signup] start email=${state.emailController.text} name=${state.nameController.text}');
       final res = await _authService.signUpWithEmail(
           email: state.emailController.text,
           password: state.passwordController.text,
           name: state.nameController.text);
 
       if (res.user == null) {
+        print('[Signup] failed: user is null');
         state =
             state.copyWith(isLoading: false, error: "Failed to create user");
         return;
       }
 
       final bool userAlreadyExists = res.user?.identities?.isEmpty ?? false;
+      final uid = res.user?.id;
+      final confirmedAt = res.user?.emailConfirmedAt;
+      final identities = res.user?.identities?.length ?? 0;
+      print(
+          '[Signup] response userId=$uid confirmedAt=$confirmedAt identities=$identities sessionPresent=${res.session != null}');
 
       if (userAlreadyExists) {
+        print(
+            '[Signup] user already exists for email=${state.emailController.text}');
         state =
             state.copyWith(isLoading: false, error: "User already registered");
         return;
@@ -249,16 +259,19 @@ class SignupViewModel extends StateNotifier<SignupState> {
         isLoading: false,
         currentStep: SignupStep.emailSent,
       );
+      print('[Signup] email verification sent; moving to emailSent step');
     } on AuthException catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: e.message,
       );
+      print('[Signup] auth exception: ${e.message}');
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
       );
+      print('[Signup] unexpected error: $e');
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:bodido/core/services/api_service.dart';
+import 'package:bodido/core/services/onboarding_complete_service.dart';
 import 'package:bodido/core/services/onboarding_service.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/data/repositories/health_repository.dart';
@@ -57,8 +58,9 @@ class HealthOnboardingState {
 
 class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
   final HealthRepository _healthRepository;
+  final Ref ref;
 
-  HealthOnboardingViewModel(this._healthRepository)
+  HealthOnboardingViewModel(this._healthRepository, this.ref)
       : super(HealthOnboardingState());
 
   void updateCurrentPage(int page) {
@@ -172,6 +174,10 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
       await ApiService.initializeBodySimulatorState();
       _log('Initializing body simulator state - done');
 
+      // mark onboarding complete
+      await _healthRepository.saveOnboardingComplete();
+      ref.invalidate(onboardingCompleteProvider);
+
       return true;
     } catch (e) {
       print('Error finalising onboarding: $e');
@@ -185,5 +191,5 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
 final healthOnboardingProvider =
     StateNotifierProvider<HealthOnboardingViewModel, HealthOnboardingState>(
         (ref) {
-  return HealthOnboardingViewModel(HealthRepository());
+  return HealthOnboardingViewModel(HealthRepository(), ref);
 });

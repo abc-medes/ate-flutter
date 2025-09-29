@@ -1,5 +1,4 @@
 import 'package:bodido/common_libs.dart';
-import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/widgets/live_typewriter.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/features/onboarding/view_models/onboarding_view_model.dart';
@@ -233,17 +232,17 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
     List<String> logs =
         state.progressMessages.isEmpty ? [] : state.progressMessages;
 
-    // Navigate when finalizing and saving are both done (run once)
-    if (!state.isFinalizing && !state.isSaving && !_wrapUpTriggered) {
-      // ensure finalizeOnboarding was triggered first
-    }
-    if (!state.isFinalizing && !state.isSaving && _wrapUpTriggered) {
-      _wrapUpTriggered = false;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !context.mounted) return;
-        context.go(RouteNames.home);
-      });
-    }
+    // // Navigate when finalizing and saving are both done (run once)
+    // if (!state.isFinalizing && !state.isSaving && !_wrapUpTriggered) {
+    //   // ensure finalizeOnboarding was triggered first
+    // }
+    // if (!state.isFinalizing && !state.isSaving && _wrapUpTriggered) {
+    //   _wrapUpTriggered = false;
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     if (!mounted || !context.mounted) return;
+    //     context.go(RouteNames.debug);
+    //   });
+    // }
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,

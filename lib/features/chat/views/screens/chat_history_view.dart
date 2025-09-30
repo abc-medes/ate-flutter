@@ -1,13 +1,13 @@
-import 'package:intl/intl.dart';
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/services/session_service.dart';
 import 'package:bodido/core/widgets/chat_input.dart';
 import 'package:bodido/core/widgets/circular_icon_button.dart';
-import 'package:bodido/core/widgets/error_snackbar.dart';
+import 'package:bodido/core/widgets/custom_message_sheet.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/chat_model.dart';
 import 'package:bodido/features/chat/view_models/chat_history_view_model.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class ChatHistoryView extends ConsumerStatefulWidget {
@@ -83,11 +83,9 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView>
 
     ref.listen<ChatHistoryState>(chatHistoryViewModelProvider, (_, next) {
       if (next.error != null) {
-        ErrorSnackbar.showChatHistoryError(
+        CustomMessageSheet.showError(
           context: context,
-          errorMessage: next.error!,
-          clearError: viewModel.clearError,
-          onTryAgain: () => viewModel.onMonthChanged(state.focusedMonth),
+          message: next.error!,
         );
       }
     });

@@ -14,6 +14,7 @@ class RouteNames {
   static const home = '/home';
   static const profile = '/profile';
   static const settings = '/settings';
+  static const changePassword = '/settings/change-password';
   static const chatHistory = '/chat-history';
   static const String chat = '/chat-history/:sessionId';
 

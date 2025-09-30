@@ -51,7 +51,7 @@ class AuthService {
 
   Future<void> resetPassword(String email) async {
     await _client.auth.resetPasswordForEmail(email,
-        redirectTo: "bodido.app://${RouteNames.resetPassword}");
+        redirectTo: "bodido.app://${RouteNames.changePassword}");
   }
 
   Future<void> resendSignupVerification(String email) async {
@@ -59,6 +59,15 @@ class AuthService {
     await _client.auth.resend(
       email: email,
       type: OtpType.signup,
+      emailRedirectTo: redirectTo,
+    );
+  }
+
+  Future<void> resendResetPasswordEmail(String email) async {
+    const redirectTo = 'bodido.app://${RouteNames.changePassword}';
+    await _client.auth.resend(
+      email: email,
+      type: OtpType.recovery,
       emailRedirectTo: redirectTo,
     );
   }
@@ -87,7 +96,7 @@ class AuthService {
             e.event == AuthChangeEvent.signedIn ||
             e.event == AuthChangeEvent.userUpdated)
         .then((_) => closeInAppWebView());
-    const redirectTo = 'bodido.app://auth/signup';
+    const redirectTo = 'bodido.app://';
 
     await _client.auth.signInWithOAuth(
       OAuthProvider.apple,
@@ -101,6 +110,23 @@ class AuthService {
   Future<void> signOut() async {
     await _client.auth.signOut();
   }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final email = _client.auth.currentUser?.email;
+    if (email == null) {
+      throw AuthException('Not signed in');
+    }
+
+    await _client.auth
+        .signInWithPassword(email: email, password: currentPassword);
+    await _client.auth.updateUser(UserAttributes(password: newPassword));
+  }
+
+  // ------------------------------------------------------------
+  ///                       Profile
 
   // ------------------------------------------------------------
   ///                       Profile

@@ -25,7 +25,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         final isAuthTarget = path.startsWith('/auth') || host == 'auth';
         if (isAuthTarget) return null;
         return RouteNames.login;
-      } else if (!onboardingDone) {
+      }
+
+      if (path == RouteNames.changePassword) {
+        return RouteNames.changePassword;
+      }
+
+      // Onboarding
+      final onboardingAsync = ref.watch(onboardingCompleteProvider);
+      if (onboardingAsync.isLoading) return null;
+
+      final onboardingDone = onboardingAsync.value ?? false;
+
+      if (!onboardingDone) {
         return RouteNames.onboarding;
       }
 

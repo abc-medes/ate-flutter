@@ -170,6 +170,21 @@ class LoginViewModel extends StateNotifier<LoginState> {
     state.passwordController.dispose();
     state.currentStep = LoginStep.emailInput;
   }
+
+  Future<void> resendResetPasswordEmail() async {
+    if (_isDisposed) return;
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _authService.resendSignupVerification(state.emailController.text);
+    } on AuthException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+      rethrow;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+    state = state.copyWith(isLoading: false);
+  }
 }
 
 final loginViewModelProvider =

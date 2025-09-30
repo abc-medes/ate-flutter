@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
-import 'package:bodido/core/widgets/error_snackbar.dart';
+import 'package:bodido/core/widgets/custom_message_sheet.dart';
 import 'package:bodido/core/widgets/loading_view.dart';
 import 'package:bodido/core/widgets/typewriter_animated_text.dart';
 import 'package:bodido/features/_common/bodido_logo.dart';
@@ -52,22 +52,12 @@ class _LoginViewState extends ConsumerState<LoginView> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
 
-        final error = viewState.error;
-        ErrorSnackbar.showLoginError(
+        CustomMessageSheet.showError(
           context: context,
-          errorMessage: error!,
-          clearError: () {
-            viewModel.clearError();
-          },
-          onTryAgain: () {},
-          onResetPassword: () {
-            viewModel.handleForgotPassword(context);
-          },
-          onCreateAccount: () {
-            viewModel.redirectToSignup(context);
-          },
+          message: viewState.error!,
+          // actions: [ MessageAction(label: 'Try again', onPressed: () { ... }) ],
         );
-        viewModel.clearError(); // Clear error immediately
+        viewModel.clearError();
       });
     }
 

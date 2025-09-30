@@ -18,7 +18,8 @@ Future<void> main() async {
     anonKey: Env.supabaseAnonKey,
     authOptions: const FlutterAuthClientOptions(
       authFlowType: AuthFlowType.pkce,
-      detectSessionInUri: false,
+      detectSessionInUri: true,
+      autoRefreshToken: true,
     ),
   );
 

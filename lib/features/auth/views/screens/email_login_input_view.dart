@@ -1,8 +1,9 @@
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
-import 'package:bodido/features/auth/view_models/login_view_model.dart';
+import 'package:bodido/core/widgets/app_button.dart';
 import 'package:bodido/core/widgets/customed_text_input.dart';
 import 'package:bodido/core/widgets/page_header.dart';
+import 'package:bodido/features/auth/view_models/login_view_model.dart';
 
 class EmailLoginInputView extends ConsumerStatefulWidget {
   const EmailLoginInputView({super.key});
@@ -29,7 +30,7 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
       backgroundColor: $styles.colors.background,
       body: Column(
         children: [
-          PageHeader(
+          AppPageAppBar(
             title: $strings.logIn,
             onBack: () {
               ref.invalidate(loginViewModelProvider);
@@ -48,31 +49,14 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
                         child: EmailAndPasswordInputStep(
                             viewState: viewState, viewModel: viewModel),
                       ),
-                    SizedBox(
-                      width: double.infinity,
-                      height: $styles.insets.xl,
-                      child: ElevatedButton(
-                        onPressed: viewState.isLoading
-                            ? null
-                            : () async {
-                                await viewModel.handlePasswordLogin(context);
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: $styles.colors.accent1,
-                          foregroundColor: $styles.colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular($styles.corners.md),
-                          ),
-                        ),
-                        child: Text(
-                          $strings.logIn,
-                          style: $styles.text.btn.copyWith(
-                            color: $styles.colors.white,
-                          ),
-                        ),
-                      ),
+                    AppButton(
+                      label: $strings.logIn,
+                      isLoading: viewState.isLoading,
+                      onPressed: viewState.isLoading
+                          ? null
+                          : () async {
+                              await viewModel.handlePasswordLogin(context);
+                            },
                     ),
                   ],
                 ),

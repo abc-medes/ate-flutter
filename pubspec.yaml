@@ -28,6 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  app_links: ^6.4.0
   build_runner: ^2.4.15
   collection: ^1.19.1
   cupertino_icons: ^1.0.8

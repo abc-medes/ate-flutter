@@ -1,7 +1,9 @@
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
-import 'package:bodido/features/auth/view_models/login_view_model.dart';
+import 'package:bodido/core/widgets/app_button.dart';
 import 'package:bodido/core/widgets/customed_text_input.dart';
+import 'package:bodido/core/widgets/page_header.dart';
+import 'package:bodido/features/auth/view_models/login_view_model.dart';
 import 'package:bodido/features/auth/views/widgets/email_sent_step.dart';
 
 class ResetPasswordView extends ConsumerStatefulWidget {
@@ -25,22 +27,16 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
     final viewState = ref.watch(loginViewModelProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            ref.invalidate(loginViewModelProvider);
-            Navigator.pop(context);
-          },
-        ),
-        title: Text(
-          $strings.resetPasswordTitle,
-        ),
+      appBar: AppPageAppBar(
+        title: $strings.resetPasswordTitle,
+        onBack: () {
+          ref.invalidate(loginViewModelProvider);
+          Navigator.pop(context);
+        },
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: EdgeInsets.all($styles.insets.md),
           child: Column(
             children: [
               if (viewState.currentStep == LoginStep.resettingEmailSent)
@@ -67,31 +63,14 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
                   child: EmailInputStep(
                       viewState: viewState, viewModel: viewModel),
                 ),
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: viewState.isLoading
-                      ? null
-                      : () async {
-                          viewModel.handleForgotPassword(context);
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.surface,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    $strings.sendEmail,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+              AppButton(
+                label: $strings.sendEmail,
+                isLoading: viewState.isLoading,
+                onPressed: viewState.isLoading
+                    ? null
+                    : () async {
+                        viewModel.handleForgotPassword(context);
+                      },
               ),
             ],
           ),

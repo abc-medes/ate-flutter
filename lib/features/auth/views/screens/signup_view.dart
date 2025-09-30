@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/widgets/app_button.dart';
 import 'package:bodido/core/widgets/customed_text_input.dart';
 import 'package:bodido/core/widgets/error_snackbar.dart';
 import 'package:bodido/core/widgets/loading_view.dart';
@@ -56,9 +57,12 @@ class _SignupViewState extends ConsumerState<SignupView> {
 
     return Scaffold(
       backgroundColor: $styles.colors.background,
+      appBar: AppPageAppBar(
+        title: 'Sign Up',
+        onBack: () => Navigator.pop(context),
+      ),
       body: Column(
         children: [
-          const PageHeader(title: 'Sign Up'),
           Expanded(
             child: SafeArea(
               top: false,
@@ -117,41 +121,22 @@ class _SignupViewState extends ConsumerState<SignupView> {
                         ),
                       ),
                     ),
-                    SizedBox(
-                      width: double.infinity,
-                      height: $styles.insets.xl,
-                      child: ElevatedButton(
-                        onPressed: viewState.isLoading
-                            ? null
-                            : () async {
-                                switch (viewState.currentStep) {
-                                  case SignupStep.detailsInput:
-                                    await viewModel.signUp();
-                                    break;
-                                  case SignupStep.emailSent:
-                                    await viewModel.handleLogin(
-                                        context, SignupMethod.email);
-                                    break;
-                                  default:
-                                    break;
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: $styles.colors.accent1,
-                          foregroundColor: $styles.colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular($styles.corners.md),
-                          ),
-                        ),
-                        child: Text(
-                          'Continue',
-                          style: $styles.text.bodyBold.copyWith(
-                            color: $styles.colors.white,
-                          ),
-                        ),
-                      ),
+                    AppButton(
+                      label: 'Continue',
+                      isLoading: viewState.isLoading,
+                      onPressed: () async {
+                        switch (viewState.currentStep) {
+                          case SignupStep.detailsInput:
+                            await viewModel.signUp();
+                            break;
+                          case SignupStep.emailSent:
+                            await viewModel.handleLogin(
+                                context, SignupMethod.email);
+                            break;
+                          default:
+                            break;
+                        }
+                      },
                     ),
                   ],
                 ),

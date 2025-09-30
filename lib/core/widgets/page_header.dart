@@ -1,9 +1,8 @@
-// lib/core/widgets/page_header.dart
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/widgets/circular_icon_button.dart';
 
-class PageHeader extends StatelessWidget {
-  const PageHeader({
+class AppPageAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const AppPageAppBar({
     super.key,
     required this.title,
     this.onBack,
@@ -15,9 +14,13 @@ class PageHeader extends StatelessWidget {
   final Widget? trailing;
 
   @override
+  Size get preferredSize => Size.fromHeight($styles.insets.xl + kToolbarHeight * 0.2);
+
+  @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
     return Container(
+      color: $styles.colors.background,
       padding: EdgeInsets.fromLTRB(
         $styles.insets.sm,
         mq.padding.top,
@@ -33,8 +36,10 @@ class PageHeader extends StatelessWidget {
             iconColor: $styles.colors.accent1,
             onTap: onBack ?? () => Navigator.of(context).maybePop(),
           ),
-          Text(title,
-              style: $styles.text.h3.copyWith(color: $styles.colors.accent1)),
+          Text(
+            title,
+            style: $styles.text.h3.copyWith(color: $styles.colors.accent1),
+          ),
           trailing ?? const SizedBox(width: 48),
         ],
       ),

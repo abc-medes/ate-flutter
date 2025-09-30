@@ -53,7 +53,9 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
                   resendButtonText: "Didn't receive the email? Resend",
                   onResend: viewState.isLoading
                       ? null
-                      : () async {/* resend logic */},
+                      : () async {
+                          await viewModel.resendResetPasswordEmail();
+                        },
                   backToLoginText: 'Back to Login',
                   onBackToLogin: () => context.go(RouteNames.login),
                   isLoading: viewState.isLoading,
@@ -64,7 +66,9 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
                       viewState: viewState, viewModel: viewModel),
                 ),
               AppButton(
-                label: $strings.sendEmail,
+                label: viewState.currentStep == LoginStep.resettingEmailSent
+                    ? 'Continue'
+                    : $strings.sendEmail,
                 isLoading: viewState.isLoading,
                 onPressed: viewState.isLoading
                     ? null

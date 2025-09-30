@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/widgets/app_button.dart';
+import 'package:bodido/core/widgets/custom_message_sheet.dart';
 import 'package:bodido/core/widgets/customed_text_input.dart';
-import 'package:bodido/core/widgets/error_snackbar.dart';
 import 'package:bodido/core/widgets/loading_view.dart';
 import 'package:bodido/core/widgets/page_header.dart';
 import 'package:bodido/features/auth/view_models/signup_view_model.dart';
@@ -45,12 +45,17 @@ class _SignupViewState extends ConsumerState<SignupView> {
       if (viewState.error != null) {
         LoadingScreen.dismiss(context);
 
-        ErrorSnackbar.showSignupError(
+        CustomMessageSheet.showError(
           context: context,
-          errorMessage: viewState.error!,
-          clearError: () => viewModel.clearError(),
-          onTryAgain: () => viewModel.signUp(),
-          onGoToLogin: () => context.go(RouteNames.login),
+          message: viewState.error!,
+          actions: [
+            MessageAction(
+                label: 'Try Again', onPressed: () => viewModel.signUp()),
+            MessageAction(
+                label: 'Go to Login',
+                onPressed: () => context.go(RouteNames.login)),
+          ],
+          onDismiss: () => viewModel.clearError(),
         );
       }
     });

@@ -1,4 +1,5 @@
 import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/widgets/clickable_text.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/widgets/app_button.dart';
 import 'package:bodido/core/widgets/customed_text_input.dart';
@@ -99,9 +100,7 @@ class EmailAndPasswordInputStep extends StatelessWidget {
             vertical: $styles.insets.sm,
           ),
         ),
-
         SizedBox(height: $styles.insets.sm),
-
         CustomedTextInput(
           controller: viewState.passwordController,
           hintText: 'Password',
@@ -123,25 +122,11 @@ class EmailAndPasswordInputStep extends StatelessWidget {
             vertical: $styles.insets.sm,
           ),
         ),
-
         SizedBox(height: $styles.insets.sm),
-
-        // Forgot password link
-        Padding(
+        ClickableText(
+          text: $strings.forgotPassword,
+          onTap: () => context.replace(RouteNames.resetPassword),
           padding: EdgeInsets.only(top: $styles.insets.xs),
-          child: Center(
-            child: GestureDetector(
-              onTap: () {
-                context.replace(RouteNames.resetPassword);
-              },
-              child: Text(
-                $strings.forgotPassword,
-                style: TextStyle(
-                  color: $styles.colors.accent1,
-                ),
-              ),
-            ),
-          ),
         ),
       ],
     );

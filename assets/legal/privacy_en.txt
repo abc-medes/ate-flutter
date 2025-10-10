@@ -1,0 +1,51 @@
+Privacy Policy
+Effective date: October 10, 2025
+
+Bodido (“we”, “us”, “our”) provides a personal health and chat assistant app (“App”). This Privacy Policy explains what information we collect, how we use it, and your choices. If you do not agree, please do not use the App.
+
+1) What we collect
+- Account Information: Email and name you provide to create and manage your account.
+- Authentication Data: Credentials/tokens required to sign in securely.
+- Optional User Inputs: Any text or context you choose to enter (e.g., health context, preferences).
+- Usage & Diagnostics: Basic crash logs, performance metrics, and interaction data needed to keep the App reliable.
+- Device & Technical Data: Device type, OS version, and similar technical details necessary to operate the App.
+
+We do not collect sensitive data unless you voluntarily provide it in the App. Do not include information you are not comfortable sharing.
+
+2) How we use information
+- Provide and secure the App (authentication, account management, core features)
+- Maintain and improve functionality, reliability, and user experience
+- Communicate service messages (e.g., password resets, account notices)
+We do not sell your personal information. We do not use your data for third‑party advertising.
+
+3) When we share information
+We do not share personal information except:
+- Service Providers (Processors): We use trusted vendors to operate the App (e.g., cloud hosting, authentication, analytics, crash reporting). These providers may process data on our behalf under contractual safeguards. Today, this may include Supabase and Firebase.
+- Legal/Compliance: If required by applicable law, regulation, or valid legal process, or to protect the rights, safety, and security of users and the service.
+
+4) Data retention
+- Account and profile data: Retained while your account is active. If you request deletion, we delete or de‑identify your personal information within a reasonable period, subject to legal obligations.
+- Diagnostics/Logs: Retained for limited periods needed for troubleshooting and security.
+
+5) Your choices and rights
+- Access/Update: You can update your account information in the App or by contacting us.
+- Delete: You can request account deletion and removal of associated personal information.
+- Consent: You can choose what to provide in the App; avoid entering information you do not want stored.
+To exercise rights, contact us at [YOUR CONTACT EMAIL].
+
+6) Security
+We use reasonable administrative, technical, and organizational measures to protect your data. No system is 100% secure, and we cannot guarantee absolute security.
+
+7) Children
+The App is not intended for children under 13 (or the age required in your jurisdiction). We do not knowingly collect personal information from children.
+
+8) International transfers
+Your information may be processed in countries other than your own. Where applicable, we use safeguards consistent with legal requirements.
+
+9) Changes to this policy
+We may update this policy from time to time. We will post the updated policy and revise the “Effective date.” Continued use of the App after changes means you accept the updated policy.
+
+10) Contact
+If you have questions or requests about this policy or your data, contact:
+Email: [YOUR CONTACT EMAIL]
+Address: [YOUR COMPANY/ADDRESS IF APPLICABLE]

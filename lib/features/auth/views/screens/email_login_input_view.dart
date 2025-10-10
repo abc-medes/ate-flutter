@@ -1,7 +1,7 @@
 import 'package:bodido/common_libs.dart';
-import 'package:bodido/core/widgets/clickable_text.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/widgets/app_button.dart';
+import 'package:bodido/core/widgets/clickable_text.dart';
 import 'package:bodido/core/widgets/customed_text_input.dart';
 import 'package:bodido/core/widgets/page_header.dart';
 import 'package:bodido/features/auth/view_models/login_view_model.dart';

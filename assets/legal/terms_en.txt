@@ -1,0 +1,57 @@
+Terms of Service
+Effective date: October 10, 2025
+
+Welcome to Bodido (“we”, “us”, “our”). These Terms of Service (“Terms”) govern your use of the Bodido mobile application and related services (“App”). By using the App, you agree to these Terms.
+
+1) Eligibility
+You must be at least 13 years old (or the age of digital consent in your country). If you use the App on behalf of an organization, you represent you have authority to bind it.
+
+2) Accounts and Security
+You are responsible for your account credentials and for all activity under your account. Notify us promptly of any unauthorized use or security incident.
+
+3) User Content
+You may submit information (e.g., text, preferences, health context) (“User Content”). You retain ownership of your User Content. You grant us a non‑exclusive, worldwide, royalty‑free license to host, process, and display your User Content solely to operate and improve the App. Do not submit content you do not have rights to share.
+
+4) Acceptable Use
+Do not misuse the App or attempt to interfere with its normal operation. Prohibited conduct includes: violating laws; infringing IP or privacy; reverse engineering; introducing malware; scraping; or using the App to generate illegal or harmful content.
+
+5) Health and Safety
+Bodido is a wellness and productivity tool. It does not provide medical advice, diagnosis, or treatment. Always seek professional advice for medical concerns. Do not rely on the App for emergencies.
+
+6) AI‑Generated Content
+The App may generate content automatically. Output can be inaccurate or incomplete. You are responsible for evaluating and verifying outputs before use.
+
+7) Intellectual Property
+We and our licensors own the App and all related IP (excluding your User Content). You receive a limited, revocable, non‑transferable license to use the App for personal, non‑commercial purposes in accordance with these Terms.
+
+8) Fees (If Applicable)
+We may offer paid features or subscriptions. Prices, billing cycles, trial periods, and cancellation terms will be shown at purchase. Taxes may apply. Unless stated otherwise, payments are non‑refundable to the fullest extent permitted by law.
+
+9) Third‑Party Services
+The App may integrate third‑party services (e.g., authentication, hosting, analytics). We are not responsible for third‑party services, which may be governed by their own terms.
+
+10) Privacy
+Your use of the App is subject to our Privacy Policy. Please review it to understand how we collect and use information.
+
+11) Termination
+You may stop using the App at any time. We may suspend or terminate access if you violate these Terms or if we discontinue the App. Upon termination, your right to use the App ends.
+
+12) Disclaimers
+THE APP IS PROVIDED “AS IS” AND “AS AVAILABLE” WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING FITNESS FOR A PARTICULAR PURPOSE, ACCURACY, OR NON‑INFRINGEMENT. WE DO NOT WARRANT THAT THE APP WILL BE UNINTERRUPTED OR ERROR‑FREE.
+
+13) Limitation of Liability
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE AND OUR AFFILIATES, OFFICERS, EMPLOYEES, AND PARTNERS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR ANY LOSS OF DATA, PROFITS, OR REVENUE, ARISING FROM OR RELATED TO YOUR USE OF THE APP. OUR TOTAL LIABILITY FOR ALL CLAIMS SHALL NOT EXCEED THE AMOUNT YOU PAID TO USE THE APP IN THE 12 MONTHS BEFORE THE CLAIM OR USD $100, WHICHEVER IS GREATER.
+
+14) Indemnification
+You agree to indemnify and hold us harmless from claims, damages, liabilities, costs, and expenses (including reasonable attorneys’ fees) arising from your misuse of the App, your User Content, or your violation of these Terms or applicable law.
+
+15) Changes to the App and Terms
+We may modify or discontinue the App (in whole or part) and update these Terms. We will post changes with a new effective date. Your continued use after changes means you accept the revised Terms.
+
+16) Governing Law
+These Terms are governed by the laws of [YOUR JURISDICTION], without regard to conflict‑of‑laws rules. Courts located in [YOUR JURISDICTION] shall have exclusive jurisdiction, except where prohibited by law.
+
+17) Contact
+Questions or concerns about these Terms:
+Email: [YOUR CONTACT EMAIL]
+Address: [YOUR COMPANY/ADDRESS IF APPLICABLE]

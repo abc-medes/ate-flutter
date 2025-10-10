@@ -31,6 +31,9 @@ class AppButton extends StatelessWidget {
     final TextStyle resolvedTextStyle =
         (textStyle ?? $styles.text.bodyBold).copyWith(color: resolvedFg);
 
+    final Color resolvedisLoadingBg = $styles.colors.greyMedium;
+    final Color resolvedisLoadingFg = $styles.colors.white;
+
     return SizedBox(
       width: double.infinity,
       height: resolvedHeight,
@@ -39,6 +42,8 @@ class AppButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: resolvedBg,
           foregroundColor: resolvedFg,
+          disabledBackgroundColor: resolvedisLoadingBg,
+          disabledForegroundColor: resolvedisLoadingFg,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(resolvedRadius),

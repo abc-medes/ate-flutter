@@ -10,6 +10,7 @@ import 'package:bodido/core/widgets/page_header.dart';
 import 'package:bodido/features/auth/view_models/signup_view_model.dart';
 import 'package:bodido/features/auth/views/widgets/email_sent_step.dart';
 import 'package:bodido/features/auth/views/widgets/social_login_button.dart';
+import 'package:bodido/features/auth/views/widgets/terms_consent_sheet.dart';
 
 class SignupView extends ConsumerStatefulWidget {
   final String email;
@@ -126,6 +127,95 @@ class _SignupViewState extends ConsumerState<SignupView> {
                         ),
                       ),
                     ),
+                    SizedBox(height: $styles.insets.md),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Theme(
+                          data: Theme.of(context).copyWith(
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            checkboxTheme: const CheckboxThemeData(
+                              visualDensity: VisualDensity.compact,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              splashRadius: 0,
+                            ),
+                          ),
+                          child: Transform.scale(
+                            scale: 1.25, // bigger checkbox
+                            child: Checkbox(
+                              value: viewState.acceptTerms,
+                              onChanged: (v) async {
+                                if (v == true) {
+                                  final accepted = await TermsConsentSheet.show(
+                                    context,
+                                    termsUrl: Uri.parse(
+                                        'https://yourdomain.com/terms'),
+                                    privacyUrl: Uri.parse(
+                                        'https://yourdomain.com/privacy'),
+                                  );
+                                  if (!mounted) return;
+                                  viewModel
+                                      .setAcceptedPolicies(accepted == true);
+                                } else {
+                                  viewModel.setAcceptedPolicies(false);
+                                }
+                              },
+                              activeColor: $styles.colors.accent1,
+                              checkColor: $styles.colors.white,
+                              side: BorderSide(
+                                  color: $styles.colors.greyMedium,
+                                  width: 2), // unchecked border
+                              visualDensity: VisualDensity.compact, // tighter
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: $styles.insets.xs),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () async {
+                              final accepted = await TermsConsentSheet.show(
+                                context,
+                                termsUrl:
+                                    Uri.parse('https://yourdomain.com/terms'),
+                                privacyUrl:
+                                    Uri.parse('https://yourdomain.com/privacy'),
+                              );
+                              if (!mounted) return;
+                              viewModel.setAcceptedPolicies(accepted == true);
+                            },
+                            child: Text.rich(
+                              TextSpan(
+                                style: $styles.text.bodySmall.copyWith(
+                                  // make text bigger
+                                  fontSize:
+                                      ($styles.text.bodySmall.fontSize ?? 16) +
+                                          2,
+                                  color: $styles.colors.black,
+                                ),
+                                children: [
+                                  const TextSpan(text: 'I agree to the '),
+                                  TextSpan(
+                                    text: 'Terms & Privacy',
+                                    // "seemingly clickable": accent color + underline
+                                    style: $styles.text.bodySmall.copyWith(
+                                      fontSize:
+                                          ($styles.text.bodySmall.fontSize ??
+                                                  16) +
+                                              2,
+                                      color: $styles.colors.accent1,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: $styles.insets.sm),
                     AppButton(
                       label: 'Continue',
                       isLoading: viewState.isLoading,

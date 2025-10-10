@@ -31,6 +31,7 @@ class SignupState {
   final SignupStep currentStep;
   final bool isVerificationSent;
   final bool isEmailValid;
+  final bool acceptTerms;
 
   SignupState({
     required this.email,
@@ -49,6 +50,7 @@ class SignupState {
     this.currentStep = SignupStep.detailsInput,
     this.isVerificationSent = false,
     this.isEmailValid = true,
+    this.acceptTerms = false,
   });
 
   SignupState copyWith({
@@ -70,6 +72,7 @@ class SignupState {
     SignupStep? currentStep,
     bool? isVerificationSent,
     bool? isEmailValid,
+    bool? acceptTerms,
   }) {
     return SignupState(
       email: email ?? this.email,
@@ -90,6 +93,7 @@ class SignupState {
       currentStep: currentStep ?? this.currentStep,
       isVerificationSent: isVerificationSent ?? this.isVerificationSent,
       isEmailValid: isEmailValid ?? this.isEmailValid,
+      acceptTerms: acceptTerms ?? this.acceptTerms,
     );
   }
 
@@ -165,6 +169,11 @@ class SignupViewModel extends StateNotifier<SignupState> {
         isConfirmPasswordVisible: !state.isConfirmPasswordVisible);
   }
 
+  void setAcceptedPolicies(bool accepted) {
+    if (_isDisposed) return;
+    state = state.copyWith(acceptTerms: accepted);
+  }
+
   void clearError() {
     if (_isDisposed) return;
     state = state.copyWith(clearError: true);
@@ -208,6 +217,12 @@ class SignupViewModel extends StateNotifier<SignupState> {
       state = state.copyWith(plainError: "Please enter a valid email address");
       return;
     }
+
+    if (!state.acceptTerms) {
+      state = state.copyWith(error: "Please accept the terms and conditions");
+      return;
+    }
+
     if (!validatePassword() || !validatePasswordsMatch()) {
       state = state.copyWith(
           plainError:

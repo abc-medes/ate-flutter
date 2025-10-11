@@ -105,14 +105,14 @@ class _BodySimulatorSnapshotDetailsState
         initialChildSize: 0.8,
         minChildSize: 0.2,
         maxChildSize: 0.95,
-        builder: (_, controller) => Padding(
-          padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
-          child: CustomScrollView(
-            controller: controller,
-            slivers: [
-              // small grab-handle
-              SliverToBoxAdapter(
-                child: Center(
+        builder: (_, controller) => DefaultTabController(
+          length: 3,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
+            child: Column(
+              children: [
+                // small grab-handle
+                Center(
                   child: Container(
                     margin: const EdgeInsets.only(top: 8, bottom: 16),
                     height: 4,
@@ -123,83 +123,98 @@ class _BodySimulatorSnapshotDetailsState
                     ),
                   ),
                 ),
-              ),
 
-              // Show loading, error, or content
-              if (_isLoading)
-                SliverToBoxAdapter(
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.all($styles.insets.xl),
-                      child: Column(
-                        children: [
-                          CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                $styles.colors.accent1),
+                if (_isLoading)
+                  Padding(
+                    padding: EdgeInsets.all($styles.insets.xl),
+                    child: Column(
+                      children: [
+                        CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              $styles.colors.accent1),
+                        ),
+                        SizedBox(height: $styles.insets.md),
+                        Text(
+                          '신체 시뮬레이터 데이터를 불러오는 중...',
+                          style: $styles.text.body,
+                        ),
+                      ],
+                    ),
+                  )
+                else if (_errorMessage != null)
+                  Padding(
+                    padding: EdgeInsets.all($styles.insets.xl),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: $styles.colors.error,
+                        ),
+                        SizedBox(height: $styles.insets.md),
+                        Text(
+                          _errorMessage!,
+                          style: $styles.text.body,
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: $styles.insets.md),
+                        if (_retryCount < _maxRetries)
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _isLoading = true;
+                                _errorMessage = null;
+                              });
+                              _initializeBodyStateStream();
+                            },
+                            child: Text('다시 시도'),
                           ),
-                          SizedBox(height: $styles.insets.md),
-                          Text(
-                            '신체 시뮬레이터 데이터를 불러오는 중...',
-                            style: $styles.text.body,
-                          ),
-                        ],
-                      ),
+                      ],
+                    ),
+                  )
+                else if (_bodyState != null) ...[
+                  TabBar(
+                    labelColor: $styles.colors.accent1,
+                    unselectedLabelColor: $styles.colors.caption,
+                    indicatorColor: $styles.colors.accent1,
+                    tabs: const [
+                      Tab(text: 'Overview'),
+                      Tab(text: 'Highlights'),
+                      Tab(text: 'Metrics'),
+                    ],
+                  ),
+                  SizedBox(height: $styles.insets.sm),
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        // Overview
+                        SingleChildScrollView(
+                          controller: controller,
+                          child: _buildOverviewPage(_bodyState!),
+                        ),
+                        // Highlights
+                        SingleChildScrollView(
+                          controller: controller,
+                          child: _buildHighlightsPage(_bodyState!.healthScore),
+                        ),
+                        // Metrics
+                        SingleChildScrollView(
+                          controller: controller,
+                          child: _buildMetricsPage(_bodyState!),
+                        ),
+                      ],
                     ),
                   ),
-                )
-              else if (_errorMessage != null)
-                SliverToBoxAdapter(
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.all($styles.insets.xl),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 48,
-                            color: $styles.colors.error,
-                          ),
-                          SizedBox(height: $styles.insets.md),
-                          Text(
-                            _errorMessage!,
-                            style: $styles.text.body,
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: $styles.insets.md),
-                          if (_retryCount < _maxRetries)
-                            ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  _isLoading = true;
-                                  _errorMessage = null;
-                                });
-                                _initializeBodyStateStream();
-                              },
-                              child: Text('다시 시도'),
-                            ),
-                        ],
-                      ),
+                ] else
+                  Padding(
+                    padding: EdgeInsets.all($styles.insets.xl),
+                    child: Text(
+                      '데이터를 불러올 수 없습니다.',
+                      style: $styles.text.body,
                     ),
                   ),
-                )
-              else if (_bodyState != null)
-                ..._organSlivers(_bodyState!)
-              else
-                SliverToBoxAdapter(
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.all($styles.insets.xl),
-                      child: Text(
-                        '데이터를 불러올 수 없습니다.',
-                        style: $styles.text.body,
-                      ),
-                    ),
-                  ),
-                ),
-
-              // bottom padding
-              const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -207,33 +222,16 @@ class _BodySimulatorSnapshotDetailsState
   }
 
   // ---------- helpers --------------------------------------------------------
-  List<Widget> _organSlivers(BodySimulatorStateSnapshotDTO sbs) {
-    final slivers = <Widget>[];
-    final s = sbs.bodyState;
-    final scores = sbs.healthScore.organScores;
 
-    void add(String key, Widget? table) {
-      if (table == null) return;
-      final score = scores[key]; // 🆕 organ score
-      slivers
-        ..add(SliverToBoxAdapter(child: _sectionTitle(key, score)))
-        ..add(SliverToBoxAdapter(child: table));
-    }
+  Widget _sectionHeader(String title) => Padding(
+        padding:
+            EdgeInsets.only(top: $styles.insets.md, bottom: $styles.insets.xs),
+        child: Text(title, style: $styles.text.bodyBold.copyWith(fontSize: 18)),
+      );
 
-    add('Brain', s.brain != null ? _brainTable(s.brain!) : null);
-    add('Heart', s.heart != null ? _heartTable(s.heart!) : null);
-    add('Lungs', s.lungs != null ? _lungsTable(s.lungs!) : null);
-    add('Liver', s.liver != null ? _liverTable(s.liver!) : null);
-    add('Stomach', s.stomach != null ? _stomachTable(s.stomach!) : null);
-    add('Intestines',
-        s.intestines != null ? _intestinesTable(s.intestines!) : null);
-    add('Kidneys', s.kidneys != null ? _kidneysTable(s.kidneys!) : null);
-    add('Endocrine',
-        s.endocrine != null ? _endocrineTable(s.endocrine!) : null);
-    add('Nervous', s.nervous != null ? _nervousTable(s.nervous!) : null);
+  // removed old sliver-based analysis list (replaced with non-sliver pages)
 
-    return slivers;
-  }
+  // removed old sliver-based organ section (replaced with non-sliver pages)
 
   Widget _sectionTitle(String text, double? score) => Padding(
         padding: const EdgeInsets.only(top: 24, bottom: 8),
@@ -337,4 +335,207 @@ class _BodySimulatorSnapshotDetailsState
         ('Anxiety level', d.anxietyLevel, false, '%'),
         ('Neuro flexibility', d.neuroFlexibility, true, '%'),
       ]);
+}
+
+// ------------------ Report Pages (non-sliver) --------------------------------
+extension _ReportPages on _BodySimulatorSnapshotDetailsState {
+  Widget _buildOverviewPage(BodySimulatorStateSnapshotDTO dto) {
+    final hs = dto.healthScore;
+    return Padding(
+      padding: EdgeInsets.only(bottom: $styles.insets.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('Overall score',
+                  style: $styles.text.bodyBold.copyWith(fontSize: 18)),
+              SizedBox(width: $styles.insets.sm),
+              AnimatedMetricValue(value: hs.overallScore),
+            ],
+          ),
+          if (hs.diagnosisText != null && hs.diagnosisText!.isNotEmpty) ...[
+            SizedBox(height: $styles.insets.sm),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all($styles.insets.sm),
+              decoration: BoxDecoration(
+                color: $styles.colors.backgroundDark,
+                borderRadius: BorderRadius.circular($styles.corners.md),
+              ),
+              child: Text(
+                hs.diagnosisText!,
+                style:
+                    $styles.text.bodySmall.copyWith(color: $styles.colors.body),
+              ),
+            ),
+          ],
+          SizedBox(height: $styles.insets.md),
+          Text('Organ scores',
+              style: $styles.text.bodyBold.copyWith(fontSize: 18)),
+          SizedBox(height: $styles.insets.xs),
+          Wrap(
+            spacing: $styles.insets.xs,
+            runSpacing: $styles.insets.xs,
+            children: hs.organScores.entries
+                .map((e) => Container(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: $styles.insets.xs,
+                          vertical: $styles.insets.xxs),
+                      decoration: BoxDecoration(
+                        color: $styles.colors.backgroundDark,
+                        borderRadius: BorderRadius.circular($styles.corners.sm),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(e.key,
+                              style: $styles.text.caption
+                                  .copyWith(color: $styles.colors.body)),
+                          SizedBox(width: $styles.insets.xs),
+                          AnimatedMetricValue(value: e.value),
+                        ],
+                      ),
+                    ))
+                .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHighlightsPage(BodyOverallScore hs) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: $styles.insets.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (hs.strengths.isNotEmpty) ...[
+            _sectionHeader('Strengths 💪'),
+            SizedBox(height: $styles.insets.xs),
+            _analysisListView(hs.strengths, accent: $styles.colors.accent1),
+            SizedBox(height: $styles.insets.md),
+          ],
+          if (hs.concerns.isNotEmpty) ...[
+            _sectionHeader('Areas of Concern ⚠️'),
+            SizedBox(height: $styles.insets.xs),
+            _analysisListView(hs.concerns, accent: $styles.colors.warning),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricsPage(BodySimulatorStateSnapshotDTO sbs) {
+    final s = sbs.bodyState;
+    final scores = sbs.healthScore.organScores;
+    Widget block(String label, double? score, Widget? table) {
+      if (table == null) return const SizedBox.shrink();
+      return Padding(
+        padding: EdgeInsets.only(bottom: $styles.insets.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionTitle(label, score),
+            table,
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: $styles.insets.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          block('Brain', scores['Brain'],
+              s.brain != null ? _brainTable(s.brain!) : null),
+          block('Heart', scores['Heart'],
+              s.heart != null ? _heartTable(s.heart!) : null),
+          block('Lungs', scores['Lungs'],
+              s.lungs != null ? _lungsTable(s.lungs!) : null),
+          block('Liver', scores['Liver'],
+              s.liver != null ? _liverTable(s.liver!) : null),
+          block('Stomach', scores['Stomach'],
+              s.stomach != null ? _stomachTable(s.stomach!) : null),
+          block('Intestines', scores['Intestines'],
+              s.intestines != null ? _intestinesTable(s.intestines!) : null),
+          block('Kidneys', scores['Kidneys'],
+              s.kidneys != null ? _kidneysTable(s.kidneys!) : null),
+          block('Endocrine', scores['Endocrine'],
+              s.endocrine != null ? _endocrineTable(s.endocrine!) : null),
+          block('Nervous', scores['Nervous'],
+              s.nervous != null ? _nervousTable(s.nervous!) : null),
+        ],
+      ),
+    );
+  }
+
+  Widget _analysisListView(List<HealthAnalysisItem> items,
+      {required Color accent}) {
+    return Column(
+      children: items
+          .map((item) => Container(
+                width: double.infinity,
+                margin: EdgeInsets.only(bottom: $styles.insets.xs),
+                padding: EdgeInsets.all($styles.insets.sm),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular($styles.corners.md),
+                  border: Border.all(
+                      color: $styles.colors.caption.withOpacity(.25)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          margin: EdgeInsets.only(right: $styles.insets.xs),
+                          decoration: BoxDecoration(
+                              color: accent, shape: BoxShape.circle),
+                        ),
+                        Expanded(
+                          child: Text(
+                            '${item.organ} • ${item.score.toStringAsFixed(1)}',
+                            style: $styles.text.bodyBold,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: $styles.insets.xxs),
+                    Text(item.summary,
+                        style: $styles.text.bodySmall
+                            .copyWith(color: $styles.colors.body)),
+                    if (item.keyMetrics.isNotEmpty) ...[
+                      SizedBox(height: $styles.insets.xxs),
+                      Wrap(
+                        spacing: $styles.insets.xs,
+                        runSpacing: $styles.insets.xs,
+                        children: item.keyMetrics
+                            .map((m) => Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: $styles.insets.xs,
+                                      vertical: $styles.insets.xxs),
+                                  decoration: BoxDecoration(
+                                    color: $styles.colors.backgroundDark,
+                                    borderRadius: BorderRadius.circular(
+                                        $styles.corners.sm),
+                                  ),
+                                  child: Text(m,
+                                      style: $styles.text.caption.copyWith(
+                                          color: $styles.colors.body)),
+                                ))
+                            .toList(),
+                      ),
+                    ],
+                  ],
+                ),
+              ))
+          .toList(),
+    );
+  }
 }

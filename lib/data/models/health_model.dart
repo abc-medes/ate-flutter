@@ -1,5 +1,4 @@
-import 'package:ate_project/data/models/body_simulator_model.dart';
-import 'package:flutter/material.dart';
+import 'package:bodido/data/models/body_simulator_model.dart';
 
 /**
  * HEALTH DATA PRIORITY LEVELS
@@ -30,6 +29,7 @@ enum UserInputField {
   weight,
   dateOfBirth,
   gender,
+  bodyType,
   preExistingConditions,
   medications,
   allergies,
@@ -45,6 +45,7 @@ enum UserInputField {
 enum BasicUserData {
   height,
   weight,
+  bodyType,
   dateOfBirth,
   gender,
 }
@@ -57,6 +58,8 @@ extension BasicUserDataExtension on BasicUserData {
         return UserInputField.height;
       case BasicUserData.weight:
         return UserInputField.weight;
+      case BasicUserData.bodyType:
+        return UserInputField.bodyType;
       case BasicUserData.dateOfBirth:
         return UserInputField.dateOfBirth;
       case BasicUserData.gender:
@@ -99,6 +102,7 @@ extension UserInputFieldExtension on UserInputField {
         this == UserInputField.weight ||
         this == UserInputField.dateOfBirth ||
         this == UserInputField.gender ||
+        this == UserInputField.bodyType ||
         this == UserInputField.preExistingConditions ||
         this == UserInputField.medications ||
         this == UserInputField.allergies ||
@@ -122,6 +126,8 @@ extension UserInputFieldExtension on UserInputField {
         return BasicUserData.height;
       case UserInputField.weight:
         return BasicUserData.weight;
+      case UserInputField.bodyType:
+        return BasicUserData.bodyType;
       case UserInputField.dateOfBirth:
         return BasicUserData.dateOfBirth;
       case UserInputField.gender:
@@ -211,7 +217,7 @@ class HealthMetrics {
   final AutoDetectedData autoDetectedData;
 
   final EnvironmentalData environmentalData;
-  final BodySimulatorData bodySimulatorData;
+  final BodySimulatorState bodySimulatorData;
 
   HealthMetrics({
     required this.userInputData,
@@ -219,34 +225,6 @@ class HealthMetrics {
     required this.environmentalData,
     required this.bodySimulatorData,
   });
-
-  // Calculate BMI if height and weight are available
-  double? get bmi {
-    if (userInputData.height == null ||
-        userInputData.weight == null ||
-        userInputData.height == 0) {
-      return null;
-    }
-    return userInputData.weight! /
-        ((userInputData.height! / 100) * (userInputData.height! / 100));
-  }
-
-  // Get BMI category
-  String? get bmiCategory {
-    if (bmi == null) {
-      return null;
-    }
-    if (bmi! < 18.5) {
-      return 'Underweight';
-    }
-    if (bmi! < 25) {
-      return 'Normal weight';
-    }
-    if (bmi! < 30) {
-      return 'Overweight';
-    }
-    return 'Obese';
-  }
 
   int? get age {
     if (userInputData.dateOfBirth == null) return null;
@@ -263,6 +241,7 @@ class HealthMetrics {
   bool get isBasicProfileComplete =>
       userInputData.height != null &&
       userInputData.weight != null &&
+      userInputData.bodyType != null &&
       userInputData.dateOfBirth != null &&
       userInputData.gender != null;
 
@@ -300,9 +279,9 @@ class HealthMetrics {
           json['auto_detected_data'] as Map<String, dynamic>? ?? {}),
       environmentalData: EnvironmentalData.fromJson(
           json['environmental_data'] as Map<String, dynamic>? ?? {}),
-      bodySimulatorData: BodySimulatorData.fromJson(
+      bodySimulatorData: BodySimulatorState.fromJson(
           json['body_simulator_data'] as Map<String, dynamic>? ??
-              BodySimulatorData.empty().toJson()),
+              BodySimulatorState.empty().toJson()),
     );
   }
 
@@ -319,7 +298,7 @@ class HealthMetrics {
     UserInputData? userInputData,
     AutoDetectedData? autoDetectedData,
     EnvironmentalData? environmentalData,
-    BodySimulatorData? bodySimulatorData,
+    BodySimulatorState? bodySimulatorData,
   }) {
     return HealthMetrics(
       userInputData: userInputData ?? this.userInputData,
@@ -341,13 +320,15 @@ class UserInputData {
       as double?; // in kg - MEDIUM PRIORITY as it may change weekly
   DateTime? get dateOfBirth => _data[UserInputField.dateOfBirth] as DateTime?;
   String? get gender => _data[UserInputField.gender] as String?;
+  String? get bodyType => _data[UserInputField.bodyType] as String?;
   List<HealthCondition>? get preExistingConditions =>
       _data[UserInputField.preExistingConditions] as List<HealthCondition>?;
   List<Medication>? get medications =>
       _data[UserInputField.medications] as List<Medication>?;
   List<Allergy>? get allergies =>
       _data[UserInputField.allergies] as List<Allergy>?;
-  String? get memorizedData => _data[UserInputField.memorizedData] as String?;
+  Map<String, dynamic>? get memorizedData =>
+      _data[UserInputField.memorizedData] as Map<String, dynamic>?;
   // HIGH PRIORITY - daily tracking
   NutritionData? get nutritionData =>
       _data[UserInputField.nutritionData] as NutritionData?;
@@ -360,6 +341,7 @@ class UserInputData {
     double? height,
     double? weight,
     DateTime? dateOfBirth,
+    String? bodyType,
     String? gender,
     List<HealthCondition>? preExistingConditions,
     List<Medication>? medications,
@@ -368,7 +350,8 @@ class UserInputData {
     MoodData? moodData,
     SymptomData? symptoms,
     SleepQualityData? sleepQuality,
-    String? memorizedData,
+    Map<String, dynamic>?
+        memorizedData, // Change from String? to Map<String, dynamic>?
   }) {
     if (height != null) {
       _data[UserInputField.height] = height;
@@ -381,6 +364,9 @@ class UserInputData {
     }
     if (gender != null) {
       _data[UserInputField.gender] = gender;
+    }
+    if (bodyType != null) {
+      _data[UserInputField.bodyType] = bodyType;
     }
     if (preExistingConditions != null) {
       _data[UserInputField.preExistingConditions] = preExistingConditions;
@@ -416,6 +402,7 @@ class UserInputData {
           ? DateTime.parse(json['date_of_birth'])
           : null,
       gender: json['gender'],
+      bodyType: json['body_type'],
       preExistingConditions: json['pre_existing_conditions'] != null
           ? List<HealthCondition>.from(json['pre_existing_conditions']
               .map((x) => HealthCondition.fromJson(x)))
@@ -440,7 +427,9 @@ class UserInputData {
       sleepQuality: json['sleep_quality'] != null
           ? SleepQualityData.fromJson(json['sleep_quality'])
           : null,
-      memorizedData: json['memorized_data'],
+      memorizedData: json['memorized_data'] != null
+          ? Map<String, dynamic>.from(json['memorized_data']) // Convert to Map
+          : null,
     );
   }
 
@@ -459,6 +448,9 @@ class UserInputData {
     }
     if (_data.containsKey(UserInputField.gender)) {
       jsonMap['gender'] = gender;
+    }
+    if (_data.containsKey(UserInputField.bodyType)) {
+      jsonMap['body_type'] = bodyType;
     }
     if (_data.containsKey(UserInputField.preExistingConditions)) {
       jsonMap['pre_existing_conditions'] =
@@ -509,6 +501,7 @@ class UserInputData {
     double? weight,
     DateTime? dateOfBirth,
     String? gender,
+    String? bodyType,
     List<HealthCondition>? preExistingConditions,
     List<Medication>? medications,
     List<Allergy>? allergies,
@@ -516,7 +509,7 @@ class UserInputData {
     MoodData? moodData,
     SymptomData? symptoms,
     SleepQualityData? sleepQuality,
-    String? memorizedData,
+    Map<String, dynamic>? memorizedData,
   }) {
     final newData = UserInputData();
 
@@ -535,6 +528,9 @@ class UserInputData {
     }
     if (gender != null) {
       newData._data[UserInputField.gender] = gender;
+    }
+    if (bodyType != null) {
+      newData._data[UserInputField.bodyType] = bodyType;
     }
     if (preExistingConditions != null) {
       newData._data[UserInputField.preExistingConditions] =
@@ -1823,15 +1819,4 @@ void demonstrateEnumBasedApproach() {
           condition: 'Sunny',
           timestamp: DateTime.now(),
           location: 'Seoul'));
-
-  // Create a complete health metrics object
-  final healthMetrics = HealthMetrics(
-      userInputData: userData,
-      autoDetectedData: AutoDetectedData(),
-      environmentalData: envData,
-      bodySimulatorData: BodySimulatorData.empty());
-
-  // Convert to JSON and back
-  final json = healthMetrics.toJson();
-  final recreated = HealthMetrics.fromJson(json);
 }

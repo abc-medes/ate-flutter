@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "653675888741",
+    "project_id": "bodido-b06af",
+    "storage_bucket": "bodido-b06af.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:653675888741:android:96b81b0f6a278320e8c68c",
+        "android_client_info": {
+          "package_name": "com.redoai.bodido.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7SIlzhBCpXsETZvp2pWE_jaLlkq1E-CQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

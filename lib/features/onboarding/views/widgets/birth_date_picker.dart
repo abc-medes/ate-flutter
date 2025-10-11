@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:bodido/main.dart';
 
 class BirthDatePickerWidget extends StatelessWidget {
   final DateTime selectedDate;
@@ -19,8 +20,10 @@ class BirthDatePickerWidget extends StatelessWidget {
 
     return Column(
       children: [
+        Text($strings.select_birthdate,
+            style: $styles.text.bodySmall, textAlign: TextAlign.center),
         SizedBox(
-          height: 200,
+          height: $styles.sizes.maxContentWidth3,
           child: CupertinoDatePicker(
             mode: CupertinoDatePickerMode.date,
             initialDateTime: selectedDate,

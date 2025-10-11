@@ -1,4 +1,4 @@
-import 'package:ate_project/common_libs.dart';
+import 'package:bodido/common_libs.dart';
 
 class CustomedTextInput extends StatelessWidget {
   final TextEditingController controller;
@@ -10,6 +10,10 @@ class CustomedTextInput extends StatelessWidget {
   final Widget? suffixIcon;
   final bool enabled;
   final String? errorText;
+  final TextStyle? textStyle;
+  final TextStyle? hintTextStyle;
+  final TextStyle? errorTextStyle;
+  final EdgeInsetsGeometry? contentPadding;
 
   const CustomedTextInput({
     super.key,
@@ -22,28 +26,44 @@ class CustomedTextInput extends StatelessWidget {
     this.suffixIcon,
     this.enabled = true,
     this.errorText,
+    this.textStyle,
+    this.hintTextStyle,
+    this.errorTextStyle,
+    this.contentPadding,
   });
 
   @override
   Widget build(BuildContext context) {
+    final textDir = Directionality.of(context);
+    final EdgeInsets resolvedPadding = (contentPadding ??
+            EdgeInsets.symmetric(
+              horizontal: $styles.insets.sm,
+              vertical: $styles.insets.sm,
+            ))
+        .resolve(textDir);
+
+    final TextStyle baseFieldStyle = $styles.text.body;
+
+    final TextStyle baseHintStyle = (hintTextStyle ??
+        baseFieldStyle.copyWith(color: $styles.colors.greyMedium));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular($styles.corners.md),
           ),
           child: TextField(
             controller: controller,
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: baseFieldStyle,
             obscureText: obscureText,
             enabled: enabled,
             decoration: InputDecoration(
               hintText: isRequired ? '$hintText *' : hintText,
-              hintStyle: TextStyle(color: AppColors.textTertiary),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+              hintStyle: baseHintStyle,
+              contentPadding: resolvedPadding,
               border: InputBorder.none,
               suffixIcon: suffixIcon,
               errorStyle: const TextStyle(height: 0, fontSize: 0),
@@ -54,10 +74,14 @@ class CustomedTextInput extends StatelessWidget {
         ),
         if (errorText != null)
           Padding(
-            padding: const EdgeInsets.only(top: 8.0, left: 4.0),
+            padding: EdgeInsets.only(
+              top: $styles.insets.xs,
+              left: resolvedPadding.left,
+            ),
             child: Text(
               errorText!,
-              style: Theme.of(context).textTheme.labelSmall,
+              style: errorTextStyle ??
+                  $styles.text.bodySmall.copyWith(color: $styles.colors.error),
             ),
           ),
       ],

@@ -1,9 +1,14 @@
 import 'dart:async';
-import 'package:ate_project/data/repositories/auth_repository.dart';
-import 'package:ate_project/data/repositories/user_repository.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as SB;
-import 'package:ate_project/core/utils/auth_error_helper.dart';
+
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/services/app_lifecycle.dart';
+import 'package:bodido/core/services/user_service.dart';
+import 'package:bodido/data/models/body_simulator_model.dart';
+import 'package:bodido/data/models/health_model.dart';
+import 'package:bodido/data/models/profiles/user_model.dart' as um;
+import 'package:url_launcher/url_launcher.dart'
+    show closeInAppWebView, LaunchMode;
 
 enum AuthStatus {
   initial,
@@ -13,285 +18,241 @@ enum AuthStatus {
   error,
 }
 
-class AuthState {
-  final AuthStatus status;
-  final String? errorMessage;
-  final bool isLoading;
-  final String? userId;
-
-  AuthState({
-    this.status = AuthStatus.initial,
-    this.errorMessage,
-    this.isLoading = false,
-    this.userId,
-  });
-
-  AuthState copyWith({
-    AuthStatus? status,
-    String? errorMessage,
-    bool? isLoading,
-    String? userId,
-  }) {
-    return AuthState(
-      status: status ?? this.status,
-      errorMessage: errorMessage ?? this.errorMessage,
-      isLoading: isLoading ?? this.isLoading,
-      userId: userId ?? this.userId,
-    );
-  }
-
-  bool get isAuthenticated =>
-      status == AuthStatus.authenticated && userId != null;
-  bool get isInitializing => status == AuthStatus.initial;
-  bool get hasError => status == AuthStatus.error || errorMessage != null;
-
-  bool get isLoadingOrError => isLoading || errorMessage != null;
-}
-
-class AuthNotifier extends StateNotifier<AuthState> {
-  final AuthService _authService;
-  StreamSubscription<bool>? _authSubscription;
-
-  AuthNotifier(this._authService) : super(AuthState()) {
-    _initializeAuthState();
-  }
-
-  void _initializeAuthState() {
-    _authSubscription = _authService.authStateChanges.listen(
-      (isAuthenticated) {
-        if (isAuthenticated) {
-          state = AuthState(
-            status: AuthStatus.authenticated,
-            userId: _authService.currentUser?.id,
-            isLoading: false,
-          );
-        } else {
-          state = AuthState(
-            status: AuthStatus.unauthenticated,
-            isLoading: false,
-          );
-        }
-      },
-      onError: (error) {
-        state = AuthState(
-          status: AuthStatus.error,
-          errorMessage: AuthErrorHelper.getLoginErrorMessage(error.toString()),
-          isLoading: false,
-        );
-      },
-    );
-  }
-
-  Future<void> signIn(String email, String password) async {
-    state = state.copyWith(isLoading: true, status: AuthStatus.authenticating);
-
-    try {
-      await _authService.signIn(email, password);
-    } catch (e) {
-      state = AuthState(
-        status: AuthStatus.error,
-        errorMessage: AuthErrorHelper.getLoginErrorMessage(e.toString()),
-        isLoading: false,
-      );
-    }
-  }
-
-  Future<void> signOut() async {
-    state = state.copyWith(isLoading: true);
-
-    try {
-      await AuthRepository().signOut();
-    } catch (e) {
-      state = AuthState(
-        status: AuthStatus.error,
-        errorMessage: AuthErrorHelper.getLoginErrorMessage(e.toString()),
-        isLoading: false,
-      );
-    }
-  }
-
-  Future<void> signInWithGoogle() async {
-    state = state.copyWith(isLoading: true, status: AuthStatus.authenticating);
-
-    try {
-      await _authService.signInWithGoogle();
-    } catch (e) {
-      state = AuthState(
-        status: AuthStatus.error,
-        errorMessage: AuthErrorHelper.getLoginErrorMessage(e.toString()),
-        isLoading: false,
-      );
-    }
-  }
-
-  Future<void> signInWithApple() async {
-    state = state.copyWith(isLoading: true, status: AuthStatus.authenticating);
-
-    try {
-      await _authService.signInWithApple();
-    } catch (e) {
-      state = AuthState(
-        status: AuthStatus.error,
-        errorMessage: AuthErrorHelper.getLoginErrorMessage(e.toString()),
-        isLoading: false,
-      );
-    }
-  }
-
-  void clearError() {
-    state = state.copyWith(errorMessage: null);
-  }
-
-  @override
-  void dispose() {
-    _authSubscription?.cancel();
-    super.dispose();
-  }
-}
-
 class AuthService {
-  final SB.SupabaseClient _client = SB.Supabase.instance.client;
-
-  SB.User? get currentUser => _client.auth.currentUser;
-
+  final SupabaseClient _client = Supabase.instance.client;
+  User? get currentUser => _client.auth.currentUser;
   bool get isAuthenticated => currentUser != null;
-
   Stream<bool> get authStateChanges =>
       _client.auth.onAuthStateChange.map((state) => state.session != null);
-
   Stream<String?> get userIdStream =>
       _client.auth.onAuthStateChange.map((state) => state.session?.user.id);
 
-  Future<void> signUp(String email, String password, String name) async {
-    final authResponse = await AuthRepository().signUp(email, password);
-
-    await UserRepository().createProfile(
-      authResponse.user!.id,
-      email,
-      name,
-    );
-
-    await UserRepository().createEmptyUserHealthMetrics(
-      authResponse.user!.id,
-    );
-  }
-
-  // Sign in with email and password
-  Future<void> signIn(String email, String password) async {
-    try {
-      final authResponse = await _client.auth.signInWithPassword(
+  Future<AuthResponse> signUpWithEmail(
+      {required String email,
+      required String password,
+      required String name}) async {
+    final authResponse = await _client.auth.signUp(
         email: email,
         password: password,
-      );
-
-      if (authResponse.user == null) {
-        throw Exception('Failed to sign in');
-      }
-    } catch (e) {
-      throw Exception('Failed to sign in: ${e.toString()}');
-    }
+        emailRedirectTo: "bodido.app://auth/signup",
+        data: {
+          'name': name,
+        });
+    return authResponse;
   }
 
-  // Sign out
-
-  // Check if email is available - without trying fake passwords
-  Future<bool> isEmailAvailable(String email) async {
-    try {
-      // We'll create a Supabase function for this later
-      // For now, let's return true to skip this check
-      return true;
-    } catch (e) {
-      throw Exception('Failed to check email: ${e.toString()}');
-    }
+  Future<void> signInWithEmail(
+      {required String email, required String password}) async {
+    await _client.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
   }
 
-  // Reset password
   Future<void> resetPassword(String email) async {
-    try {
-      await _client.auth.resetPasswordForEmail(email);
-    } catch (e) {
-      throw Exception('Failed to reset password: ${e.toString()}');
-    }
+    await _client.auth.resetPasswordForEmail(email,
+        redirectTo: "bodido.app://${RouteNames.changePassword}");
   }
 
-  // Sign in with Google
+  Future<void> resendSignupVerification(String email) async {
+    const redirectTo = 'bodido.app://auth/signup';
+    await _client.auth.resend(
+      email: email,
+      type: OtpType.signup,
+      emailRedirectTo: redirectTo,
+    );
+  }
+
+  Future<void> resendResetPasswordEmail(String email) async {
+    const redirectTo = 'bodido.app://${RouteNames.changePassword}';
+    await _client.auth.resend(
+      email: email,
+      type: OtpType.recovery,
+      emailRedirectTo: redirectTo,
+    );
+  }
+
   Future<void> signInWithGoogle() async {
-    try {
-      await _client.auth.signInWithOAuth(
-        SB.OAuthProvider.google,
-        redirectTo: 'io.supabase.flutterquickstart://login-callback/',
-      );
-    } catch (e) {
-      throw Exception('Failed to sign in with Google: ${e.toString()}');
-    }
+    final done = _client.auth.onAuthStateChange
+        .firstWhere((e) =>
+            e.event == AuthChangeEvent.signedIn ||
+            e.event == AuthChangeEvent.userUpdated)
+        .then((_) => closeInAppWebView());
+
+    const redirectTo = 'bodido.app://auth/signup';
+
+    await _client.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: redirectTo,
+      authScreenLaunchMode: LaunchMode.externalApplication,
+    );
+
+    await done;
   }
 
-  // Sign in with Apple
   Future<void> signInWithApple() async {
-    try {
-      await _client.auth.signInWithOAuth(
-        SB.OAuthProvider.apple,
-        redirectTo: 'io.supabase.flutterquickstart://login-callback/',
-      );
-    } catch (e) {
-      throw Exception('Failed to sign in with Apple: ${e.toString()}');
-    }
+    final done = _client.auth.onAuthStateChange
+        .firstWhere((e) =>
+            e.event == AuthChangeEvent.signedIn ||
+            e.event == AuthChangeEvent.userUpdated)
+        .then((_) => closeInAppWebView());
+    const redirectTo = 'bodido.app://';
+
+    await _client.auth.signInWithOAuth(
+      OAuthProvider.apple,
+      redirectTo: redirectTo,
+      authScreenLaunchMode: LaunchMode.platformDefault,
+    );
+
+    await done;
   }
 
-  // Fetch user profile from the database
-  Future<Map<String, dynamic>> fetchUserProfile(String userId) async {
-    try {
-      final response =
-          await _client.from('profiles').select().eq('id', userId).single();
-
-      return response ?? {};
-    } catch (e) {
-      // If no profile exists, return empty map
-      return {};
-    }
+  Future<void> signOut() async {
+    await _client.auth.signOut();
   }
 
-  // Update user profile
-  Future<void> updateUserProfile(
-      String userId, Map<String, dynamic> data) async {
-    try {
-      await _client.from('profiles').update(data).eq('id', userId);
-    } catch (e) {
-      throw Exception('Failed to update profile: ${e.toString()}');
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final email = _client.auth.currentUser?.email;
+    if (email == null) {
+      throw AuthException('Not signed in');
     }
+
+    await _client.auth
+        .signInWithPassword(email: email, password: currentPassword);
+    await _client.auth.updateUser(UserAttributes(password: newPassword));
   }
 
-  // Send email verification code
-  Future<void> sendEmailVerificationCode(String email) async {
-    try {
-      await _client.auth.signInWithOtp(
+  // ------------------------------------------------------------
+  ///                       Profile
+
+  // ------------------------------------------------------------
+  ///                       Profile
+  // ------------------------------------------------------------
+  Future<void> createProfile({
+    required String userId,
+    required String email,
+    required String name,
+  }) async {
+    final existingProfile = await _client
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (existingProfile != null) {
+      final updatedUser = um.User.newUser(
+        id: userId,
         email: email,
-        shouldCreateUser: true,
+        name: name,
       );
-    } catch (e) {
-      throw Exception('Failed to send verification code: ${e.toString()}');
+
+      await _client
+          .from('profiles')
+          .update(updatedUser.toJson())
+          .eq('id', userId);
+    } else {
+      final newUser = um.User.newUser(
+        id: userId,
+        email: email,
+        name: name,
+      );
+      await _client.from('profiles').insert(newUser.toJson());
     }
   }
 
-  // Verify email with OTP code
-  Future<SB.AuthResponse> verifyEmailWithOTP(String email, String otp) async {
-    try {
-      final response = await _client.auth.verifyOTP(
-        email: email,
-        token: otp,
-        type: SB.OtpType.signup,
-      );
+  Future<void> createEmptyUserHealthMetrics(String userId) async {
+    final emptyHealthMetrics = HealthMetrics(
+      userInputData: UserInputData(),
+      autoDetectedData: AutoDetectedData(),
+      environmentalData: EnvironmentalData(),
+      bodySimulatorData: BodySimulatorState.empty(),
+    );
 
-      return response;
-    } catch (e) {
-      throw Exception('Failed to verify email: ${e.toString()}');
+    final now = DateTime.now();
+    final healthData = {
+      'user_id': userId,
+      'created_at': now.toIso8601String(),
+      'updated_at': now.toIso8601String(),
+      'health_metrics': emptyHealthMetrics.toJson(),
+    };
+
+    await _client.from('health_metrics').insert(
+          healthData,
+        );
+  }
+  // ------------------------------------------------------------
+
+  // DEV ONLY: Wipes all app-side data rows for a given user id.
+  // Deletes from children first to avoid FK violations, then profile last.
+  Future<void> devWipeUserData(String uid) async {
+    final c = _client;
+    try {
+      await c.from('chat_history').delete().eq('user_id', uid);
+    } catch (_) {}
+    try {
+      await c.from('user_body_state_snapshots').delete().eq('user_id', uid);
+    } catch (_) {}
+    try {
+      await c.from('personal_insights').delete().eq('user_id', uid);
+    } catch (_) {}
+    try {
+      await c.from('health_metrics').delete().eq('user_id', uid);
+    } catch (_) {}
+    try {
+      await c.from('profiles').delete().eq('id', uid);
+    } catch (_) {}
+  }
+
+  // DEV ONLY: Wipes current user’s app data; requires an authenticated session.
+  Future<void> devWipeCurrentUserData() async {
+    final uid = currentUser?.id;
+    if (uid == null) {
+      throw Exception('Not signed in');
     }
+    await devWipeUserData(uid);
+  }
+
+  // DEV ONLY: "회원 탈퇴" (soft) – wipe app data then sign out.
+  // Note: You cannot delete the auth.users row from a client without service role.
+  Future<void> devAccountDeleteSoft() async {
+    final uid = currentUser?.id;
+    if (uid == null) {
+      await signOut();
+      return;
+    }
+    await devWipeUserData(uid);
+    await signOut();
   }
 }
 
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());
 
-final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  final authService = ref.watch(authServiceProvider);
-  return AuthNotifier(authService);
+extension on AuthService {
+  Stream<Session?> get sessionChanges =>
+      _client.auth.onAuthStateChange.map((e) => e.session);
+}
+
+final sessionProvider = StreamProvider<Session?>((ref) {
+  final service = ref.watch(authServiceProvider);
+  return service.sessionChanges;
+});
+
+final isAuthedProvider = Provider<bool>((ref) {
+  return ref.watch(sessionProvider).value != null;
+});
+
+final lifecycleProvider = Provider<LifecycleLogic?>((ref) {
+  final authed = ref.watch(isAuthedProvider);
+  if (!authed) return null;
+
+  final userService = ref.watch(userServiceProvider);
+  final logic = LifecycleLogic(userService, ref as WidgetRef);
+
+  ref.onDispose(() {
+    logic.dispose();
+  });
+  return logic;
 });

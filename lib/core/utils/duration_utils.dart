@@ -1,4 +1,4 @@
-import 'package:ate_project/common_libs.dart';
+import 'package:bodido/common_libs.dart';
 
 extension DurationExtensions on int {
   Duration get delayMs =>

@@ -1,5 +1,5 @@
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/core/utils/duration_utils.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/utils/duration_utils.dart';
 
 export 'colors.dart';
 
@@ -67,15 +67,17 @@ class _Text {
 
   final Map<String, TextStyle> _titleFonts = {
     'en': TextStyle(fontFamily: 'Tenor'),
+    'ko': TextStyle(fontFamily: 'NanumGothic'),
   };
 
   final Map<String, TextStyle> _monoTitleFonts = {
     'en': TextStyle(fontFamily: 'B612Mono'),
+    'ko': TextStyle(fontFamily: 'NanumGothic'),
   };
 
   final Map<String, TextStyle> _quoteFonts = {
     'en': TextStyle(fontFamily: 'Cinzel'),
-    'zh': TextStyle(fontFamily: 'MaShanZheng'),
+    'ko': TextStyle(fontFamily: 'NanumGothic'),
   };
 
   final Map<String, TextStyle> _wonderTitleFonts = {
@@ -86,6 +88,12 @@ class _Text {
     'en': TextStyle(fontFamily: 'Raleway', fontFeatures: const [
       FontFeature.enable('kern'),
     ]),
+    'ko': TextStyle(fontFamily: 'NanumGothic'),
+  };
+
+  final Map<String, TextStyle> _numberFonts = {
+    'en': TextStyle(fontFamily: 'Cinzel'),
+    'ko': TextStyle(fontFamily: 'Cinzel'),
   };
 
   TextStyle _getFontForLocale(Map<String, TextStyle> fonts) {
@@ -104,6 +112,7 @@ class _Text {
   TextStyle get wonderTitleFont => _getFontForLocale(_wonderTitleFonts);
   TextStyle get contentFont => _getFontForLocale(_contentFonts);
   TextStyle get monoTitleFont => _getFontForLocale(_monoTitleFonts);
+  TextStyle get numberFont => _getFontForLocale(_numberFonts);
 
   late final TextStyle dropCase =
       _createFont(quoteFont, sizePx: 56, heightPx: 20);
@@ -111,8 +120,10 @@ class _Text {
   late final TextStyle wonderTitle =
       _createFont(wonderTitleFont, sizePx: 64, heightPx: 56);
 
-  late final TextStyle h1 = _createFont(titleFont, sizePx: 64, heightPx: 62);
-  late final TextStyle h2 = _createFont(titleFont, sizePx: 32, heightPx: 46);
+  late final TextStyle h1 =
+      _createFont(titleFont, sizePx: 64, heightPx: 62, weight: FontWeight.w600);
+  late final TextStyle h2 =
+      _createFont(titleFont, sizePx: 32, heightPx: 46, weight: FontWeight.w600);
   late final TextStyle h3 =
       _createFont(titleFont, sizePx: 24, heightPx: 36, weight: FontWeight.w600);
   late final TextStyle h4 = _createFont(contentFont,
@@ -124,13 +135,13 @@ class _Text {
       _createFont(titleFont, sizePx: 14, heightPx: 16.38);
 
   late final TextStyle body =
-      _createFont(contentFont, sizePx: 16, heightPx: 26);
+      _createFont(contentFont, sizePx: 20, heightPx: 26);
   late final TextStyle bodyBold = _createFont(contentFont,
-      sizePx: 16, heightPx: 26, weight: FontWeight.w600);
+      sizePx: 18, heightPx: 26, weight: FontWeight.w600);
   late final TextStyle bodySmall =
-      _createFont(contentFont, sizePx: 14, heightPx: 23);
+      _createFont(contentFont, sizePx: 16, heightPx: 23);
   late final TextStyle bodySmallBold = _createFont(contentFont,
-      sizePx: 14, heightPx: 23, weight: FontWeight.w600);
+      sizePx: 16, heightPx: 23, weight: FontWeight.w600);
 
   late final TextStyle quote1 = _createFont(quoteFont,
       sizePx: 32, heightPx: 40, weight: FontWeight.w600, spacingPc: -3);
@@ -148,6 +159,8 @@ class _Text {
       .copyWith(fontStyle: FontStyle.italic);
   late final TextStyle btn = _createFont(contentFont,
       sizePx: 14, weight: FontWeight.w500, spacingPc: 2, heightPx: 14);
+  late final TextStyle number = _createFont(numberFont,
+      sizePx: 120, heightPx: 120, weight: FontWeight.w600);
 
   TextStyle _createFont(TextStyle style,
       {required double sizePx,
@@ -186,9 +199,9 @@ class _Corners {
 
 // TODO: add, @immutable when design is solidified
 class _Sizes {
-  double get maxContentWidth1 => 800;
-  double get maxContentWidth2 => 600;
-  double get maxContentWidth3 => 500;
+  double get maxContentWidth1 => 400;
+  double get maxContentWidth2 => 300;
+  double get maxContentWidth3 => 250;
   final Size minAppSize = Size(380, 650);
 }
 

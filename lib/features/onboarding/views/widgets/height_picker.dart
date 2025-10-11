@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:bodido/main.dart';
 
 class HeightPickerWidget extends StatelessWidget {
   final int selectedHeight;
@@ -19,9 +20,9 @@ class HeightPickerWidget extends StatelessWidget {
     return Column(
       children: [
         SizedBox(
-          height: 200,
+          height: $styles.sizes.maxContentWidth3,
           child: CupertinoPicker(
-            itemExtent: 40,
+            itemExtent: $styles.sizes.maxContentWidth3 / 6,
             scrollController: FixedExtentScrollController(
               initialItem: heightOptions.indexOf(selectedHeight),
             ),
@@ -32,7 +33,7 @@ class HeightPickerWidget extends StatelessWidget {
               return Center(
                 child: Text(
                   '$height cm',
-                  style: const TextStyle(fontSize: 18),
+                  style: $styles.text.h3,
                 ),
               );
             }).toList(),

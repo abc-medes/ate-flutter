@@ -1,14 +1,13 @@
-import 'package:ate_project/core/routes/route_names.dart';
-import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
-import 'package:ate_project/features/onboarding/view_models/onboarding_view_model.dart';
-import 'package:ate_project/features/onboarding/views/widgets/birth_date_picker.dart';
-import 'package:ate_project/features/onboarding/views/widgets/gender_picker.dart';
-import 'package:ate_project/features/onboarding/views/widgets/height_picker.dart';
-import 'package:ate_project/features/onboarding/views/widgets/weight_picker.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ate_project/data/models/health_model.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/widgets/live_typewriter.dart';
+import 'package:bodido/data/models/health_model.dart';
+import 'package:bodido/features/onboarding/view_models/onboarding_view_model.dart';
+import 'package:bodido/features/onboarding/views/widgets/birth_date_picker.dart';
+import 'package:bodido/features/onboarding/views/widgets/body_type_pidcker.dart';
+import 'package:bodido/features/onboarding/views/widgets/gender_picker.dart';
+import 'package:bodido/features/onboarding/views/widgets/height_picker.dart';
+import 'package:bodido/features/onboarding/views/widgets/page_wrapper.dart';
+import 'package:bodido/features/onboarding/views/widgets/weight_picker.dart';
 
 final onboardingPageProvider = StateProvider<int>((ref) => 0);
 
@@ -25,18 +24,31 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
     BasicUserData.gender,
     BasicUserData.dateOfBirth,
     BasicUserData.height,
+    BasicUserData.bodyType,
   ];
+  bool _wrapUpTriggered = false;
 
   @override
   void initState() {
     super.initState();
-    _pageController.addListener(() {
+    _pageController.addListener(() async {
       int newPage = _pageController.page?.round() ?? 0;
       int currentPage = ref.read(healthOnboardingProvider).currentPage;
       if (newPage != currentPage) {
+        if (newPage != _onboardingSteps.length) {
+          _wrapUpTriggered = false;
+          ref.read(healthOnboardingProvider.notifier).clearProgressMessages();
+        }
+
         ref.read(healthOnboardingProvider.notifier).updateCurrentPage(newPage);
         if (newPage > currentPage) {
-          _saveCurrentPageData(currentPage);
+          await _saveCurrentPageData(currentPage);
+        }
+
+        if (newPage == _onboardingSteps.length && !_wrapUpTriggered) {
+          _wrapUpTriggered = true;
+          await _saveCurrentPageData(_onboardingSteps.length - 1);
+          ref.read(healthOnboardingProvider.notifier).finalizeOnboarding();
         }
       }
     });
@@ -48,7 +60,7 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
     super.dispose();
   }
 
-  void _saveCurrentPageData(int pageIndex) async {
+  Future<void> _saveCurrentPageData(int pageIndex) async {
     final viewModel = ref.read(healthOnboardingProvider.notifier);
 
     switch (pageIndex) {
@@ -60,7 +72,9 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
         break;
       case 2:
         await viewModel.saveHeightandWeightData();
-        await viewModel.initializeBodySimulatorState();
+        break;
+      case 3:
+        await viewModel.saveBodyType();
         break;
     }
   }
@@ -70,16 +84,16 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
     // Watch for state changes
     final viewModel = ref.watch(healthOnboardingProvider.notifier);
     final state = ref.watch(healthOnboardingProvider);
-    final currentPage = ref.watch(onboardingPageProvider);
+    final currentPage =
+        ref.watch(healthOnboardingProvider.select((s) => s.currentPage));
 
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Progress indicator
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Row(
+      body: Padding(
+        padding: EdgeInsets.all($styles.insets.md),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Row(
                 children: List.generate(_onboardingSteps.length, (index) {
                   return Expanded(
                     child: Container(
@@ -87,123 +101,50 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
                       margin: const EdgeInsets.symmetric(horizontal: 4),
                       decoration: BoxDecoration(
                         color: index <= currentPage
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.surfaceVariant,
+                            ? $styles.colors.accent1
+                            : $styles.colors.offWhite,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   );
                 }),
               ),
-            ),
 
-            // Main content
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                scrollDirection: Axis.vertical,
-                children: [
-                  _buildGenderPage(context, viewModel, state),
-                  _buildDateOfBirthPage(context, viewModel, state),
-                  _buildHeightWeightPage(context, viewModel, state),
-                  _buildRedirectPage(),
-                  // _buildPreExistingConditionsPage(context, viewModel, state),
-                  // _buildMedicationsPage(context, viewModel, state),
-                  // _buildAllergiesPage(context, viewModel, state),
-                ],
+              // Main content
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  scrollDirection: Axis.vertical,
+                  children: [
+                    _buildGenderPage(context, viewModel, state),
+                    _buildDateOfBirthPage(context, viewModel, state),
+                    _buildHeightWeightPage(context, viewModel, state),
+                    _buildBodyTypePage(context, viewModel, state),
+                    _buildRedirectPage(),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // Height & Weight page
-  Widget _buildHeightWeightPage(BuildContext context,
+  Widget _buildGenderPage(BuildContext context,
       HealthOnboardingViewModel viewModel, HealthOnboardingState state) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
+    return OnboardingPageWrapper(
+      headlineLines: [
+        $strings.onboarding_gender,
+      ],
+      state: state,
+      body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox(height: 24),
-          SizedBox(
-            height: 80,
-            child: TypewriterAnimatedText(
-              [
-                "Your body shape completes the picture.",
-                "Let's understand how you carry your energy."
-              ],
-              textStyle: Theme.of(context).textTheme.headlineMedium!,
-              loop: false,
-            ),
+          GenderPickerWidget(
+            selectedGender: state.selectedGender,
+            onGenderChanged: viewModel.updateGender,
           ),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Card(
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Column(
-                          children: [
-                            Text('Height',
-                                style:
-                                    Theme.of(context).textTheme.headlineSmall),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${state.selectedHeight} cm',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(width: 32),
-                        Column(
-                          children: [
-                            Text('Weight',
-                                style:
-                                    Theme.of(context).textTheme.headlineSmall),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${state.selectedWeight} kg',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 200,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: HeightPickerWidget(
-                          selectedHeight: state.selectedHeight,
-                          onHeightChanged: viewModel.updateHeight,
-                        ),
-                      ),
-                      Expanded(
-                        child: WeightPickerWidget(
-                          selectedWeight: state.selectedWeight,
-                          onWeightChanged: viewModel.updateWeight,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 100),
-          _buildNavigationHint(state),
         ],
       ),
     );
@@ -212,184 +153,113 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
   // Date of Birth page
   Widget _buildDateOfBirthPage(BuildContext context,
       HealthOnboardingViewModel viewModel, HealthOnboardingState state) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
+    return OnboardingPageWrapper(
+      headlineLines: [
+        $strings.onboarding_birth,
+      ],
+      state: state,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 24),
-          SizedBox(
-            height: 80,
-            child: TypewriterAnimatedText(
-              [
-                "Your age guides how your body recovers.",
-                "Small number with big meaning."
-              ],
-              textStyle: Theme.of(context).textTheme.headlineMedium!,
-              loop: false,
-            ),
+          BirthDatePickerWidget(
+            selectedDate: state.selectedBirthDate,
+            onDateChanged: viewModel.updateBirthDate,
           ),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Your birth date?",
-                  style: Theme.of(context).textTheme.bodyLarge,
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(
-                  height: 200,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: BirthDatePickerWidget(
-                          selectedDate: state.selectedBirthDate,
-                          onDateChanged: viewModel.updateBirthDate,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 100),
-          _buildNavigationHint(state),
         ],
       ),
     );
   }
 
-  // Gender page
-  Widget _buildGenderPage(BuildContext context,
+  // Height & Weight page
+  Widget _buildHeightWeightPage(BuildContext context,
       HealthOnboardingViewModel viewModel, HealthOnboardingState state) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const SizedBox(height: 24),
-        SizedBox(
-          height: 80,
-          child: TypewriterAnimatedText(
-            ["We'll tune your insights with care.", "As uniquely as you are."],
-            textStyle: Theme.of(context).textTheme.headlineMedium!,
-            loop: false,
-          ),
-        ),
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+    return OnboardingPageWrapper(
+      headlineLines: [
+        $strings.onboarding_bodymetrics,
+      ],
+      state: state,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text($strings.select_hw,
+              style: $styles.text.bodySmall, textAlign: TextAlign.center),
+          Row(
             children: [
-              Text(
-                "Your gender?",
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
+              Expanded(
+                child: HeightPickerWidget(
+                  selectedHeight: state.selectedHeight,
+                  onHeightChanged: viewModel.updateHeight,
+                ),
               ),
-              // const SizedBox(height: 36),
-              SizedBox(
-                height: 200,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: GenderPickerWidget(
-                        selectedGender: state.selectedGender,
-                        onGenderChanged: viewModel.updateGender,
-                      ),
-                    ),
-                  ],
+              Expanded(
+                child: WeightPickerWidget(
+                  selectedWeight: state.selectedWeight,
+                  onWeightChanged: viewModel.updateWeight,
                 ),
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBodyTypePage(BuildContext context,
+      HealthOnboardingViewModel viewModel, HealthOnboardingState state) {
+    return OnboardingPageWrapper(
+      headlineLines: [
+        $strings.onboarding_bodytype_dynamic(
+          state.selectedHeight, // height  인자
+          state.selectedWeight, // weight 인자
         ),
-        const SizedBox(height: 150),
-        // Navigation hint or action
-        _buildNavigationHint(state),
       ],
+      state: state,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          BodyTypePickerWidget(
+            selectedBodyType: state.selectedBodyType,
+            onBodyTypeChanged: viewModel.updateBodyType,
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildRedirectPage() {
-    final viewModel = ref.read(healthOnboardingProvider.notifier);
     final state = ref.watch(healthOnboardingProvider);
 
-    if (state.isSaving) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    List<String> logs =
+        state.progressMessages.isEmpty ? [] : state.progressMessages;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (mounted && context.mounted) {
-        context.go(RouteNames.home);
-      }
-    });
+    // // Navigate when finalizing and saving are both done (run once)
+    // if (!state.isFinalizing && !state.isSaving && !_wrapUpTriggered) {
+    //   // ensure finalizeOnboarding was triggered first
+    // }
+    // if (!state.isFinalizing && !state.isSaving && _wrapUpTriggered) {
+    //   _wrapUpTriggered = false;
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     if (!mounted || !context.mounted) return;
+    //     context.go(RouteNames.debug);
+    //   });
+    // }
 
-    return const Center(child: CircularProgressIndicator());
-  }
-
-  Widget _buildNavigationHint(HealthOnboardingState state) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Column(
-        children: [
-          Column(
-            children: [
-              Icon(
-                Icons.arrow_downward,
-                size: 32,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Scroll down to save and continue",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            ],
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        LiveTypewriter(
+          lines: logs,
+          expectedLineCount: 2,
+          charDelay: const Duration(milliseconds: 50),
+          linePause: const Duration(milliseconds: 200),
+          style: $styles.text.h4.copyWith(
+            color: $styles.colors.accent1,
           ),
-
-          // Back hint
-          if (state.currentPage > 0)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                "Scroll up to go back",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
-                  fontSize: 12,
-                ),
-              ),
-            ),
-
-          // Show saving indicator if in progress
-          if (state.isSaving)
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    "Saving...",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
+        ),
+        SizedBox(height: $styles.insets.md),
+        if (state.isFinalizing || state.isSaving)
+          const CircularProgressIndicator(),
+      ],
     );
   }
 }

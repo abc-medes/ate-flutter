@@ -1,11 +1,5 @@
-import 'package:ate_project/common_libs.dart';
-import 'package:flutter/material.dart';
-import 'package:ate_project/theme/app_theme.dart';
+import 'package:bodido/common_libs.dart';
 import 'dart:math' as math;
-
-// Global key to access the overlay state
-final GlobalKey<_LoadingOverlayState> _overlayKey =
-    GlobalKey<_LoadingOverlayState>();
 
 // Track whether overlay is currently shown
 bool _isOverlayShown = false;
@@ -58,41 +52,16 @@ class LoadingScreen extends StatefulWidget {
   }
 
   static void dismiss(BuildContext context) {
-    try {
-      if (_overlayKey.currentState != null) {
-        _overlayKey.currentState?.dismiss();
-      }
-    } catch (e) {
-      print('Error dismissing via key: $e');
-    }
+    if (!_isOverlayShown || _currentOverlayEntry == null) return;
 
     try {
-      if (_isOverlayShown && _currentOverlayEntry != null) {
-        // Use a post-frame callback to ensure UI isn't being built
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (context.mounted) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              try {
-                _currentOverlayEntry?.remove();
-                print('Loading screen dismissed via direct overlay entry');
-              } catch (e) {
-                print('Error removing overlay entry in post-frame: $e');
-              } finally {
-                _currentOverlayEntry = null;
-                _isOverlayShown = false;
-              }
-            });
-          } else {
-            // If context is not valid, just clean up the state
-            _currentOverlayEntry = null;
-            _isOverlayShown = false;
-          }
-        });
-      }
+      _currentOverlayEntry?.remove();
+      print('Loading screen dismissed');
     } catch (e) {
-      print('Error dismissing via direct overlay: $e');
-      _isOverlayShown = false;
+      print('Error removing loading overlay: $e');
+    } finally {
       _currentOverlayEntry = null;
+      _isOverlayShown = false;
     }
   }
 
@@ -167,7 +136,7 @@ class _LoadingScreenState extends State<LoadingScreen>
               //   _buildAnimatedLogo(),
               //   const SizedBox(height: 32),
               // ],
-              _buildLoadingIndicator(),
+              _buildLoadingDots(),
               // if (widget.message != null) ...[
               //   const SizedBox(height: 24),
               //   Text(
@@ -184,47 +153,6 @@ class _LoadingScreenState extends State<LoadingScreen>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildAnimatedLogo() {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: 1.0 + 0.1 * math.sin(2 * math.pi * _controller.value),
-          child: Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.health_and_safety,
-              size: 64,
-              color: AppColors.primary,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildLoadingIndicator() {
-    return Column(
-      children: [
-        SizedBox(
-          width: 40,
-          height: 40,
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-            strokeWidth: 3,
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildLoadingDots(),
-      ],
     );
   }
 

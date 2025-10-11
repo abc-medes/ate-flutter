@@ -1,13 +1,16 @@
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/core/routes/route_names.dart';
-import 'package:ate_project/theme/app_theme.dart';
-import 'package:ate_project/features/auth/view_models/signup_view_model.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:ate_project/core/widgets/loading_view.dart';
-import 'package:ate_project/core/widgets/error_snackbar.dart';
-import 'package:ate_project/core/widgets/customed_text_input.dart';
+import 'dart:io';
+
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/widgets/app_button.dart';
+import 'package:bodido/core/widgets/custom_message_sheet.dart';
+import 'package:bodido/core/widgets/customed_text_input.dart';
+import 'package:bodido/core/widgets/loading_view.dart';
+import 'package:bodido/core/widgets/page_header.dart';
+import 'package:bodido/features/auth/view_models/signup_view_model.dart';
+import 'package:bodido/features/auth/views/widgets/email_sent_step.dart';
+import 'package:bodido/features/auth/views/widgets/social_login_button.dart';
+import 'package:bodido/features/auth/views/widgets/terms_consent_sheet.dart';
 
 class SignupView extends ConsumerStatefulWidget {
   final String email;
@@ -43,75 +46,199 @@ class _SignupViewState extends ConsumerState<SignupView> {
       if (viewState.error != null) {
         LoadingScreen.dismiss(context);
 
-        ErrorSnackbar.showSignupError(
+        CustomMessageSheet.showError(
           context: context,
-          errorMessage: viewState.error!,
-          clearError: () => viewModel.clearError(),
-          onTryAgain: () => viewModel.signUp(),
-          onGoToLogin: () => context.go(RouteNames.login),
+          message: viewState.error!,
+          actions: [
+            MessageAction(
+                label: 'Try Again', onPressed: () => viewModel.signUp()),
+            MessageAction(
+                label: 'Go to Login',
+                onPressed: () => context.go(RouteNames.login)),
+          ],
+          onDismiss: () => viewModel.clearError(),
         );
       }
     });
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (viewState.currentStep == SignupStep.emailSent) {
-              viewModel.goBackToDetails();
-              /* Comment out OTP verification step
-            } else if (viewState.currentStep == SignupStep.otpVerification) {
-              viewModel.goBackToDetails();
-            */
-            } else {
-              Navigator.pop(context);
-            }
-          },
-        ),
-        title: const Text('Sign Up'),
+      backgroundColor: $styles.colors.background,
+      appBar: AppPageAppBar(
+        title: 'Sign Up',
+        onBack: () => Navigator.pop(context),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              if (viewState.currentStep == SignupStep.detailsInput)
-                Expanded(
-                    child: _buildDetailsStep(context, viewModel, viewState)),
-              if (viewState.currentStep == SignupStep.emailSent)
-                Expanded(
-                    child: _buildEmailSentStep(context, viewModel, viewState)),
-              // _buildEmailSentStep(context, viewModel, viewState),
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: viewState.isLoading
-                      ? null
-                      : () async {
-                          await viewModel.signUp();
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.surface,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    'Continue',
-                    style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                          color: AppColors.surface,
+      body: Column(
+        children: [
+          Expanded(
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.all($styles.insets.md),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            if (viewState.currentStep ==
+                                SignupStep.detailsInput)
+                              _buildDetailsStep(context, viewModel, viewState),
+                            if (viewState.currentStep == SignupStep.emailSent)
+                              EmailSentStep(
+                                title: 'Verify Your Email',
+                                description:
+                                    "We've sent an email to ${viewState.emailController.text} with a verification link. Please click the link in your email to complete your registration.",
+                                nextStepsTitle: 'Next steps:',
+                                nextSteps: [
+                                  'Check your email inbox for a verification link from us',
+                                  'Click on the link in the email to verify your account',
+                                  'Return to the app to complete your registration',
+                                ],
+                                resendButtonText:
+                                    "Didn't receive the email? Resend",
+                                onResend: viewState.isLoading
+                                    ? null
+                                    : () async {
+                                        try {
+                                          await viewModel
+                                              .resendVerificationEmail();
+                                          if (!mounted) return;
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: const Text(
+                                                  'Verification email resent'),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                              backgroundColor:
+                                                  $styles.colors.accent1,
+                                              duration:
+                                                  const Duration(seconds: 2),
+                                            ),
+                                          );
+                                        } catch (_) {}
+                                      },
+                                backToLoginText: 'Back to Login',
+                                onBackToLogin: () =>
+                                    context.go(RouteNames.login),
+                                isLoading: viewState.isLoading,
+                              ),
+                          ],
                         ),
-                  ),
+                      ),
+                    ),
+                    SizedBox(height: $styles.insets.md),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Theme(
+                          data: Theme.of(context).copyWith(
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            checkboxTheme: const CheckboxThemeData(
+                              visualDensity: VisualDensity.compact,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              splashRadius: 0,
+                            ),
+                          ),
+                          child: Transform.scale(
+                            scale: 1.25, // bigger checkbox
+                            child: Checkbox(
+                              value: viewState.acceptTerms,
+                              onChanged: (v) async {
+                                if (v == true) {
+                                  final accepted = await TermsConsentSheet.show(
+                                    context,
+                                    termsUrl: Uri.parse(
+                                        'https://yourdomain.com/terms'),
+                                    privacyUrl: Uri.parse(
+                                        'https://yourdomain.com/privacy'),
+                                  );
+                                  if (!mounted) return;
+                                  viewModel
+                                      .setAcceptedPolicies(accepted == true);
+                                } else {
+                                  viewModel.setAcceptedPolicies(false);
+                                }
+                              },
+                              activeColor: $styles.colors.accent1,
+                              checkColor: $styles.colors.white,
+                              side: BorderSide(
+                                  color: $styles.colors.greyMedium,
+                                  width: 2), // unchecked border
+                              visualDensity: VisualDensity.compact, // tighter
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: $styles.insets.xs),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () async {
+                              final accepted = await TermsConsentSheet.show(
+                                context,
+                                termsUrl:
+                                    Uri.parse('https://yourdomain.com/terms'),
+                                privacyUrl:
+                                    Uri.parse('https://yourdomain.com/privacy'),
+                              );
+                              if (!mounted) return;
+                              viewModel.setAcceptedPolicies(accepted == true);
+                            },
+                            child: Text.rich(
+                              TextSpan(
+                                style: $styles.text.bodySmall.copyWith(
+                                  // make text bigger
+                                  fontSize:
+                                      ($styles.text.bodySmall.fontSize ?? 16) +
+                                          2,
+                                  color: $styles.colors.black,
+                                ),
+                                children: [
+                                  const TextSpan(text: 'I agree to the '),
+                                  TextSpan(
+                                    text: 'Terms & Privacy',
+                                    // "seemingly clickable": accent color + underline
+                                    style: $styles.text.bodySmall.copyWith(
+                                      fontSize:
+                                          ($styles.text.bodySmall.fontSize ??
+                                                  16) +
+                                              2,
+                                      color: $styles.colors.accent1,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: $styles.insets.sm),
+                    AppButton(
+                      label: 'Continue',
+                      isLoading: viewState.isLoading,
+                      onPressed: () async {
+                        switch (viewState.currentStep) {
+                          case SignupStep.detailsInput:
+                            await viewModel.signUp();
+                            break;
+                          case SignupStep.emailSent:
+                            await viewModel.handleLogin(
+                                context, SignupMethod.email);
+                            break;
+                          default:
+                            break;
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -121,10 +248,12 @@ class _SignupViewState extends ConsumerState<SignupView> {
     SignupViewModel viewModel,
     SignupState viewState,
   ) {
+    final bool isAndroid = Platform.isAndroid;
+    final bool isIOS = Platform.isIOS;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Email field
         CustomedTextInput(
           controller: viewState.emailController,
           hintText: 'Email',
@@ -134,18 +263,28 @@ class _SignupViewState extends ConsumerState<SignupView> {
           errorText: !viewState.isEmailValid
               ? 'Please enter a valid email address'
               : null,
+          textStyle: $styles.text.bodySmall,
+          hintTextStyle:
+              $styles.text.bodySmall.copyWith(color: $styles.colors.greyMedium),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: $styles.insets.sm,
+            vertical: $styles.insets.sm,
+          ),
         ),
-        const SizedBox(height: 24),
-
-        // Name field
+        SizedBox(height: $styles.insets.sm),
         CustomedTextInput(
           controller: viewState.nameController,
           hintText: 'Full Name',
           isRequired: true,
+          textStyle: $styles.text.bodySmall,
+          hintTextStyle:
+              $styles.text.bodySmall.copyWith(color: $styles.colors.greyMedium),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: $styles.insets.sm,
+            vertical: $styles.insets.sm,
+          ),
         ),
-        const SizedBox(height: 24),
-
-        // Password field
+        SizedBox(height: $styles.insets.sm),
         CustomedTextInput(
           controller: viewState.passwordController,
           hintText: 'Password',
@@ -160,14 +299,19 @@ class _SignupViewState extends ConsumerState<SignupView> {
               viewState.isPasswordVisible
                   ? Icons.visibility_off
                   : Icons.visibility,
-              color: AppColors.textTertiary,
+              color: $styles.colors.greyMedium,
             ),
             onPressed: viewModel.togglePasswordVisibility,
           ),
+          textStyle: $styles.text.bodySmall,
+          hintTextStyle:
+              $styles.text.bodySmall.copyWith(color: $styles.colors.greyMedium),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: $styles.insets.sm,
+            vertical: $styles.insets.sm,
+          ),
         ),
-        const SizedBox(height: 24),
-
-        // Confirm Password field
+        SizedBox(height: $styles.insets.sm),
         CustomedTextInput(
           controller: viewState.confirmPasswordController,
           hintText: 'Confirm Password',
@@ -181,147 +325,56 @@ class _SignupViewState extends ConsumerState<SignupView> {
               viewState.isConfirmPasswordVisible
                   ? Icons.visibility_off
                   : Icons.visibility,
-              color: AppColors.textTertiary,
+              color: $styles.colors.greyMedium,
             ),
             onPressed: viewModel.toggleConfirmPasswordVisibility,
           ),
-        ),
-        const SizedBox(height: 40),
-      ],
-    );
-  }
-
-  Widget _buildEmailSentStep(
-    BuildContext context,
-    SignupViewModel viewModel,
-    SignupState viewState,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Verify Your Email',
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
+          textStyle: $styles.text.bodySmall,
+          hintTextStyle:
+              $styles.text.bodySmall.copyWith(color: $styles.colors.greyMedium),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: $styles.insets.sm,
+            vertical: $styles.insets.sm,
           ),
         ),
-        const SizedBox(height: 16),
-        Text(
-          'We\'ve sent an email to ${viewState.emailController.text} with a verification link. Please click the link in your email to complete your registration.',
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 16,
-          ),
-        ),
-        const SizedBox(height: 32),
-
-        // Email icon
-        Center(
-          child: Icon(
-            Icons.email_outlined,
-            size: 80,
-            color: AppColors.primary,
-          ),
-        ),
-        const SizedBox(height: 32),
-
-        // Instructions
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Next steps:',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('1. ', style: TextStyle(color: AppColors.textSecondary)),
-                  Expanded(
-                    child: Text(
-                      'Check your email inbox for a verification link from us',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('2. ', style: TextStyle(color: AppColors.textSecondary)),
-                  Expanded(
-                    child: Text(
-                      'Click on the link in the email to verify your account',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('3. ', style: TextStyle(color: AppColors.textSecondary)),
-                  Expanded(
-                    child: Text(
-                      'Return to the app to complete your registration',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 32),
-
-        // Resend email button
-        Center(
-          child: TextButton(
-            onPressed: viewState.isLoading
-                ? null
-                : () async {
-                    // Skip email verification for now and proceed to sign up directly
-                    await viewModel.signUp();
-                  },
-            child: Text(
-              'Didn\'t receive the email? Resend',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w500,
+        SizedBox(height: $styles.insets.xl),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(child: Divider(color: $styles.colors.greyMedium)),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: $styles.insets.sm),
+              child: Text(
+                $strings.or,
+                style: TextStyle(height: 1, color: $styles.colors.greyMedium),
               ),
             ),
-          ),
+            Expanded(child: Divider(color: $styles.colors.greyMedium)),
+          ],
         ),
-        const SizedBox(height: 16),
-
-        Center(
-          child: TextButton(
+        SizedBox(height: $styles.insets.xl),
+        SocialAuthButton(
+          ref: ref,
+          text: 'Sign up with Google',
+          icon: Icons.g_mobiledata_rounded,
+          iconColor: $styles.colors.black,
+          onPressed: () {
+            viewModel.handleLogin(context, SignupMethod.google);
+          },
+        ),
+        if ((isIOS || !isAndroid)) ...[
+          SizedBox(height: $styles.insets.xs),
+          SocialAuthButton(
+            ref: ref,
+            text: 'Sign up with Apple',
+            icon: Icons.apple,
+            iconColor: $styles.colors.black,
             onPressed: () {
-              context.go(RouteNames.login);
+              viewModel.handleLogin(context, SignupMethod.apple);
             },
-            child: Text(
-              'Back to Login',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
           ),
-        ),
+        ],
+        const SizedBox(height: 40),
       ],
     );
   }

@@ -1,20 +1,17 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ate_project/core/services/auth_service.dart';
-import 'package:ate_project/core/routes/route_names.dart';
-import 'package:go_router/go_router.dart';
-import 'package:ate_project/core/utils/auth_error_helper.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/services/auth_service.dart';
 
 enum LoginStep {
   emailInput,
-  passwordInput,
+  resettingEmailSent,
 }
 
 class LoginState {
   final TextEditingController emailController;
   final TextEditingController passwordController;
   final bool isEmailValid;
-  final LoginStep currentStep;
+  LoginStep currentStep;
   final bool isPasswordVisible;
   final bool isLoading;
   final String? error;
@@ -52,11 +49,11 @@ class LoginState {
 }
 
 class LoginViewModel extends StateNotifier<LoginState> {
+  final SupabaseClient _client = Supabase.instance.client;
   final AuthService _authService;
-  final AuthNotifier _authNotifier;
   bool _isDisposed = false;
 
-  LoginViewModel(this._authService, this._authNotifier)
+  LoginViewModel(this._authService)
       : super(LoginState(
           emailController: TextEditingController(),
           passwordController: TextEditingController(),
@@ -65,8 +62,7 @@ class LoginViewModel extends StateNotifier<LoginState> {
   @override
   void dispose() {
     _isDisposed = true;
-    state.emailController.dispose();
-    state.passwordController.dispose();
+    reset();
     super.dispose();
   }
 
@@ -110,96 +106,89 @@ class LoginViewModel extends StateNotifier<LoginState> {
   void clearError() {
     if (_isDisposed) return;
     state = state.copyWith(clearError: true);
-    _authNotifier.clearError();
   }
 
-  Future<bool> checkEmailAndContinue() async {
-    if (_isDisposed || state.isLoading) return false;
-
-    if (!validateEmail()) {
-      state =
-          state.copyWith(error: "Please enter a valid email", isLoading: false);
-      return false;
-    }
-
-    final email = state.emailController.text.trim();
-
-    state = state.copyWith(isLoading: true, clearError: true);
-
-    try {
-      // Check if email exists
-      final emailExists = await _authService.isEmailAvailable(email);
-
-      if (_isDisposed) return false;
-
-      state = state.copyWith(
-        isLoading: false,
-        currentStep: LoginStep.passwordInput,
-      );
-
-      return emailExists;
-    } catch (e) {
-      if (_isDisposed) return false;
-
-      state = state.copyWith(
-        isLoading: false,
-        error: AuthErrorHelper.getLoginErrorMessage(e.toString()),
-      );
-      return false;
-    }
-  }
-
-  Future<void> handlePasswordLogin() async {
+  Future<void> handlePasswordLogin(BuildContext context) async {
     if (_isDisposed || state.isLoading) return;
-
-    final email = state.emailController.text.trim();
-    final password = state.passwordController.text.trim();
-
-    if (password.isEmpty) {
-      state =
-          state.copyWith(error: "Please enter your password", isLoading: false);
-      return;
-    }
-
-    state = state.copyWith(isLoading: true, clearError: true);
-
     try {
-      await _authService.signIn(email, password);
-      if (_isDisposed) return;
-      state = state.copyWith(isLoading: false);
+      if (state.passwordController.text.isEmpty) {
+        state = state.copyWith(error: "Please enter your password");
+        return;
+      }
+
+      state = state.copyWith(isLoading: true, clearError: true);
+      await _authService.signInWithEmail(
+          email: state.emailController.text.trim(),
+          password: state.passwordController.text.trim());
+
+      state = state.copyWith(isLoading: false, error: null);
+
+      await Supabase.instance.client.auth.onAuthStateChange
+          .firstWhere((e) => e.session != null);
     } catch (e) {
-      if (_isDisposed) return;
-      state = state.copyWith(
-        isLoading: false,
-        error: AuthErrorHelper.getLoginErrorMessage(e.toString()),
-      );
+      if (e is AuthException) {
+        state = state.copyWith(
+          isLoading: false,
+          error: e.message,
+        );
+      }
     }
   }
 
   Future<void> handleGoogleSignIn() async {
-    try {
-      await _authNotifier.signInWithGoogle();
-    } catch (e) {
-      // Error is handled in AuthNotifier
-    }
+    await _authService.signInWithGoogle();
   }
 
   Future<void> handleAppleSignIn() async {
-    try {
-      await _authNotifier.signInWithApple();
-    } catch (e) {
-      // Error is handled in AuthNotifier
-    }
+    await _authService.signInWithApple();
   }
 
   void redirectToSignup(BuildContext context) {
     context.push(RouteNames.signup, extra: state.emailController.text);
+  }
+
+  void handleForgotPassword(BuildContext context) async {
+    if (_isDisposed) return;
+    state = state.copyWith(isLoading: true);
+    try {
+      await _authService.resetPassword(
+        state.emailController.text,
+      );
+      state = state.copyWith(
+        currentStep: LoginStep.resettingEmailSent,
+        isLoading: false,
+      );
+    } on AuthException catch (e) {
+      state = state.copyWith(error: e.message, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), isLoading: false);
+    }
+  }
+
+  void reset() {
+    state.emailController.dispose();
+    state.passwordController.dispose();
+    state.currentStep = LoginStep.emailInput;
+  }
+
+  Future<void> resendResetPasswordEmail() async {
+    if (_isDisposed) return;
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _authService.resendSignupVerification(state.emailController.text);
+    } on AuthException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+      rethrow;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+    state = state.copyWith(isLoading: false);
   }
 }
 
 final loginViewModelProvider =
     StateNotifierProvider.autoDispose<LoginViewModel, LoginState>((ref) {
   final authService = ref.watch(authServiceProvider);
-  final authNotifier = ref.watch(authProvider.notifier);
-  return LoginViewModel(authService, authNotifier);
+  return LoginViewModel(authService);
 });

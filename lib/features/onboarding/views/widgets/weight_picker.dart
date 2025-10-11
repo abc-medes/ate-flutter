@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:bodido/main.dart';
 
 class WeightPickerWidget extends StatelessWidget {
   final int selectedWeight;
@@ -19,9 +20,9 @@ class WeightPickerWidget extends StatelessWidget {
     return Column(
       children: [
         SizedBox(
-          height: 200,
+          height: $styles.sizes.maxContentWidth3,
           child: CupertinoPicker(
-            itemExtent: 40,
+            itemExtent: $styles.sizes.maxContentWidth3 / 6,
             scrollController: FixedExtentScrollController(
               initialItem: weightOptions.indexOf(selectedWeight),
             ),
@@ -32,7 +33,7 @@ class WeightPickerWidget extends StatelessWidget {
               return Center(
                 child: Text(
                   '$weight kg',
-                  style: const TextStyle(fontSize: 18),
+                  style: $styles.text.h3,
                 ),
               );
             }).toList(),

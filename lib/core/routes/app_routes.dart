@@ -1,34 +1,46 @@
-import 'package:ate_project/features/body_simulator/views/screens/body_simulator_view.dart';
-import 'package:ate_project/features/debug/debug_view.dart';
-import 'package:ate_project/features/home/views/screens/home_view.dart';
-import 'package:ate_project/features/onboarding/views/intro_view.dart';
-import 'package:ate_project/features/settings/views/screens/settings_view.dart';
-import 'package:ate_project/core/routes/route_names.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/routes/router_wrapper.dart';
+import 'package:bodido/data/models/chat_model.dart';
+import 'package:bodido/features/chat/views/screens/chat_history_view.dart';
+import 'package:bodido/features/chat/views/screens/chat_view.dart';
+import 'package:bodido/features/home/views/screens/home_view.dart';
+import 'package:bodido/features/settings/views/screens/change_password_view.dart';
+import 'package:bodido/features/settings/views/screens/settings_view.dart';
 
 final appRoutes = [
-  (
-    path: '/',
-    builder: (context, state) => const HomeView(),
-    // pageBuilder: (context, state) => _buildBottomTransitionPage(
-    //   context,
-    //   state,
-    //   const HomeView(),
-    // ),
+  // AppRoute(
+  //   RouteNames.debug,
+  //   (_) => const DebugView(),
+  // ),
+  AppRoute(
+    RouteNames.home,
+    (_) => const HomeView(),
   ),
-  (
-    path: '/debug',
-    builder: (context, state) => const DebugView(),
+  AppRoute(
+    RouteNames.settings,
+    (_) => const SettingsView(),
   ),
-  (
-    path: '/intro',
-    builder: (context, state) => const IntroView(),
+  AppRoute(
+    RouteNames.chatHistory,
+    (_) => const ChatHistoryView(),
   ),
-  (
-    path: RouteNames.settings,
-    builder: (context, state) => const SettingsView(),
+  AppRoute(
+    RouteNames.changePassword,
+    (_) => const ChangePasswordView(),
   ),
-  (
-    path: '/body-simulator',
-    builder: (context, state) => const BodySimulatorView(),
+  AppRoute(
+    RouteNames.chat,
+    (state) {
+      final extra = state.extra as Map<String, dynamic>?;
+      final initialMessage = extra?['initialMessage'] as ChatMessageDTO?;
+      final sessionIds = extra?['sessionIds'] as List<String>?;
+      final selectedDate = extra?['selectedDate'] as DateTime?;
+
+      return ChatView(
+        initialMessage: initialMessage,
+        sessionIds: sessionIds,
+        selectedDate: selectedDate,
+      );
+    },
   ),
 ];

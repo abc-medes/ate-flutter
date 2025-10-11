@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 const String svgString = '''
-<svg width="8" height="20" viewBox="0 0 8 20" xmlns="http://www.w3.org/2000/svg">
+          <svg width="8" height="20" viewBox="0 0 8 20" xmlns="http://www.w3.org/2000/svg">
             <rect width="8" height="20" rx="3" fill="#05804C"/>
           </svg>
 ''';
@@ -67,7 +67,8 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
         });
 
         if (widget.enableVibration) {
-          HapticFeedback.lightImpact();
+          // TODO: Not for now. For testing purpose.
+          // HapticFeedback.lightImpact();
         }
 
         Future.delayed(widget.typingSpeed, _animateText);
@@ -136,7 +137,10 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
       textAlign: TextAlign.center,
       text: TextSpan(
         children: [
-          TextSpan(text: _displayText, style: widget.textStyle),
+          TextSpan(
+            text: _displayText.isEmpty ? '\u200B' : _displayText,
+            style: widget.textStyle,
+          ),
           const WidgetSpan(
             child: SizedBox(
               width: 5,
@@ -144,6 +148,7 @@ class _TypewriterAnimatedTextState extends State<TypewriterAnimatedText>
             ),
           ),
           WidgetSpan(
+              // alignment: PlaceholderAlignment.middle,
               child: !_isCompleted
                   ? SvgPicture.string(
                       svgString,

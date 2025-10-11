@@ -1,5 +1,5 @@
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/core/utils/color_utils.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/utils/color_utils.dart';
 
 class AppColors {
   // TODO: for temporary use, will be removed later------------------------------------------------
@@ -29,8 +29,6 @@ class AppColors {
   static const mood = Color(0xFFFFEB3B);
 
   // Neutral Colors
-  static const background =
-      Color(0xFFFDF8e7); // creamy vanilla background like the image
   static const surface = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF212121);
   static const textSecondary = Color(0xFF757575);
@@ -38,16 +36,15 @@ class AppColors {
   static const divider = Color(0xFFBDBDBD);
 
   // Feedback Colors
-  static const success = Color(0xFF4CAF50);
-  static const error = Color(0xFFE57373);
-  static const warning = Color(0xFFFFB74D);
-  static const info = Color(0xFF64B5F6);
-  // TODO: for temporary use, will be removed later------------------------------------------------
+  Color get error => const Color(0xFFE57373);
+  Color get success => const Color(0xFF4CAF50);
+  Color get warning => const Color(0xFFFFB74D);
+  Color get info => const Color(0xFF64B5F6);
 
   /// Common
-  final Color accent1 = Color(0xFFE4935D);
-  final Color accent2 = Color(0xFFBEABA1);
-  final Color accent3 = Color(0xFFC47642);
+  final Color accent1 = Color(0xFF05804C);
+  final Color accent2 = Color(0xFFC47642);
+  final Color accent3 = Color(0xFFBEABA1);
   final Color offWhite = Color(0xFFF8ECE5);
   final Color caption = const Color(0xFF7D7873);
   final Color body = const Color(0xFF514F4D);
@@ -58,6 +55,8 @@ class AppColors {
   // - web/manifest.json
   // - web/index.html -
   final Color black = const Color(0xFF1E1B18);
+  final Color background = const Color(0xFFFDF8e7);
+  final Color backgroundDark = Color(0xFFF5E9C8);
 
   final bool isDark = false;
 
@@ -74,8 +73,8 @@ class AppColors {
         brightness: isDark ? Brightness.dark : Brightness.light,
         primary: accent1,
         primaryContainer: accent1,
-        secondary: accent1,
-        secondaryContainer: accent1,
+        secondary: accent2,
+        secondaryContainer: accent2,
         surface: offWhite,
         onSurface: txtColor,
         onError: Colors.white,
@@ -88,6 +87,18 @@ class AppColors {
     var t =
         ThemeData.from(textTheme: txtTheme, colorScheme: colorScheme).copyWith(
       textSelectionTheme: TextSelectionThemeData(cursorColor: accent1),
+      scaffoldBackgroundColor: background,
+      appBarTheme: AppBarTheme(
+        backgroundColor: background, // Your custom background
+        elevation: 0,
+        iconTheme: IconThemeData(color: accent1), // Icon color
+        titleTextStyle: TextStyle(
+          color: accent1, // Title text color
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+        centerTitle: true, // Optional: center the title
+      ),
       highlightColor: accent1,
     );
 

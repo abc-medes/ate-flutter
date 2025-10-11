@@ -1,28 +1,34 @@
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/config/env.dart';
+import 'package:bodido/data/models/body_simulator_model.dart';
+import 'package:bodido/data/models/chat_model.dart';
 import 'package:http/http.dart' as http;
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/status.dart' as ws_status;
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://localhost:8080/api';
+  // static const String _baseUrl = 'http://localhost:8080/api';
+  static String get _baseUrl => Env.apiBaseUrl;
+
+  static String get _wsUrl => Env.wsBaseUrl;
+
   static final SupabaseClient _supabase = Supabase.instance.client;
 
-  static Stream<String> sendChatMessage(String prompt) async* {
+  static Stream<String> sendChatMessage(ChatMessageDTO chatMessage) async* {
     final client = http.Client();
     try {
       Future<http.StreamedResponse> _executeSendRequest(String token) async {
         final request =
-            http.Request('POST', Uri.parse('$_baseUrl/generate/health'))
+            http.Request('POST', Uri.parse('$_baseUrl/generate/chat-reply'))
               ..headers.addAll({
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer $token',
               })
-              ..body = jsonEncode({
-                'prompt': prompt,
-                'user_id': _supabase.auth.currentUser!.id,
-              });
+              ..body = jsonEncode(chatMessage.toJson());
         return client.send(request);
       }
 
@@ -63,6 +69,7 @@ class ApiService {
       // Clean up the exception message to avoid "Exception: Exception: ..."
       if (e is Exception) {
         final errorMessage = e.toString();
+        print('Error sending message: $errorMessage');
         throw Exception(
             'Error sending message: ${errorMessage.startsWith("Exception: ") ? errorMessage.substring("Exception: ".length) : errorMessage}');
       } else {
@@ -123,7 +130,7 @@ class ApiService {
       }
       String accessToken = session.accessToken;
 
-      Future<http.Response> _executeRequest(String token) async {
+      Future<http.Response> executeRequest(String token) async {
         final localTimestamp = DateTime.now().toIso8601String();
         final uri = Uri.parse(
             '$_baseUrl/initialize/body-simulator?local_timestamp_str=$localTimestamp');
@@ -138,7 +145,7 @@ class ApiService {
         );
       }
 
-      var response = await _executeRequest(accessToken);
+      var response = await executeRequest(accessToken);
 
       if (response.statusCode == 401) {
         print('API token expired or invalid, attempting refresh...');
@@ -150,7 +157,7 @@ class ApiService {
         }
         accessToken = authResponse.session!.accessToken;
         print('Token refreshed. Retrying request with new token...');
-        response = await _executeRequest(accessToken);
+        response = await executeRequest(accessToken);
       }
 
       if (response.statusCode != 200) {
@@ -158,7 +165,7 @@ class ApiService {
             'Failed to initialize body simulator: Status ${response.statusCode} - Body: ${response.body}');
       }
 
-      final responseBody = jsonDecode(response.body);
+      final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
       print(
           'Body simulator initialized successfully: ${responseBody['message']}');
     } catch (e) {
@@ -170,6 +177,190 @@ class ApiService {
         throw Exception('Error initializing body simulator: $e');
       }
     }
+  }
+
+  static Future<Map<String, dynamic>> processSettingsOrMemory(
+    ChatMessageDTO chatMessage,
+  ) async {
+    try {
+      final session = _supabase.auth.currentSession;
+      if (session == null) {
+        throw Exception('Not authenticated');
+      }
+      String accessToken = session.accessToken;
+
+      Future<http.Response> executeRequest(String token) {
+        final uri = Uri.parse('$_baseUrl/memory/process');
+        return http.post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode(chatMessage.toJson()),
+        );
+      }
+
+      var response = await executeRequest(accessToken);
+
+      if (response.statusCode == 401) {
+        final refreshed = await _supabase.auth.refreshSession();
+        if (refreshed.session == null ||
+            refreshed.session!.accessToken.isEmpty) {
+          throw Exception('Authentication failed');
+        }
+        accessToken = refreshed.session!.accessToken;
+        response = await executeRequest(accessToken);
+      }
+
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Failed to process settings or memory: ${response.body}');
+      }
+
+      final responseBody = utf8.decode(response.bodyBytes);
+      return jsonDecode(responseBody) as Map<String, dynamic>;
+    } catch (e) {
+      throw Exception('Error processing settings or memory: $e');
+    }
+  }
+
+  static Stream<BodySimulatorStateSnapshotDTO> bodyStateStream({
+    required String sessionId,
+    Duration reconnectDelay = const Duration(seconds: 2),
+  }) {
+    final controller = StreamController<BodySimulatorStateSnapshotDTO>();
+    WebSocketChannel? channel;
+    bool hasReceivedData = false;
+
+    Future<void> connect() async {
+      if (controller.isClosed) return;
+
+      final session = _supabase.auth.currentSession;
+      if (session == null) {
+        if (!controller.isClosed) {
+          controller.addError(Exception('Not authenticated'));
+          await controller.close();
+        }
+        return;
+      }
+
+      final jwt = session.accessToken;
+      final ts = DateTime.now().toIso8601String();
+      final wsUri = Uri.parse(
+          '$_wsUrl/ws/body-state?token=$jwt&session_id=$sessionId&local_timestamp=$ts');
+
+      debugPrint('🌐 Attempting WebSocket connection to: $wsUri');
+
+      try {
+        channel = IOWebSocketChannel.connect(wsUri);
+        debugPrint('🌐 WebSocket connection established');
+
+        channel!.stream.listen(
+          (message) {
+            if (controller.isClosed) return;
+            try {
+              final data = jsonDecode(message);
+              debugPrint(
+                  '🌐 Received message: ${message.toString().substring(0, 100)}...');
+              if (data is Map<String, dynamic>) {
+                hasReceivedData = true;
+                controller.add(BodySimulatorStateSnapshotDTO.fromJson(data));
+              }
+            } catch (_) {
+              debugPrint('🌐 Parse error: $_');
+            }
+          },
+          onError: (error) {
+            debugPrint('🌐 WebSocket error: $error');
+            if (!controller.isClosed) controller.addError(error);
+          },
+          cancelOnError: true,
+          onDone: () async {
+            debugPrint('🌐 WebSocket connection done/closed');
+            if (controller.isClosed) return;
+
+            final code = channel?.closeCode;
+            debugPrint('🌐 Close code: $code');
+
+            // If we received data and connection closed normally, this is success
+            if (hasReceivedData &&
+                (code == ws_status.normalClosure || code == 1000)) {
+              debugPrint(
+                  '🌐 Connection closed after successful data transmission');
+              return;
+            }
+
+            // Only reconnect for unexpected closures
+            if (code == 4001) {
+              debugPrint(
+                  '🌐 Authentication error, attempting to refresh session');
+              final refreshed = await _supabase.auth.refreshSession();
+              if (refreshed.session != null) {
+                await Future.delayed(reconnectDelay);
+                connect();
+                return;
+              }
+            }
+
+            debugPrint('🌐 Unexpected connection closure with code: $code');
+          },
+        );
+      } catch (e) {
+        debugPrint('🌐 Connection error: $e');
+        if (!controller.isClosed) {
+          controller.addError(e);
+        }
+      }
+    }
+
+    connect();
+
+    controller.onCancel = () async {
+      debugPrint('🌐 Stream cancelled, closing WebSocket');
+      await controller.close();
+      await channel?.sink.close(ws_status.normalClosure);
+      channel = null;
+    };
+
+    return controller.stream;
+  }
+
+  static Future<bool> checkServerHealth(
+      {Duration timeout = const Duration(seconds: 5)}) async {
+    final candidates = <Uri>[];
+    try {
+      final base = Uri.parse(_baseUrl);
+      final origin = Uri(
+        scheme: base.scheme,
+        host: base.host,
+        port: base.hasPort ? base.port : null,
+      );
+      candidates.add(origin.replace(path: '/')); // GET /
+      candidates.add(origin.replace(path: '/health')); // GET /health
+      candidates.add(base.replace(
+        path: base.path.endsWith('/')
+            ? '${base.path}health'
+            : '${base.path}/health',
+      ));
+    } catch (e) {
+      debugPrint('Health URL parse error: $e');
+    }
+
+    for (final url in candidates) {
+      try {
+        final res = await http.get(url).timeout(timeout);
+        if (res.statusCode == 200) {
+          debugPrint('✅ Backend health OK at $url');
+          return true;
+        } else {
+          debugPrint('⚠️ Health check non-200 at $url: ${res.statusCode}');
+        }
+      } catch (e) {
+        debugPrint('❌ Health check failed at $url: $e');
+      }
+    }
+    return false;
   }
 }
 

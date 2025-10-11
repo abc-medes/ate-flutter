@@ -1,10 +1,10 @@
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/core/routes/route_names.dart';
-import 'package:ate_project/features/auth/view_models/login_view_model.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ate_project/core/widgets/loading_view.dart';
-import 'package:ate_project/core/widgets/error_snackbar.dart';
-import 'package:ate_project/core/widgets/customed_text_input.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/widgets/app_button.dart';
+import 'package:bodido/core/widgets/clickable_text.dart';
+import 'package:bodido/core/widgets/customed_text_input.dart';
+import 'package:bodido/core/widgets/page_header.dart';
+import 'package:bodido/features/auth/view_models/login_view_model.dart';
 
 class EmailLoginInputView extends ConsumerStatefulWidget {
   const EmailLoginInputView({super.key});
@@ -27,156 +27,108 @@ class _EmailLoginInputViewState extends ConsumerState<EmailLoginInputView> {
   Widget build(BuildContext context) {
     final viewState = ref.watch(loginViewModelProvider);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-
-      if (viewState.error != null) {
-        try {
-          LoadingScreen.dismiss(context);
-        } catch (e) {
-          print('Error dismissing loading screen on error: $e');
-        }
-
-        ErrorSnackbar.showSignupError(
-          context: context,
-          errorMessage: viewState.error!,
-          clearError: () => viewModel.clearError(),
-          onGoToLogin: () => context.go(RouteNames.login),
-        );
-      }
-    });
-
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: const Text('Log In'),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              Expanded(
+      backgroundColor: $styles.colors.background,
+      body: Column(
+        children: [
+          AppPageAppBar(
+            title: $strings.logIn,
+            onBack: () {
+              ref.invalidate(loginViewModelProvider);
+              Navigator.of(context).maybePop();
+            },
+          ),
+          Expanded(
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.all($styles.insets.md),
                 child: Column(
                   children: [
-                    CustomedTextInput(
-                      controller: viewState.emailController,
-                      hintText: 'Email',
-                      keyboardType: TextInputType.emailAddress,
-                      onChanged: (_) => viewModel.onEmailChanged(),
-                      enabled: !viewState.isLoading,
-                      errorText: !viewState.isEmailValid
-                          ? 'Please enter a valid email'
-                          : null,
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    CustomedTextInput(
-                      controller: viewState.passwordController,
-                      hintText: 'Password',
-                      obscureText: !viewState.isPasswordVisible,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          viewState.isPasswordVisible
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: AppColors.textTertiary,
-                        ),
-                        onPressed: viewModel.togglePasswordVisibility,
+                    if (viewState.currentStep == LoginStep.emailInput)
+                      Expanded(
+                        child: EmailAndPasswordInputStep(
+                            viewState: viewState, viewModel: viewModel),
                       ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Forgot password link
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12.0),
-                      child: Center(
-                        child: GestureDetector(
-                          onTap: () {},
-                          child: Text(
-                            'Forgot your password?',
-                            style: TextStyle(
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ),
-                      ),
+                    AppButton(
+                      label: $strings.logIn,
+                      isLoading: viewState.isLoading,
+                      onPressed: viewState.isLoading
+                          ? null
+                          : () async {
+                              await viewModel.handlePasswordLogin(context);
+                            },
                     ),
                   ],
                 ),
               ),
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: viewState.isLoading
-                      ? null
-                      : () async {
-                          try {
-                            await viewModel.handlePasswordLogin();
-                          } catch (e) {
-                            print("Login error: $e");
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.surface,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    'Login',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
-void _showSignupDialog(BuildContext context, LoginViewModel viewModel) {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Account Not Found'),
-      content: const Text(
-          'No account exists with this email. Would you like to create a new account?'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(
-            'Cancel',
-            style: TextStyle(color: AppColors.textSecondary),
+class EmailAndPasswordInputStep extends StatelessWidget {
+  const EmailAndPasswordInputStep({
+    super.key,
+    required this.viewState,
+    required this.viewModel,
+  });
+
+  final LoginState viewState;
+  final LoginViewModel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CustomedTextInput(
+          controller: viewState.emailController,
+          hintText: 'Email',
+          keyboardType: TextInputType.emailAddress,
+          onChanged: (_) => viewModel.onEmailChanged(),
+          enabled: !viewState.isLoading,
+          errorText:
+              !viewState.isEmailValid ? 'Please enter a valid email' : null,
+          textStyle: $styles.text.bodySmall,
+          hintTextStyle:
+              $styles.text.bodySmall.copyWith(color: $styles.colors.greyMedium),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: $styles.insets.sm,
+            vertical: $styles.insets.sm,
           ),
         ),
-        ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context);
-            viewModel.redirectToSignup(context);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
+        SizedBox(height: $styles.insets.sm),
+        CustomedTextInput(
+          controller: viewState.passwordController,
+          hintText: 'Password',
+          obscureText: !viewState.isPasswordVisible,
+          suffixIcon: IconButton(
+            icon: Icon(
+              viewState.isPasswordVisible
+                  ? Icons.visibility_off
+                  : Icons.visibility,
+              color: $styles.colors.greyMedium,
+            ),
+            onPressed: viewModel.togglePasswordVisibility,
           ),
-          child: const Text('Sign Up'),
+          textStyle: $styles.text.bodySmall,
+          hintTextStyle:
+              $styles.text.bodySmall.copyWith(color: $styles.colors.greyMedium),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: $styles.insets.sm,
+            vertical: $styles.insets.sm,
+          ),
+        ),
+        SizedBox(height: $styles.insets.sm),
+        ClickableText(
+          text: $strings.forgotPassword,
+          onTap: () => context.replace(RouteNames.resetPassword),
+          padding: EdgeInsets.only(top: $styles.insets.xs),
         ),
       ],
-    ),
-  );
+    );
+  }
 }

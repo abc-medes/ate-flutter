@@ -100,3 +100,11 @@ We use Riverpod’s StateNotifier for handling complex states efficiently.
 This ensures:
 • No unnecessary rebuilds
 • Predictable & testable state management
+
+
+TODO: signup 로직 확인
+
+# 아이디어
+
+이거 독거노인층 - 병원하고 연결하게. ( 자식이 부모 케어하는 일도 적어짐 )
+특정 수치 넘으면 병원 가야하게끔 의사랑 연결해주고.

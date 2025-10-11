@@ -1,12 +1,12 @@
 import 'dart:convert';
-import 'package:ate_project/data/models/body_simulator_model.dart';
-import 'package:ate_project/features/onboarding/views/widgets/gender_picker.dart';
+
+import 'package:bodido/data/models/body_simulator_model.dart';
+import 'package:bodido/data/models/health_model.dart';
+import 'package:bodido/features/onboarding/views/widgets/body_type_pidcker.dart';
+import 'package:bodido/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ate_project/data/models/health_model.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as SB;
 
 class HealthRepository {
-  final SB.SupabaseClient _client = SB.Supabase.instance.client;
   static const String _healthDataKey = 'health_metrics';
 
   Future<bool> isUserInputFieldSaved(UserInputField field) async {
@@ -45,6 +45,8 @@ class HealthRepository {
         return 'date_of_birth';
       case UserInputField.gender:
         return 'gender';
+      case UserInputField.bodyType:
+        return 'body_type';
       case UserInputField.preExistingConditions:
         return 'pre_existing_conditions';
       case UserInputField.medications:
@@ -106,7 +108,7 @@ class HealthRepository {
     return DailyUserData.values;
   }
 
-  Future<HealthMetrics> _getExistingHealthMetrics() async {
+  Future<HealthMetrics> getExistingHealthMetrics() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final metricsString = prefs.getString('health_metrics');
@@ -123,13 +125,13 @@ class HealthRepository {
       userInputData: UserInputData(),
       autoDetectedData: AutoDetectedData(),
       environmentalData: EnvironmentalData(),
-      bodySimulatorData: BodySimulatorData.empty(),
+      bodySimulatorData: BodySimulatorState.empty(),
     );
   }
 
   Future<void> saveHeightAndWeight(int height, int weight) async {
     try {
-      final healthMetrics = await _getExistingHealthMetrics();
+      final healthMetrics = await getExistingHealthMetrics();
 
       final updatedUserInputData = healthMetrics.userInputData.copyWith(
         height: height.toDouble(),
@@ -140,17 +142,32 @@ class HealthRepository {
         userInputData: updatedUserInputData,
       );
 
-      await _saveHealthMetricsToStorage(updatedHealthMetrics);
-
-      await _saveHealthMetricsToDatabase(updatedHealthMetrics);
+      await saveHealthMetricsToStorage(updatedHealthMetrics);
     } catch (e) {
       print('Error saving height and weight: $e');
     }
   }
 
-  Future<void> saveMemorizedData(String data) async {
+  Future<void> saveBodyType(BodyType bodyType) async {
     try {
-      final healthMetrics = await _getExistingHealthMetrics();
+      final healthMetrics = await getExistingHealthMetrics();
+      final updatedUserInputData = healthMetrics.userInputData.copyWith(
+        bodyType: bodyType.displayName,
+      );
+
+      final updatedHealthMetrics = healthMetrics.copyWith(
+        userInputData: updatedUserInputData,
+      );
+
+      await saveHealthMetricsToStorage(updatedHealthMetrics);
+    } catch (e) {
+      print('Error saving body type: $e');
+    }
+  }
+
+  Future<void> saveMemorizedData(data) async {
+    try {
+      final healthMetrics = await getExistingHealthMetrics();
 
       final updatedUserInputData = healthMetrics.userInputData.copyWith(
         memorizedData: data,
@@ -160,9 +177,7 @@ class HealthRepository {
         userInputData: updatedUserInputData,
       );
 
-      await _saveHealthMetricsToStorage(updatedHealthMetrics);
-
-      await _saveHealthMetricsToDatabase(updatedHealthMetrics);
+      await saveHealthMetricsToStorage(updatedHealthMetrics);
     } catch (e) {
       print('Error saving memorized data: $e');
     }
@@ -170,7 +185,7 @@ class HealthRepository {
 
   Future<void> saveBirthDate(DateTime birthDate) async {
     try {
-      final healthMetrics = await _getExistingHealthMetrics();
+      final healthMetrics = await getExistingHealthMetrics();
 
       final updatedUserInputData = healthMetrics.userInputData.copyWith(
         dateOfBirth: birthDate,
@@ -180,9 +195,7 @@ class HealthRepository {
         userInputData: updatedUserInputData,
       );
 
-      await _saveHealthMetricsToStorage(updatedHealthMetrics);
-
-      await _saveHealthMetricsToDatabase(updatedHealthMetrics);
+      await saveHealthMetricsToStorage(updatedHealthMetrics);
     } catch (e) {
       print('Error saving birth date: $e');
     }
@@ -190,28 +203,24 @@ class HealthRepository {
 
   Future<void> saveGender(Gender gender) async {
     try {
-      // Get existing health metrics if available
-      final healthMetrics = await _getExistingHealthMetrics();
+      final healthMetrics = await getExistingHealthMetrics();
 
-      // Update with new gender
       final updatedUserInputData = healthMetrics.userInputData.copyWith(
         gender: gender.toString().split('.').last, // Convert enum to string
       );
 
-      // Create updated health metrics
       final updatedHealthMetrics = healthMetrics.copyWith(
         userInputData: updatedUserInputData,
       );
 
-      await _saveHealthMetricsToStorage(updatedHealthMetrics);
-      await _saveHealthMetricsToDatabase(updatedHealthMetrics);
+      await saveHealthMetricsToStorage(updatedHealthMetrics);
     } catch (e) {
       print('Error saving gender: $e');
       rethrow;
     }
   }
 
-  Future<void> _saveHealthMetricsToStorage(HealthMetrics metrics) async {
+  Future<void> saveHealthMetricsToStorage(HealthMetrics metrics) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('health_metrics', jsonEncode(metrics.toJson()));
@@ -220,24 +229,28 @@ class HealthRepository {
     }
   }
 
-  Future<void> _saveHealthMetricsToDatabase(HealthMetrics metrics) async {
+  // ------------------------------------------------------------
+  // Onboarding Complete
+  // ------------------------------------------------------------
+  Future<void> saveOnboardingComplete() async {
     try {
-      final userId = _client.auth.currentUser?.id;
-      if (userId == null) {
-        throw Exception('User not logged in');
-      }
-
-      final healthMetricsJson = metrics.toJson();
-
-      await _client
-          .from('health_metrics')
-          .update({'health_metrics': healthMetricsJson}).eq('user_id', userId);
-
-      print('Health metrics updated successfully');
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('onboarding_complete', true);
     } catch (e) {
-      print('Error saving health metrics: $e');
+      print('Error saving onboarding complete: $e');
     }
   }
+
+  Future<bool> isOnboardingComplete() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool('onboarding_complete') ?? false;
+    } catch (e) {
+      print('Error checking onboarding complete: $e');
+      return false;
+    }
+  }
+  // ------------------------------------------------------------
 }
 
 final healthRepository = HealthRepository();

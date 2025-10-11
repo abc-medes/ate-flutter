@@ -1,6 +1,7 @@
 // body_simulator_model.dart
 
 // Helper to safely parse doubles from JSON, handling int or double types
+
 double _parseDouble(dynamic value) {
   if (value is int) {
     return value.toDouble();
@@ -279,6 +280,105 @@ class NervousData {
       };
 }
 
+class BodyOverallScore {
+  final double overallScore;
+  final Map<String, double> organScores;
+  final String? diagnosisText;
+  final List<HealthAnalysisItem> strengths;
+  final List<HealthAnalysisItem> concerns;
+  final List<HealthAnalysisItem> allAnalyses;
+
+  BodyOverallScore({
+    required this.overallScore,
+    required this.organScores,
+    this.diagnosisText,
+    this.strengths = const [],
+    this.concerns = const [],
+    this.allAnalyses = const [],
+  });
+
+  factory BodyOverallScore.fromJson(Map<String, dynamic> json) {
+    final organScoresRaw = json['organ_scores'] ?? json['health_score'];
+    final Map<String, double> organScoresParsed = organScoresRaw is Map
+        ? organScoresRaw.map<String, double>(
+            (k, v) => MapEntry(k.toString(), _parseDouble(v)))
+        : <String, double>{};
+
+    List<HealthAnalysisItem> _parseItems(dynamic arr) {
+      if (arr is List) {
+        return arr
+            .map((e) => e is Map<String, dynamic>
+                ? HealthAnalysisItem.fromJson(e)
+                : HealthAnalysisItem.fromJson(
+                    Map<String, dynamic>.from(e as Map)))
+            .toList();
+      }
+      return const [];
+    }
+
+    return BodyOverallScore(
+      overallScore: _parseDouble(json['overall_score']),
+      organScores: organScoresParsed,
+      diagnosisText: json['diagnosis_text'] as String?,
+      strengths: _parseItems(json['strengths']),
+      concerns: _parseItems(json['concerns']),
+      allAnalyses: _parseItems(json['all_analyses']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'overall_score': overallScore,
+        'organ_scores': organScores,
+        if (diagnosisText != null) 'diagnosis_text': diagnosisText,
+        'strengths': strengths.map((e) => e.toJson()).toList(),
+        'concerns': concerns.map((e) => e.toJson()).toList(),
+        'all_analyses': allAnalyses.map((e) => e.toJson()).toList(),
+      };
+
+  factory BodyOverallScore.empty() {
+    return BodyOverallScore(
+      overallScore: 0.0,
+      organScores: {},
+    );
+  }
+}
+
+class HealthAnalysisItem {
+  final String organ;
+  final double score;
+  final String rating;
+  final String summary;
+  final List<String> keyMetrics;
+
+  HealthAnalysisItem({
+    required this.organ,
+    required this.score,
+    required this.rating,
+    required this.summary,
+    required this.keyMetrics,
+  });
+
+  factory HealthAnalysisItem.fromJson(Map<String, dynamic> json) {
+    return HealthAnalysisItem(
+      organ: json['organ']?.toString() ?? '',
+      score: _parseDouble(json['score']),
+      rating: json['rating']?.toString() ?? '',
+      summary: json['summary']?.toString() ?? '',
+      keyMetrics:
+          (json['key_metrics'] as List?)?.map((e) => e.toString()).toList() ??
+              <String>[],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'organ': organ,
+        'score': score,
+        'rating': rating,
+        'summary': summary,
+        'key_metrics': keyMetrics,
+      };
+}
+
 // Next, the class to hold the state (all organs)
 class BodySimulatorState {
   final BrainData? brain;
@@ -347,36 +447,48 @@ class BodySimulatorState {
   }
 }
 
-// Finally, the BodySimulatorData class
-class BodySimulatorData {
-  final BodySimulatorState state;
-  final DateTime? lastUpdatedAt;
+class BodySimulatorStateSnapshotDTO {
+  final int id;
+  final String userId;
+  final String sessionId;
+  final BodySimulatorState bodyState;
+  final BodyOverallScore healthScore;
+  final DateTime lastUpdatedAt;
+  final DateTime lastUpdatedAtUtc;
+  final DateTime createdAt;
 
-  BodySimulatorData({
-    required this.state,
-    this.lastUpdatedAt,
+  BodySimulatorStateSnapshotDTO({
+    required this.id,
+    required this.userId,
+    required this.sessionId,
+    required this.bodyState,
+    required this.healthScore,
+    required this.lastUpdatedAt,
+    required this.lastUpdatedAtUtc,
+    required this.createdAt,
   });
 
-  factory BodySimulatorData.fromJson(Map<String, dynamic> json) {
-    return BodySimulatorData(
-      state: BodySimulatorState.fromJson(
-          json['state'] as Map<String, dynamic>? ?? {}),
-      lastUpdatedAt: json['last_updated_at'] != null
-          ? DateTime.tryParse(json['last_updated_at'] as String)
-          : null,
+  factory BodySimulatorStateSnapshotDTO.fromJson(Map<String, dynamic> json) {
+    return BodySimulatorStateSnapshotDTO(
+      id: (json['id'] ?? 0) as int,
+      userId: json['user_id'],
+      sessionId: json['session_id'],
+      bodyState: BodySimulatorState.fromJson(json['body_state']),
+      healthScore: BodyOverallScore.fromJson(json['health_score']),
+      lastUpdatedAt: DateTime.parse(json['last_updated_at']),
+      lastUpdatedAtUtc: DateTime.parse(json['last_updated_at_utc']),
+      createdAt: DateTime.parse(json['created_at']),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'state': state.toJson(),
-        'last_updated_at': lastUpdatedAt?.toIso8601String(),
+        'id': id,
+        'user_id': userId,
+        'session_id': sessionId,
+        'body_state': bodyState.toJson(),
+        'health_score': healthScore.toJson(),
+        'last_updated_at': lastUpdatedAt.toIso8601String(),
+        'last_updated_at_utc': lastUpdatedAtUtc.toIso8601String(),
+        'created_at': createdAt.toIso8601String(),
       };
-
-  // Factory for an empty BodySimulatorData, useful for initialization
-  factory BodySimulatorData.empty() {
-    return BodySimulatorData(
-      state: BodySimulatorState.empty(),
-      lastUpdatedAt: null, // Or your placeholder very old date
-    );
-  }
 }

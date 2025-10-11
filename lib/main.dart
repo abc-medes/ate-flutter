@@ -1,13 +1,14 @@
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/l10n/l10n.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:ate_project/core/config/env.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/config/env.dart';
+import 'package:bodido/core/services/app_logic.dart';
+import 'package:bodido/l10n/l10n.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  tz.initializeTimeZones();
   await Env.load();
 
   registerSingletons();
@@ -15,22 +16,45 @@ Future<void> main() async {
   await Supabase.initialize(
     url: Env.supabaseUrl,
     anonKey: Env.supabaseAnonKey,
+    authOptions: const FlutterAuthClientOptions(
+      authFlowType: AuthFlowType.pkce,
+      detectSessionInUri: true,
+      autoRefreshToken: true,
+    ),
   );
 
-  // await appLogic.bootstrap();
+  await Firebase.initializeApp();
 
-  runApp(ProviderScope(child: MomntApp()));
+  await appLogic.bootstrap();
+
+  runApp(ProviderScope(child: Bodido()));
 }
 
-class MomntApp extends ConsumerWidget {
-  const MomntApp({super.key});
+class Bodido extends ConsumerStatefulWidget {
+  const Bodido({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // final locale = watchX((SettingsLogic s) => s.currentLocale);
+  ConsumerState<Bodido> createState() => _BodidoState();
+}
+
+class _BodidoState extends ConsumerState<Bodido> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // ref.watch(lifecycleProvider);
     return MaterialApp.router(
       routerConfig: ref.watch(routerProvider),
       debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.system,
       theme: ThemeData(
           fontFamily: $styles.text.body.fontFamily, useMaterial3: true),
       color: $styles.colors.black,
@@ -42,11 +66,13 @@ class MomntApp extends ConsumerWidget {
 }
 
 void registerSingletons() {
+  GetIt.I.registerSingleton<AppLogic>(AppLogic());
   GetIt.I.registerSingleton<LocaleLogic>(LocaleLogic());
   GetIt.I.registerSingleton<SettingsLogic>(SettingsLogic());
 }
 
 // AppLogic get appLogic => GetIt.I.get<AppLogic>();
+AppLogic get appLogic => GetIt.I.get<AppLogic>();
 LocaleLogic get localeLogic => GetIt.I.get<LocaleLogic>();
 SettingsLogic get settingsLogic => GetIt.I.get<SettingsLogic>();
 

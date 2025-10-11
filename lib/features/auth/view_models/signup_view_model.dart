@@ -1,11 +1,16 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ate_project/core/services/auth_service.dart';
-import 'package:ate_project/core/utils/auth_error_helper.dart';
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/services/auth_service.dart';
+
+enum SignupMethod {
+  email,
+  google,
+  apple,
+}
 
 enum SignupStep {
   detailsInput,
-  // otpVerification, // Commented out - will be re-enabled later
+  otpVerification,
   emailSent,
 }
 
@@ -19,12 +24,14 @@ class SignupState {
   final bool isLoading;
   final bool isPasswordVisible;
   final bool isConfirmPasswordVisible;
-  final String? error;
+  final String? error; // system/network/supabase errors -> popup
+  final String? plainError; // input/validation errors -> inline
   final bool isPasswordValid;
   final bool doPasswordsMatch;
   final SignupStep currentStep;
   final bool isVerificationSent;
   final bool isEmailValid;
+  final bool acceptTerms;
 
   SignupState({
     required this.email,
@@ -37,11 +44,13 @@ class SignupState {
     this.isPasswordVisible = false,
     this.isConfirmPasswordVisible = false,
     this.error,
+    this.plainError,
     this.isPasswordValid = true,
     this.doPasswordsMatch = true,
     this.currentStep = SignupStep.detailsInput,
     this.isVerificationSent = false,
     this.isEmailValid = true,
+    this.acceptTerms = false,
   });
 
   SignupState copyWith({
@@ -55,12 +64,15 @@ class SignupState {
     bool? isPasswordVisible,
     bool? isConfirmPasswordVisible,
     String? error,
+    String? plainError,
     bool clearError = false,
+    bool clearPlainError = false,
     bool? isPasswordValid,
     bool? doPasswordsMatch,
     SignupStep? currentStep,
     bool? isVerificationSent,
     bool? isEmailValid,
+    bool? acceptTerms,
   }) {
     return SignupState(
       email: email ?? this.email,
@@ -75,11 +87,13 @@ class SignupState {
       isConfirmPasswordVisible:
           isConfirmPasswordVisible ?? this.isConfirmPasswordVisible,
       error: clearError ? null : error ?? this.error,
+      plainError: clearPlainError ? null : plainError ?? this.plainError,
       isPasswordValid: isPasswordValid ?? this.isPasswordValid,
       doPasswordsMatch: doPasswordsMatch ?? this.doPasswordsMatch,
       currentStep: currentStep ?? this.currentStep,
       isVerificationSent: isVerificationSent ?? this.isVerificationSent,
       isEmailValid: isEmailValid ?? this.isEmailValid,
+      acceptTerms: acceptTerms ?? this.acceptTerms,
     );
   }
 
@@ -107,6 +121,7 @@ class SignupState {
 }
 
 class SignupViewModel extends StateNotifier<SignupState> {
+  final SupabaseClient _client = Supabase.instance.client;
   final AuthService _authService;
   bool _isDisposed = false;
 
@@ -118,7 +133,19 @@ class SignupViewModel extends StateNotifier<SignupState> {
           passwordController: TextEditingController(),
           confirmPasswordController: TextEditingController(),
           otpController: TextEditingController(),
-        ));
+        )) {
+    // DEV DEFAULTS: prefill signup form for development.
+    assert(() {
+      state.emailController.text = 'baikjyo@naver.com';
+      state.nameController.text = 'aaa';
+      state.passwordController.text = '12341234a';
+      state.confirmPasswordController.text = '12341234a';
+      validateEmail();
+      validatePassword();
+      validatePasswordsMatch();
+      return true;
+    }());
+  }
 
   @override
   void dispose() {
@@ -142,6 +169,11 @@ class SignupViewModel extends StateNotifier<SignupState> {
         isConfirmPasswordVisible: !state.isConfirmPasswordVisible);
   }
 
+  void setAcceptedPolicies(bool accepted) {
+    if (_isDisposed) return;
+    state = state.copyWith(acceptTerms: accepted);
+  }
+
   void clearError() {
     if (_isDisposed) return;
     state = state.copyWith(clearError: true);
@@ -149,8 +181,8 @@ class SignupViewModel extends StateNotifier<SignupState> {
 
   bool validateEmail() {
     if (_isDisposed) return false;
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    final isValid = emailRegex.hasMatch(state.emailController.text);
+    final email = state.emailController.text.trim();
+    final isValid = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email);
     state = state.copyWith(isEmailValid: isValid);
     return isValid;
   }
@@ -178,52 +210,156 @@ class SignupViewModel extends StateNotifier<SignupState> {
     state = state.copyWith(currentStep: SignupStep.detailsInput);
   }
 
-  Future<bool> signUp() async {
-    if (_isDisposed) return false;
+  Future<void> signUp() async {
+    if (_isDisposed) return;
 
     if (!validateEmail()) {
-      state = state.copyWith(
-          error: "Please enter a valid email address", isLoading: false);
-      return false;
+      state = state.copyWith(plainError: "Please enter a valid email address");
+      return;
+    }
+
+    if (!state.acceptTerms) {
+      state = state.copyWith(error: "Please accept the terms and conditions");
+      return;
     }
 
     if (!validatePassword() || !validatePasswordsMatch()) {
       state = state.copyWith(
-          error: "Please correct the errors in the form before continuing",
-          isLoading: false);
-      return false;
+          plainError:
+              "Please correct the errors in the form before continuing");
+      return;
     }
-
     if (!state.isFormValid) {
       state = state.copyWith(
-          error: "Please fill in all required fields correctly",
-          isLoading: false);
-      return false;
+          plainError: "Please fill in all required fields correctly");
+      return;
     }
 
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(
+        isLoading: true, clearError: true, clearPlainError: true);
 
     try {
-      await _authService.signUp(state.emailController.text,
-          state.passwordController.text, state.nameController.text);
+      if (_isDisposed) return;
 
-      if (_isDisposed) return true;
+      print(
+          '[Signup] start email=${state.emailController.text} name=${state.nameController.text}');
+      final res = await _authService.signUpWithEmail(
+          email: state.emailController.text,
+          password: state.passwordController.text,
+          name: state.nameController.text);
+
+      if (res.user == null) {
+        print('[Signup] failed: user is null');
+        state =
+            state.copyWith(isLoading: false, error: "Failed to create user");
+        return;
+      }
+
+      final bool userAlreadyExists = res.user?.identities?.isEmpty ?? false;
+      final uid = res.user?.id;
+      final confirmedAt = res.user?.emailConfirmedAt;
+      final identities = res.user?.identities?.length ?? 0;
+      print(
+          '[Signup] response userId=$uid confirmedAt=$confirmedAt identities=$identities sessionPresent=${res.session != null}');
+
+      if (userAlreadyExists) {
+        print(
+            '[Signup] user already exists for email=${state.emailController.text}');
+        state =
+            state.copyWith(isLoading: false, error: "User already registered");
+        return;
+      }
 
       state = state.copyWith(
         isLoading: false,
         currentStep: SignupStep.emailSent,
       );
-
-      return true;
-    } catch (e) {
-      if (_isDisposed) return false;
-
-      print('SIGNUP ERROR: $e');
+      print('[Signup] email verification sent; moving to emailSent step');
+    } on AuthException catch (e) {
       state = state.copyWith(
-        isLoading: false, // Make sure loading is set to false on error
-        error: AuthErrorHelper.getSignupErrorMessage(e.toString()),
+        isLoading: false,
+        error: e.message,
       );
-      return false;
+      print('[Signup] auth exception: ${e.message}');
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+      print('[Signup] unexpected error: $e');
+    }
+  }
+
+  Future<void> resendVerificationEmail() async {
+    if (_isDisposed) return;
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _authService.resendSignupVerification(state.emailController.text);
+    } on AuthException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+      rethrow;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+    state = state.copyWith(isLoading: false);
+  }
+
+  Future<void> handleLogin(
+      BuildContext context, SignupMethod signupMethod) async {
+    if (!context.mounted) return;
+    if (_isDisposed) return;
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      if (signupMethod == SignupMethod.email) {
+        await _authService.signInWithEmail(
+            email: state.emailController.text,
+            password: state.passwordController.text);
+      } else if (signupMethod == SignupMethod.google) {
+        await _authService.signInWithGoogle();
+      } else if (signupMethod == SignupMethod.apple) {
+        await _authService.signInWithApple();
+      }
+
+      await _client.auth.onAuthStateChange.firstWhere((e) => e.session != null);
+
+      await wrapUpSignUp(context);
+    } on AuthException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> wrapUpSignUp(BuildContext context) async {
+    if (!context.mounted) return;
+    if (_isDisposed) return;
+    state = state.copyWith(isLoading: true);
+
+    try {
+      await _authService.createProfile(
+        userId: _authService.currentUser!.id,
+        email: state.emailController.text,
+        name: state.nameController.text,
+      );
+      await _authService
+          .createEmptyUserHealthMetrics(_authService.currentUser!.id);
+
+      state = state.copyWith(isLoading: false);
+
+      if (context.mounted) context.go(RouteNames.onboarding);
+    } on AuthException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.message,
+      );
+    } on PostgrestException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
     }
   }
 }

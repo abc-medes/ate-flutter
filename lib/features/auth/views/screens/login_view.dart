@@ -1,18 +1,13 @@
 import 'dart:io';
-import 'package:ate_project/common_libs.dart';
-import 'package:ate_project/core/widgets/typewriter_animated_text.dart';
-import 'package:ate_project/features/auth/view_models/login_view_model.dart';
-import 'package:ate_project/features/auth/views/widgets/social_login_button.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ate_project/theme/app_theme.dart';
-import 'package:ate_project/core/services/auth_service.dart';
-import 'package:ate_project/core/routes/route_names.dart';
-import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:ate_project/core/widgets/loading_view.dart';
-import 'package:ate_project/core/widgets/error_snackbar.dart';
+
+import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/widgets/custom_message_sheet.dart';
+import 'package:bodido/core/widgets/loading_view.dart';
+import 'package:bodido/core/widgets/typewriter_animated_text.dart';
+import 'package:bodido/features/_common/bodido_logo.dart';
+import 'package:bodido/features/auth/view_models/login_view_model.dart';
+import 'package:bodido/features/auth/views/widgets/social_login_button.dart';
 
 class LoginView extends ConsumerStatefulWidget {
   const LoginView({super.key});
@@ -31,57 +26,40 @@ class _LoginViewState extends ConsumerState<LoginView> {
   }
 
   @override
+  void dispose() {
+    LoadingScreen.dismiss(context);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final viewState = ref.watch(loginViewModelProvider);
-    final authState = ref.watch(authProvider);
 
-    final isAuthLoading = authState.isLoading;
     final isLoading = viewState.isLoading;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-
-      if (isAuthLoading || isLoading) {
-        try {
+    ref.listen<bool>(
+      loginViewModelProvider.select((s) => s.isLoading),
+      (prev, isLoading) {
+        if (isLoading) {
           LoadingScreen.show(context, message: 'Signing in...');
-        } catch (e) {
-          print('Error showing loading screen: $e');
-        }
-      } else {
-        try {
+        } else {
           LoadingScreen.dismiss(context);
-        } catch (e) {
-          print('Error dismissing loading screen: $e');
         }
-      }
+      },
+    );
 
-      final error = viewState.error;
-      print('Error: $error');
-      if (error != null && !isLoading && !isAuthLoading) {
-        LoadingScreen.dismiss(context);
+    if (viewState.error != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
 
-        ErrorSnackbar.showLoginError(
+        CustomMessageSheet.showError(
           context: context,
-          errorMessage: error,
-          clearError: () {
-            viewModel.clearError();
-          },
-          onTryAgain: () {
-            if (viewState.currentStep == LoginStep.emailInput) {
-              viewModel.checkEmailAndContinue();
-            } else {
-              viewModel.handlePasswordLogin();
-            }
-          },
-          onResetPassword: () {
-            // TODO: Implement reset password flow
-          },
-          onCreateAccount: () {
-            viewModel.redirectToSignup(context);
-          },
+          message: viewState.error!,
+          // actions: [ MessageAction(label: 'Try again', onPressed: () { ... }) ],
         );
-      }
-    });
+        viewModel.clearError();
+      });
+    }
 
     final bool isAndroid = Platform.isAndroid;
     final bool isIOS = Platform.isIOS;
@@ -93,21 +71,32 @@ class _LoginViewState extends ConsumerState<LoginView> {
           Expanded(
             child: Center(
               child: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.85,
-                height: 40,
-                child: TypewriterAnimatedText(
-                  [
-                    "AI-Powered Health Intelligence",
-                    "Personal Health Assistant",
-                    "Get Smart Insights",
+                width: $styles.sizes.maxContentWidth1,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    BodidoLogo(size: $styles.sizes.maxContentWidth3 * 0.5),
+                    Gap($styles.insets.xs),
+                    TypewriterAnimatedText(
+                      loop: false,
+                      [
+                        $strings.appIntroduce_1,
+                        $strings.appIntroduce_2,
+                        $strings.appIntroduce_3,
+                      ],
+                      textStyle: $styles.text.h2.copyWith(
+                        color: $styles.colors.accent1,
+                      ),
+                    ),
                   ],
-                  textStyle: $styles.text.body,
                 ),
               ),
             ),
           ),
           Material(
-            color: Color(0xFFF5E9C8),
+            textStyle: $styles.text.quote2Sub,
+            // color: Color(0xFFF5E9C8),
+            color: $styles.colors.backgroundDark,
             elevation: 2,
             borderRadius: BorderRadius.circular(36),
             child: Container(
@@ -131,12 +120,9 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       ref: ref,
                       text: 'Continue with Google',
                       icon: Icons.g_mobiledata_rounded,
-                      iconColor: AppColors.textPrimary,
+                      iconColor: $styles.colors.black,
                       onPressed: () {
-                        if (!isLoading) {
-                          _handleSocialLogin(
-                              context, ref, viewModel.handleGoogleSignIn);
-                        }
+                        viewModel.handleGoogleSignIn();
                       },
                     ),
                     if ((isIOS || !isAndroid)) ...[
@@ -145,62 +131,47 @@ class _LoginViewState extends ConsumerState<LoginView> {
                         ref: ref,
                         text: 'Continue with Apple',
                         icon: Icons.apple,
-                        iconColor: AppColors.textPrimary,
+                        iconColor: $styles.colors.black,
                         onPressed: () {
-                          if (!isLoading) {
-                            _handleSocialLogin(
-                                context, ref, viewModel.handleAppleSignIn);
-                          }
+                          viewModel.handleAppleSignIn();
                         },
                       ),
                     ],
                     const SizedBox(height: 32),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
-                            child: Divider(
-                                color: AppColors.textTertiary.withAlpha(128))),
+                          child: Divider(
+                            color: $styles.colors.greyMedium,
+                          ),
+                        ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
-                            'or',
+                            $strings.or,
                             style: TextStyle(
-                              color: AppColors.textTertiary,
+                              height: 1,
+                              color: $styles.colors.greyMedium,
                             ),
                           ),
                         ),
                         Expanded(
-                            child: Divider(
-                                color: AppColors.textTertiary.withAlpha(128))),
+                          child: Divider(
+                            color: $styles.colors.greyMedium,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 54,
-                      child: OutlinedButton(
-                        onPressed: isLoading
-                            ? null
-                            : () {
-                                context.push(RouteNames.emailLoginInput,
-                                    extra: viewState
-                                            .emailController.text.isNotEmpty
-                                        ? viewState.emailController.text
-                                        : null);
-                              },
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: AppColors.surface,
-                          side: BorderSide(
-                              color: AppColors.textTertiary.withAlpha(128)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'Sign in with Email',
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                      ),
+                    SocialAuthButton(
+                      ref: ref,
+                      text: $strings.signInWithEmail,
+                      icon: null,
+                      iconColor: $styles.colors.black,
+                      onPressed: () {
+                        context.push(RouteNames.emailLoginInput);
+                      },
                     ),
                     const SizedBox(height: 24),
                     Center(
@@ -208,9 +179,10 @@ class _LoginViewState extends ConsumerState<LoginView> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "Don't have an account? ",
-                            style: TextStyle(color: AppColors.textSecondary),
+                            $strings.askingIsMember,
+                            style: TextStyle(color: $styles.colors.greyMedium),
                           ),
+                          Gap($styles.insets.xs),
                           GestureDetector(
                             onTap: () {
                               context.push(RouteNames.signup,
@@ -220,9 +192,9 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                           : null);
                             },
                             child: Text(
-                              'Sign Up',
+                              $strings.signUp,
                               style: TextStyle(
-                                color: AppColors.primary,
+                                color: $styles.colors.accent1,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -238,55 +210,5 @@ class _LoginViewState extends ConsumerState<LoginView> {
         ],
       ),
     );
-  }
-
-  void _handleSocialLogin(BuildContext context, WidgetRef ref,
-      Future<void> Function() signInMethod) async {
-    final supabase = Supabase.instance.client;
-    final viewModel = ref.read(loginViewModelProvider.notifier);
-
-    try {
-      await signInMethod();
-
-      final user = supabase.auth.currentUser;
-      if (user != null) {
-        try {
-          final response = await supabase
-              .from('profiles')
-              .select()
-              .eq('id', user.id)
-              .maybeSingle();
-
-          if (response == null && context.mounted) {
-            await supabase.auth.signOut();
-            context.push(RouteNames.signup);
-          }
-        } catch (e) {
-          print("Error checking profile: $e");
-          await supabase.auth.signOut();
-
-          if (context.mounted) {
-            LoadingScreen.dismiss(context);
-            context.push(RouteNames.signup);
-          }
-        }
-      }
-    } catch (e) {
-      print("Social login error: $e");
-      if (context.mounted) {
-        LoadingScreen.dismiss(context);
-
-        ErrorSnackbar.showLoginError(
-          context: context,
-          errorMessage: e.toString(),
-          clearError: () {
-            viewModel.clearError();
-          },
-          onTryAgain: () {
-            signInMethod();
-          },
-        );
-      }
-    }
   }
 }

@@ -10,8 +10,9 @@ class RouteNames {
   static const bodySimulator = '/body-simulator';
 
   // Main Routes
-  static const debug = '/';
-  static const home = '/home';
+  static const home = '/';
+  // static const debug = '/debug';
+  // static const home = '/home';
   static const profile = '/profile';
   static const settings = '/settings';
   static const changePassword = '/settings/change-password';

@@ -283,24 +283,56 @@ class NervousData {
 class BodyOverallScore {
   final double overallScore;
   final Map<String, double> organScores;
+  final String? diagnosisText;
+  final List<HealthAnalysisItem> strengths;
+  final List<HealthAnalysisItem> concerns;
+  final List<HealthAnalysisItem> allAnalyses;
 
   BodyOverallScore({
     required this.overallScore,
     required this.organScores,
+    this.diagnosisText,
+    this.strengths = const [],
+    this.concerns = const [],
+    this.allAnalyses = const [],
   });
 
   factory BodyOverallScore.fromJson(Map<String, dynamic> json) {
+    final organScoresRaw = json['organ_scores'] ?? json['health_score'];
+    final Map<String, double> organScoresParsed = organScoresRaw is Map
+        ? organScoresRaw.map<String, double>(
+            (k, v) => MapEntry(k.toString(), _parseDouble(v)))
+        : <String, double>{};
+
+    List<HealthAnalysisItem> _parseItems(dynamic arr) {
+      if (arr is List) {
+        return arr
+            .map((e) => e is Map<String, dynamic>
+                ? HealthAnalysisItem.fromJson(e)
+                : HealthAnalysisItem.fromJson(
+                    Map<String, dynamic>.from(e as Map)))
+            .toList();
+      }
+      return const [];
+    }
+
     return BodyOverallScore(
       overallScore: _parseDouble(json['overall_score']),
-      organScores: json['health_score'] != null
-          ? Map<String, double>.from(json['health_score'])
-          : {},
+      organScores: organScoresParsed,
+      diagnosisText: json['diagnosis_text'] as String?,
+      strengths: _parseItems(json['strengths']),
+      concerns: _parseItems(json['concerns']),
+      allAnalyses: _parseItems(json['all_analyses']),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'overallScore': overallScore,
-        'organScores': organScores,
+        'overall_score': overallScore,
+        'organ_scores': organScores,
+        if (diagnosisText != null) 'diagnosis_text': diagnosisText,
+        'strengths': strengths.map((e) => e.toJson()).toList(),
+        'concerns': concerns.map((e) => e.toJson()).toList(),
+        'all_analyses': allAnalyses.map((e) => e.toJson()).toList(),
       };
 
   factory BodyOverallScore.empty() {
@@ -309,6 +341,42 @@ class BodyOverallScore {
       organScores: {},
     );
   }
+}
+
+class HealthAnalysisItem {
+  final String organ;
+  final double score;
+  final String rating;
+  final String summary;
+  final List<String> keyMetrics;
+
+  HealthAnalysisItem({
+    required this.organ,
+    required this.score,
+    required this.rating,
+    required this.summary,
+    required this.keyMetrics,
+  });
+
+  factory HealthAnalysisItem.fromJson(Map<String, dynamic> json) {
+    return HealthAnalysisItem(
+      organ: json['organ']?.toString() ?? '',
+      score: _parseDouble(json['score']),
+      rating: json['rating']?.toString() ?? '',
+      summary: json['summary']?.toString() ?? '',
+      keyMetrics:
+          (json['key_metrics'] as List?)?.map((e) => e.toString()).toList() ??
+              <String>[],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'organ': organ,
+        'score': score,
+        'rating': rating,
+        'summary': summary,
+        'key_metrics': keyMetrics,
+      };
 }
 
 // Next, the class to hold the state (all organs)

@@ -9,10 +9,6 @@ import 'auth_routes.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final isAuthed = ref.watch(isAuthedProvider);
-  final onboardingDone = ref.watch(onboardingCompleteProvider).maybeWhen(
-        data: (v) => v,
-        orElse: () => false,
-      );
 
   return GoRouter(
     observers: [KeyboardDismissOnNavigateObserver()],
@@ -31,7 +27,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         return RouteNames.changePassword;
       }
 
-      // Onboarding
       final onboardingAsync = ref.watch(onboardingCompleteProvider);
       if (onboardingAsync.isLoading) return null;
 

@@ -229,37 +229,61 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
   Widget _buildRedirectPage() {
     final state = ref.watch(healthOnboardingProvider);
 
-    List<String> logs =
-        state.progressMessages.isEmpty ? [] : state.progressMessages;
+    final List<String> logs = state.progressMessages;
+    final isWide = context.widthPx > 600;
+    final textStyle = (isWide ? $styles.text.h1 : $styles.text.h2).copyWith(
+      color: $styles.colors.accent1,
+    );
+    final double containerHeight = isWide ? 320 : 260;
 
-    // // Navigate when finalizing and saving are both done (run once)
-    // if (!state.isFinalizing && !state.isSaving && !_wrapUpTriggered) {
-    //   // ensure finalizeOnboarding was triggered first
-    // }
-    // if (!state.isFinalizing && !state.isSaving && _wrapUpTriggered) {
-    //   _wrapUpTriggered = false;
-    //   WidgetsBinding.instance.addPostFrameCallback((_) {
-    //     if (!mounted || !context.mounted) return;
-    //     context.go(RouteNames.debug);
-    //   });
-    // }
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        LiveTypewriter(
-          lines: logs,
-          expectedLineCount: 2,
-          charDelay: const Duration(milliseconds: 50),
-          linePause: const Duration(milliseconds: 200),
-          style: $styles.text.h4.copyWith(
-            color: $styles.colors.accent1,
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 720),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: $styles.insets.xl,
+            vertical: $styles.insets.lg,
+          ),
+          child: SizedBox(
+            height: containerHeight,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: $styles.insets.xl),
+                    child: LiveTypewriter(
+                      lines: logs,
+                      charDelay: const Duration(milliseconds: 30),
+                      linePause: const Duration(milliseconds: 700),
+                      style: textStyle,
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                ),
+                if (state.isFinalizing || state.isSaving)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: SizedBox(
+                      height: 8,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular($styles.corners.lg),
+                        child: LinearProgressIndicator(
+                          backgroundColor: $styles.colors.offWhite,
+                          valueColor:
+                              AlwaysStoppedAnimation($styles.colors.accent1),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
-        SizedBox(height: $styles.insets.md),
-        if (state.isFinalizing || state.isSaving)
-          const CircularProgressIndicator(),
-      ],
+      ),
     );
   }
 }

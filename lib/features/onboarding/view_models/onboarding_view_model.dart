@@ -169,10 +169,10 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
     state = state.copyWith(isFinalizing: true);
     try {
       final healthMetrics = await _healthRepository.getExistingHealthMetrics();
+      _log('Saving your health metrics…');
       await OnboardingService().saveHealthMetricsToDatabase(healthMetrics);
-      _log('Saving health-metrics to database - done');
+      _log('Initializing body simulator…');
       await ApiService.initializeBodySimulatorState();
-      _log('Initializing body simulator state - done');
 
       // mark onboarding complete
       await _healthRepository.saveOnboardingComplete();

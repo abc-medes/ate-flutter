@@ -11,7 +11,9 @@ import 'package:web_socket_channel/status.dart' as ws_status;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ApiService {
+  // DEV
   static const String _baseUrl = 'http://localhost:8080/api';
+  // PROD
   // static String get _baseUrl => Env.apiBaseUrl;
 
   static String get _wsUrl => Env.wsBaseUrl;

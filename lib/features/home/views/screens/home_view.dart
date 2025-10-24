@@ -1,4 +1,3 @@
-import 'package:intl/intl.dart';
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/widgets/chat_input.dart';
@@ -7,6 +6,7 @@ import 'package:bodido/data/models/chat_model.dart';
 import 'package:bodido/features/home/view_models/home_view_model.dart';
 import 'package:bodido/features/home/views/widgets/chat_helper.dart';
 import 'package:bodido/features/home/views/widgets/tappable_score.dart';
+import 'package:intl/intl.dart';
 
 // --- Main HomeView Widget ---
 // Converted to ConsumerStatefulWidget to manage FocusNode
@@ -137,14 +137,28 @@ class _HomeViewState extends ConsumerState<HomeView> {
     final insights = state.insights;
 
     if (insights.isEmpty) {
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
-        child: Text(
-          '인사이트를 불러오는 중입니다...',
-          style: $styles.text.bodySmall.copyWith(
-            color: $styles.colors.caption,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Reserve the same vertical space as the PageView to prevent layout shift
+          SizedBox(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
+              child: _buildInsightCardSkeleton(),
+            ),
           ),
-        ),
+          SizedBox(height: $styles.insets.sm),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
+            child: Text(
+              '인사이트를 불러오는 중입니다...',
+              textAlign: TextAlign.start,
+              style: $styles.text.bodySmall.copyWith(
+                color: $styles.colors.caption,
+              ),
+            ),
+          ),
+        ],
       );
     }
 

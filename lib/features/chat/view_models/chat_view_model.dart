@@ -1,9 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bodido/common_libs.dart';
-import 'package:bodido/data/models/chat_model.dart';
 import 'package:bodido/core/services/chat_service.dart';
+import 'package:bodido/data/models/body_simulator_model.dart';
+import 'package:bodido/data/models/chat_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final chatViewModelProvider =
     StateNotifierProvider.autoDispose<ChatViewModel, ChatViewState>(
@@ -19,14 +20,15 @@ class ChatViewState {
   final bool isLoading;
   final String? error;
   final String? currentSessionId;
+  final List<dynamic> timeline;
 
-  const ChatViewState({
-    this.currentSessionMessages = const [],
-    this.messagesBySession = const {},
-    this.isLoading = false,
-    this.error,
-    this.currentSessionId,
-  });
+  const ChatViewState(
+      {this.currentSessionMessages = const [],
+      this.messagesBySession = const {},
+      this.isLoading = false,
+      this.error,
+      this.currentSessionId,
+      this.timeline = const []});
 
   ChatViewState copyWith({
     List<ChatMessageDTO>? currentSessionMessages,
@@ -35,6 +37,7 @@ class ChatViewState {
     String? error,
     bool clearError = false,
     String? currentSessionId,
+    List<dynamic>? timeline,
   }) {
     return ChatViewState(
       currentSessionMessages:
@@ -43,6 +46,7 @@ class ChatViewState {
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
       currentSessionId: currentSessionId ?? this.currentSessionId,
+      timeline: timeline ?? this.timeline,
     );
   }
 }
@@ -184,6 +188,42 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
           isLoading: false,
         );
       },
+    );
+  }
+
+  DateTime _msgTs(ChatMessageDTO m) => m.clientLocalTimestamp ?? m.createdAt;
+
+  DateTime _snapTs(BodySimulatorStateSnapshotDTO s) => s.createdAt;
+
+  void initializeFromEvents({
+    required List<dynamic> events,
+    String? selectedSessionId,
+  }) {
+    final msgs = events.whereType<ChatMessageDTO>().toList();
+    final snaps = events.whereType<BodySimulatorStateSnapshotDTO>().toList();
+
+    final timeline = <dynamic>[...msgs, ...snaps]..sort((a, b) {
+        final ta = a is ChatMessageDTO
+            ? _msgTs(a)
+            : _snapTs(a as BodySimulatorStateSnapshotDTO);
+        final tb = b is ChatMessageDTO
+            ? _msgTs(b)
+            : _snapTs(b as BodySimulatorStateSnapshotDTO);
+        return ta.compareTo(tb);
+      });
+
+    final sessionId =
+        selectedSessionId ?? (msgs.isNotEmpty ? msgs.first.sessionId : null);
+    final sessionMsgs = sessionId == null
+        ? const <ChatMessageDTO>[]
+        : msgs.where((m) => m.sessionId == sessionId).toList();
+
+    state = state.copyWith(
+      currentSessionId: sessionId,
+      currentSessionMessages: sessionMsgs,
+      messagesBySession: sessionId == null ? {} : {sessionId: sessionMsgs},
+      isLoading: false,
+      timeline: timeline,
     );
   }
 

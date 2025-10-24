@@ -12,6 +12,7 @@ final appRoutes = [
   //   RouteNames.debug,
   //   (_) => const DebugView(),
   // ),
+
   AppRoute(
     RouteNames.home,
     (_) => const HomeView(),

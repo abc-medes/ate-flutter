@@ -1,7 +1,7 @@
-import 'package:collection/collection.dart';
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/chat_model.dart';
+import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
 
 @immutable
@@ -120,7 +120,7 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
     final messages = (response as List)
         .map((item) => ChatMessageDTO.fromJson({
               ...item,
-              'user_id': userId, // Add default user_id
+              'user_id': userId, 
             }))
         .toList();
     debugPrint(

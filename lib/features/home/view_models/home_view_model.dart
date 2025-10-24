@@ -1,11 +1,11 @@
-import 'package:flutter/cupertino.dart';
 import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/services/auth_service.dart';
 import 'package:bodido/core/services/user_service.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
-import 'package:bodido/core/services/auth_service.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/data/models/insight_model.dart';
 import 'package:bodido/features/home/views/widgets/_body_simultor_snapshot_details.dart';
+import 'package:flutter/cupertino.dart';
 
 enum ChatHelperType { ai, alerts, waitlist, system, context }
 
@@ -96,6 +96,7 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
       context: context,
       builder: (BuildContext context) => BodySimulatorSnapshotDetails(
         userId: state.bodySimulatorState!.userId,
+        insights: state.insights,
       ),
     );
   }

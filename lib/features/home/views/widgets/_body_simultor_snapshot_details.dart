@@ -4,11 +4,15 @@ import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/services/api_service.dart';
 import 'package:bodido/core/services/session_service.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
+import 'package:bodido/data/models/insight_model.dart';
 import 'package:bodido/features/home/views/widgets/_animated_metric_value.dart';
+import 'package:bodido/features/home/views/widgets/insight_card.dart';
 
 class BodySimulatorSnapshotDetails extends ConsumerStatefulWidget {
   final String userId;
-  const BodySimulatorSnapshotDetails({super.key, required this.userId});
+  final List<InsightItem> insights;
+  const BodySimulatorSnapshotDetails(
+      {super.key, required this.userId, required this.insights});
 
   @override
   ConsumerState<BodySimulatorSnapshotDetails> createState() =>
@@ -111,10 +115,9 @@ class _BodySimulatorSnapshotDetailsState
             padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
             child: Column(
               children: [
-                // small grab-handle
                 Center(
                   child: Container(
-                    margin: const EdgeInsets.only(top: 8, bottom: 16),
+                    // margin: const EdgeInsets.only(top: 8, bottom: 16),
                     height: 4,
                     width: 40,
                     decoration: BoxDecoration(
@@ -123,10 +126,9 @@ class _BodySimulatorSnapshotDetailsState
                     ),
                   ),
                 ),
-
                 if (_isLoading)
                   Padding(
-                    padding: EdgeInsets.all($styles.insets.xl),
+                    padding: EdgeInsets.all($styles.insets.lg),
                     child: Column(
                       children: [
                         CircularProgressIndicator(
@@ -135,7 +137,7 @@ class _BodySimulatorSnapshotDetailsState
                         ),
                         SizedBox(height: $styles.insets.md),
                         Text(
-                          '신체 시뮬레이터 데이터를 불러오는 중...',
+                          'getting body simulator data...',
                           style: $styles.text.body,
                         ),
                       ],
@@ -143,7 +145,7 @@ class _BodySimulatorSnapshotDetailsState
                   )
                 else if (_errorMessage != null)
                   Padding(
-                    padding: EdgeInsets.all($styles.insets.xl),
+                    padding: EdgeInsets.all($styles.insets.lg),
                     child: Column(
                       children: [
                         Icon(
@@ -176,11 +178,15 @@ class _BodySimulatorSnapshotDetailsState
                   TabBar(
                     labelColor: $styles.colors.accent1,
                     unselectedLabelColor: $styles.colors.caption,
+                    labelStyle: $styles.text.bodyBold.copyWith(fontSize: 16),
+                    unselectedLabelStyle:
+                        $styles.text.body.copyWith(fontSize: 16),
+                    indicatorSize: TabBarIndicatorSize.tab,
                     indicatorColor: $styles.colors.accent1,
                     tabs: const [
-                      Tab(text: 'Overview'),
-                      Tab(text: 'Highlights'),
-                      Tab(text: 'Metrics'),
+                      Tab(text: 'Overview', height: 48),
+                      Tab(text: 'Highlights', height: 48),
+                      Tab(text: 'Metrics', height: 48),
                     ],
                   ),
                   SizedBox(height: $styles.insets.sm),
@@ -207,7 +213,7 @@ class _BodySimulatorSnapshotDetailsState
                   ),
                 ] else
                   Padding(
-                    padding: EdgeInsets.all($styles.insets.xl),
+                    padding: EdgeInsets.all($styles.insets.lg),
                     child: Text(
                       '데이터를 불러올 수 없습니다.',
                       style: $styles.text.body,
@@ -354,22 +360,23 @@ extension _ReportPages on _BodySimulatorSnapshotDetailsState {
               AnimatedMetricValue(value: hs.overallScore),
             ],
           ),
-          if (hs.diagnosisText != null && hs.diagnosisText!.isNotEmpty) ...[
-            SizedBox(height: $styles.insets.sm),
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all($styles.insets.sm),
-              decoration: BoxDecoration(
-                color: $styles.colors.backgroundDark,
-                borderRadius: BorderRadius.circular($styles.corners.md),
-              ),
-              child: Text(
-                hs.diagnosisText!,
-                style:
-                    $styles.text.bodySmall.copyWith(color: $styles.colors.body),
-              ),
-            ),
-          ],
+          SizedBox(height: $styles.insets.md),
+          Text('Insights', style: $styles.text.bodyBold.copyWith(fontSize: 18)),
+          SizedBox(height: $styles.insets.xs),
+          Column(
+            children: widget.insights
+                .map((i) => Padding(
+                      padding: EdgeInsets.only(bottom: $styles.insets.xs),
+                      child: InsightCard(
+                        icon: i.iconData,
+                        title: i.title,
+                        value: i.value,
+                        advice: i.advice,
+                        isGood: _isGoodValue(i.value),
+                      ),
+                    ))
+                .toList(),
+          ),
           SizedBox(height: $styles.insets.md),
           Text('Organ scores',
               style: $styles.text.bodyBold.copyWith(fontSize: 18)),
@@ -480,10 +487,8 @@ extension _ReportPages on _BodySimulatorSnapshotDetailsState {
                 margin: EdgeInsets.only(bottom: $styles.insets.xs),
                 padding: EdgeInsets.all($styles.insets.sm),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: $styles.colors.backgroundDark,
                   borderRadius: BorderRadius.circular($styles.corners.md),
-                  border: Border.all(
-                      color: $styles.colors.caption.withOpacity(.25)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -537,5 +542,14 @@ extension _ReportPages on _BodySimulatorSnapshotDetailsState {
               ))
           .toList(),
     );
+  }
+
+  bool _isGoodValue(String v) {
+    final s = v.toLowerCase();
+    return s.contains('좋음') ||
+        s.contains('양호') ||
+        s.contains('good') ||
+        s.contains('great') ||
+        s.contains('excellent');
   }
 }

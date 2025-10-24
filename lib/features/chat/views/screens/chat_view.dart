@@ -1,10 +1,12 @@
-import 'package:intl/intl.dart';
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/widgets/chat_input.dart';
 import 'package:bodido/core/widgets/circular_icon_button.dart';
+import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/chat_model.dart';
+import 'package:bodido/features/chat/view_models/chat_history_view_model.dart';
 import 'package:bodido/features/chat/view_models/chat_view_model.dart';
+import 'package:intl/intl.dart';
 
 class ChatView extends ConsumerStatefulWidget {
   final ChatMessageDTO? initialMessage;
@@ -39,7 +41,25 @@ class _ChatViewState extends ConsumerState<ChatView> {
 
     // Initialize the chat with the view model
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.sessionIds != null && widget.sessionIds!.isNotEmpty) {
+      final history = ref.read(chatHistoryViewModelProvider);
+      final date = widget.selectedDate ?? DateTime.now();
+      final dayUtc = DateTime.utc(date.year, date.month, date.day);
+      final events = history.eventsByDate[dayUtc] ?? [];
+
+      if (events.isNotEmpty) {
+        final sessions = events
+            .whereType<ChatMessageDTO>()
+            .map((e) => e.sessionId)
+            .toSet()
+            .toList();
+
+        ref.read(chatViewModelProvider.notifier).initializeFromEvents(
+              events: events, // from provider, not route
+              selectedSessionId: (widget.sessionIds?.isNotEmpty ?? false)
+                  ? widget.sessionIds!.first
+                  : (sessions.isNotEmpty ? sessions.first : null),
+            );
+      } else if (widget.sessionIds != null && widget.sessionIds!.isNotEmpty) {
         ref.read(chatViewModelProvider.notifier).initializeChat(
               selectedSessionId: widget.sessionIds!.first,
               initialMessage: widget.initialMessage,
@@ -99,8 +119,13 @@ class _ChatViewState extends ConsumerState<ChatView> {
       return SingleChildScrollView(
         child: Column(
           children: List.generate(
-            viewModel.currentSessionMessages.length,
+            viewModel.timeline.isNotEmpty
+                ? viewModel.timeline.length
+                : viewModel.currentSessionMessages.length,
             (index) {
+              if (viewModel.timeline.isNotEmpty) {
+                return _buildTimelineItem(viewModel.timeline[index], index);
+              }
               final message = viewModel.currentSessionMessages[index];
               return _buildMessageItem(message, index);
             },
@@ -119,7 +144,6 @@ class _ChatViewState extends ConsumerState<ChatView> {
               setState(() {
                 _currentPageIndex = index;
               });
-              // Load messages for the new session
               final sessionId = widget.sessionIds![index];
               ref
                   .read(chatViewModelProvider.notifier)
@@ -130,7 +154,6 @@ class _ChatViewState extends ConsumerState<ChatView> {
               final isCurrentSession = sessionId == viewModel.currentSessionId;
 
               if (isCurrentSession) {
-                // Show messages for current session
                 if (viewModel.currentSessionMessages.isEmpty) {
                   return Center(
                     child: Text(
@@ -219,11 +242,9 @@ class _ChatViewState extends ConsumerState<ChatView> {
         vertical: $styles.insets.sm,
       ),
       child: Row(
-        mainAxisAlignment:
-            message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           Container(
-            width: MediaQuery.of(context).size.width * 0.8,
+            width: MediaQuery.of(context).size.width * 0.85,
             padding: EdgeInsets.symmetric(
               horizontal: $styles.insets.lg,
               vertical: $styles.insets.md,
@@ -247,17 +268,40 @@ class _ChatViewState extends ConsumerState<ChatView> {
                   ? CrossAxisAlignment.end
                   : CrossAxisAlignment.start,
               children: [
-                // Message text
-                Text(
-                  message.message ?? '',
-                  style: $styles.text.h3.copyWith(
-                    color: Colors.white,
-                    height: 1.4,
+                if (!message.isUser &&
+                    (message.message == null || message.message!.isEmpty)) ...[
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                      SizedBox(width: $styles.insets.xs),
+                      Text(
+                        'Generating...',
+                        style: $styles.text.caption.copyWith(
+                          color: Colors.white.withOpacity(0.85),
+                        ),
+                      ),
+                    ],
                   ),
-                  textAlign: message.isUser ? TextAlign.right : TextAlign.left,
-                ),
-
-                // Timestamp
+                ] else ...[
+                  Text(
+                    message.message ?? '',
+                    style: $styles.text.h3.copyWith(
+                      color: Colors.white,
+                      height: 1.4,
+                    ),
+                    textAlign:
+                        message.isUser ? TextAlign.right : TextAlign.left,
+                  ),
+                ],
                 if (message.clientLocalTimestamp != null) ...[
                   SizedBox(height: $styles.insets.sm),
                   Text(
@@ -267,6 +311,66 @@ class _ChatViewState extends ConsumerState<ChatView> {
                     ),
                   ),
                 ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimelineItem(dynamic item, int index) {
+    if (item is ChatMessageDTO) return _buildMessageItem(item, index);
+    if (item is BodySimulatorStateSnapshotDTO) return _buildSnapshotItem(item);
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildSnapshotItem(BodySimulatorStateSnapshotDTO s) {
+    final ts = s.createdAt;
+    final hs = s.healthScore;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: $styles.insets.lg,
+        vertical: $styles.insets.sm,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width * 0.8,
+            padding: EdgeInsets.symmetric(
+              horizontal: $styles.insets.lg,
+              vertical: $styles.insets.md,
+            ),
+            decoration: BoxDecoration(
+              color: $styles.colors.backgroundDark,
+              borderRadius: BorderRadius.circular($styles.corners.lg),
+              border: Border.all(color: $styles.colors.caption.withOpacity(.2)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.monitor_heart,
+                        color: $styles.colors.accent1, size: 18),
+                    SizedBox(width: $styles.insets.xs),
+                    Text('Body snapshot',
+                        style: $styles.text.bodyBold
+                            .copyWith(color: $styles.colors.body)),
+                    const Spacer(),
+                    Text(hs.overallScore.toStringAsFixed(1),
+                        style: $styles.text.bodyBold
+                            .copyWith(color: $styles.colors.accent1)),
+                  ],
+                ),
+                SizedBox(height: $styles.insets.xs),
+                Text(
+                  DateFormat('yyyy-MM-dd HH:mm').format(ts),
+                  style: $styles.text.caption
+                      .copyWith(color: $styles.colors.caption),
+                ),
               ],
             ),
           ),

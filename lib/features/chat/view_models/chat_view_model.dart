@@ -84,24 +84,16 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
   }
 
   Future<void> loadMessagesForSession(String sessionId) async {
-    if (state.messagesBySession.containsKey(sessionId)) {
-      state = state.copyWith(
-        currentSessionMessages: state.messagesBySession[sessionId]!,
-        currentSessionId: sessionId,
-        isLoading: false,
-      );
-      return;
-    }
-
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final chatService = ref.read(chatServiceProvider);
       final messages = await chatService.getChatHistory();
 
-      // Filter messages for this session
       final sessionMessages =
           messages.where((msg) => msg.sessionId == sessionId).toList();
+
+      print('sessionMessages: $sessionMessages');
 
       state = state.copyWith(
         currentSessionMessages: sessionMessages,
@@ -211,6 +203,11 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
             : _snapTs(b as BodySimulatorStateSnapshotDTO);
         return ta.compareTo(tb);
       });
+
+    print('selectedSessionId: $selectedSessionId');
+    print('msgs: $msgs');
+    print('snaps: $snaps');
+    print('timeline: $timeline');
 
     final sessionId =
         selectedSessionId ?? (msgs.isNotEmpty ? msgs.first.sessionId : null);

@@ -112,7 +112,8 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
       String userId, DateTime firstDay, DateTime lastDay) async {
     final response = await Supabase.instance.client
         .from('chat_history')
-        .select('session_id, client_local_timestamp_iso, created_at, is_user')
+        .select(
+            'session_id, message, chat_offset, client_local_timestamp_iso, created_at, is_user')
         .eq('user_id', userId)
         .gte('client_local_timestamp_iso', firstDay.toIso8601String())
         .lte('client_local_timestamp_iso', lastDay.toIso8601String());
@@ -120,7 +121,7 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
     final messages = (response as List)
         .map((item) => ChatMessageDTO.fromJson({
               ...item,
-              'user_id': userId, 
+              'user_id': userId,
             }))
         .toList();
     debugPrint(

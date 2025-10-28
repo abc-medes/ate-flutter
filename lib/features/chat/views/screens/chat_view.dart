@@ -34,7 +34,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
 
     // Initialize page controller with the selected session index
     if (widget.sessionIds != null && widget.sessionIds!.isNotEmpty) {
-      _currentPageIndex = 0; // Always start with first session
+      _currentPageIndex = 0;
     }
 
     _pageController = PageController(initialPage: _currentPageIndex);
@@ -53,17 +53,20 @@ class _ChatViewState extends ConsumerState<ChatView> {
             .toSet()
             .toList();
 
+        final selectedId = (widget.sessionIds?.isNotEmpty ?? false)
+            ? widget.sessionIds!.first
+            : (sessions.isNotEmpty ? sessions.first : null);
+
         ref.read(chatViewModelProvider.notifier).initializeFromEvents(
-              events: events, // from provider, not route
-              selectedSessionId: (widget.sessionIds?.isNotEmpty ?? false)
-                  ? widget.sessionIds!.first
-                  : (sessions.isNotEmpty ? sessions.first : null),
+              events: events,
+              selectedSessionId: selectedId,
             );
-      } else if (widget.sessionIds != null && widget.sessionIds!.isNotEmpty) {
-        ref.read(chatViewModelProvider.notifier).initializeChat(
-              selectedSessionId: widget.sessionIds!.first,
-              initialMessage: widget.initialMessage,
-            );
+
+        if (selectedId != null) {
+          ref
+              .read(chatViewModelProvider.notifier)
+              .loadMessagesForSession(selectedId);
+        }
       }
     });
   }
@@ -103,43 +106,44 @@ class _ChatViewState extends ConsumerState<ChatView> {
   }
 
   Widget _buildDynamicScrollView(ChatViewState viewModel) {
-    if (widget.sessionIds == null || widget.sessionIds!.isEmpty) {
-      // Single session mode - show messages directly
-      if (viewModel.currentSessionMessages.isEmpty) {
-        return Center(
-          child: Text(
-            'No messages yet',
-            style: $styles.text.body.copyWith(
-              color: $styles.colors.caption,
-            ),
-          ),
-        );
-      }
+    // if (widget.sessionIds == null || widget.sessionIds!.isEmpty) {
+    //   // Single session mode - show messages directly
+    //   if (viewModel.currentSessionMessages.isEmpty) {
+    //     return Center(
+    //       child: Text(
+    //         'No messages yet',
+    //         style: $styles.text.body.copyWith(
+    //           color: $styles.colors.caption,
+    //         ),
+    //       ),
+    //     );
+    //   }
 
-      return SingleChildScrollView(
-        child: Column(
-          children: List.generate(
-            viewModel.timeline.isNotEmpty
-                ? viewModel.timeline.length
-                : viewModel.currentSessionMessages.length,
-            (index) {
-              if (viewModel.timeline.isNotEmpty) {
-                return _buildTimelineItem(viewModel.timeline[index], index);
-              }
-              final message = viewModel.currentSessionMessages[index];
-              return _buildMessageItem(message, index);
-            },
-          ),
-        ),
-      );
-    }
+    //   return SingleChildScrollView(
+    //     child: Column(
+    //       children: List.generate(
+    //         viewModel.timeline.isNotEmpty
+    //             ? viewModel.timeline.length
+    //             : viewModel.currentSessionMessages.length,
+    //         (index) {
+    //           if (viewModel.timeline.isNotEmpty) {
+    //             return _buildTimelineItem(viewModel.timeline[index], index);
+    //           }
+    //           final message = viewModel.currentSessionMessages[index];
+    //           return _buildMessageItem(message, index);
+    //         },
+    //       ),
+    //     ),
+    //   );
+    // }
 
-    // Multiple sessions mode - show PageView with guide text
     return Column(
       children: [
         Expanded(
           child: PageView.builder(
+            padEnds: false,
             controller: _pageController,
+            itemCount: widget.sessionIds!.length,
             onPageChanged: (index) {
               setState(() {
                 _currentPageIndex = index;
@@ -264,9 +268,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: message.isUser
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (!message.isUser &&
                     (message.message == null || message.message!.isEmpty)) ...[

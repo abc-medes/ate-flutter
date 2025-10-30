@@ -2,7 +2,6 @@ import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/widgets/chat_input.dart';
 import 'package:bodido/core/widgets/circular_icon_button.dart';
-import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/chat_model.dart';
 import 'package:bodido/features/chat/view_models/chat_history_view_model.dart';
 import 'package:bodido/features/chat/view_models/chat_view_model.dart';
@@ -106,37 +105,6 @@ class _ChatViewState extends ConsumerState<ChatView> {
   }
 
   Widget _buildDynamicScrollView(ChatViewState viewModel) {
-    // if (widget.sessionIds == null || widget.sessionIds!.isEmpty) {
-    //   // Single session mode - show messages directly
-    //   if (viewModel.currentSessionMessages.isEmpty) {
-    //     return Center(
-    //       child: Text(
-    //         'No messages yet',
-    //         style: $styles.text.body.copyWith(
-    //           color: $styles.colors.caption,
-    //         ),
-    //       ),
-    //     );
-    //   }
-
-    //   return SingleChildScrollView(
-    //     child: Column(
-    //       children: List.generate(
-    //         viewModel.timeline.isNotEmpty
-    //             ? viewModel.timeline.length
-    //             : viewModel.currentSessionMessages.length,
-    //         (index) {
-    //           if (viewModel.timeline.isNotEmpty) {
-    //             return _buildTimelineItem(viewModel.timeline[index], index);
-    //           }
-    //           final message = viewModel.currentSessionMessages[index];
-    //           return _buildMessageItem(message, index);
-    //         },
-    //       ),
-    //     ),
-    //   );
-    // }
-
     return Column(
       children: [
         Expanded(
@@ -300,8 +268,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                       color: Colors.white,
                       height: 1.4,
                     ),
-                    textAlign:
-                        message.isUser ? TextAlign.right : TextAlign.left,
+                    textAlign: TextAlign.left,
                   ),
                 ],
                 if (message.clientLocalTimestamp != null) ...[
@@ -313,66 +280,6 @@ class _ChatViewState extends ConsumerState<ChatView> {
                     ),
                   ),
                 ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimelineItem(dynamic item, int index) {
-    if (item is ChatMessageDTO) return _buildMessageItem(item, index);
-    if (item is BodySimulatorStateSnapshotDTO) return _buildSnapshotItem(item);
-    return const SizedBox.shrink();
-  }
-
-  Widget _buildSnapshotItem(BodySimulatorStateSnapshotDTO s) {
-    final ts = s.createdAt;
-    final hs = s.healthScore;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: $styles.insets.lg,
-        vertical: $styles.insets.sm,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: MediaQuery.of(context).size.width * 0.8,
-            padding: EdgeInsets.symmetric(
-              horizontal: $styles.insets.lg,
-              vertical: $styles.insets.md,
-            ),
-            decoration: BoxDecoration(
-              color: $styles.colors.backgroundDark,
-              borderRadius: BorderRadius.circular($styles.corners.lg),
-              border: Border.all(color: $styles.colors.caption.withOpacity(.2)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.monitor_heart,
-                        color: $styles.colors.accent1, size: 18),
-                    SizedBox(width: $styles.insets.xs),
-                    Text('Body snapshot',
-                        style: $styles.text.bodyBold
-                            .copyWith(color: $styles.colors.body)),
-                    const Spacer(),
-                    Text(hs.overallScore.toStringAsFixed(1),
-                        style: $styles.text.bodyBold
-                            .copyWith(color: $styles.colors.accent1)),
-                  ],
-                ),
-                SizedBox(height: $styles.insets.xs),
-                Text(
-                  DateFormat('yyyy-MM-dd HH:mm').format(ts),
-                  style: $styles.text.caption
-                      .copyWith(color: $styles.colors.caption),
-                ),
               ],
             ),
           ),
@@ -408,7 +315,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
       if (firstMessage.clientLocalTimestamp != null) {
         sessionDate = firstMessage.clientLocalTimestamp!;
       } else if (firstMessage.createdAt != null) {
-        sessionDate = firstMessage.createdAt!;
+        sessionDate = firstMessage.createdAt;
       }
     }
 

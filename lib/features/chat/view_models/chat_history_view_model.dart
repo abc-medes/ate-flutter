@@ -86,8 +86,6 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
           results[1] as List<BodySimulatorStateSnapshotDTO>;
 
       final newEvents = _groupEventsByDate(monthlyMessages, monthlySnapshots);
-      debugPrint(
-          '[ChatHistoryViewModel] Grouped Events for $monthKey: $newEvents');
 
       final updatedEvents =
           Map<DateTime, List<dynamic>>.from(state.eventsByDate)
@@ -99,7 +97,6 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
         monthlyLoadingStatus: {...state.monthlyLoadingStatus, monthKey: false},
       );
     } catch (e, st) {
-      debugPrint('[ChatHistoryViewModel] Error onMonthChanged: $e\n$st');
       if (!mounted) return;
       state = state.copyWith(
         error: e.toString(),
@@ -124,8 +121,6 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
               'user_id': userId,
             }))
         .toList();
-    debugPrint(
-        '[ChatHistoryViewModel] Fetched ${messages.length} chat messages for ${DateFormat('yyyy-MM').format(firstDay)}');
     return messages;
   }
 
@@ -141,8 +136,6 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
     final snapshots = (response as List)
         .map((item) => BodySimulatorStateSnapshotDTO.fromJson(item))
         .toList();
-    debugPrint(
-        '[ChatHistoryViewModel] Fetched ${snapshots.length} body snapshots for ${DateFormat('yyyy-MM').format(firstDay)}');
     return snapshots;
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/widgets/chat_input.dart';
@@ -27,51 +29,79 @@ class _ChatViewState extends ConsumerState<ChatView> {
   late PageController _pageController;
   int _currentPageIndex = 0;
 
+  final ScrollController _scrollController = ScrollController();
+  Timer? _scrollDebounce;
+
+  void _scrollToBottom({bool animated = true}) {
+    if (!_scrollController.hasClients) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      final pos = _scrollController.position.maxScrollExtent;
+      if (animated) {
+        _scrollController.animateTo(
+          pos,
+          duration: Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      } else {
+        _scrollController.jumpTo(pos);
+      }
+    });
+  }
+
+  void _scrollToBottomDebounced() {
+    _scrollDebounce?.cancel();
+    _scrollDebounce = Timer(const Duration(milliseconds: 50), _scrollToBottom);
+  }
+
   @override
   void initState() {
     super.initState();
 
-    // Initialize page controller with the selected session index
     if (widget.sessionIds != null && widget.sessionIds!.isNotEmpty) {
       _currentPageIndex = 0;
     }
 
     _pageController = PageController(initialPage: _currentPageIndex);
 
-    // Initialize the chat with the view model
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final history = ref.read(chatHistoryViewModelProvider);
       final date = widget.selectedDate ?? DateTime.now();
       final dayUtc = DateTime.utc(date.year, date.month, date.day);
       final events = history.eventsByDate[dayUtc] ?? [];
 
+      final sessionsFromEvents = events
+          .whereType<ChatMessageDTO>()
+          .map((e) => e.sessionId)
+          .toSet()
+          .toList();
+
+      final selectedId = (widget.sessionIds?.isNotEmpty ?? false)
+          ? widget.sessionIds!.first
+          : (sessionsFromEvents.isNotEmpty ? sessionsFromEvents.first : null);
+
+      final vm = ref.read(chatViewModelProvider.notifier);
+
+      // Hydrate when there are existing events
       if (events.isNotEmpty) {
-        final sessions = events
-            .whereType<ChatMessageDTO>()
-            .map((e) => e.sessionId)
-            .toSet()
-            .toList();
-
-        final selectedId = (widget.sessionIds?.isNotEmpty ?? false)
-            ? widget.sessionIds!.first
-            : (sessions.isNotEmpty ? sessions.first : null);
-
-        ref.read(chatViewModelProvider.notifier).initializeFromEvents(
-              events: events,
-              selectedSessionId: selectedId,
-            );
-
-        if (selectedId != null) {
-          ref
-              .read(chatViewModelProvider.notifier)
-              .loadMessagesForSession(selectedId);
-        }
+        vm.initializeFromEvents(
+          events: events,
+          selectedSessionId: selectedId,
+        );
       }
+
+      // Always ensure currentSessionId is set and initialMessage is sent
+      vm.initializeChat(
+        selectedSessionId: selectedId,
+        initialMessage: widget.initialMessage,
+      );
     });
   }
 
   @override
   void dispose() {
+    _scrollDebounce?.cancel();
+    _scrollController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -80,6 +110,31 @@ class _ChatViewState extends ConsumerState<ChatView> {
   Widget build(BuildContext context) {
     final viewModel = ref.watch(chatViewModelProvider);
     final viewModelNotifier = ref.read(chatViewModelProvider.notifier);
+
+    ref.listen<ChatViewState>(chatViewModelProvider, (prev, next) {
+      if (!mounted) return;
+
+      final active = next.currentSessionId;
+      final isActivePage = active != null &&
+          widget.sessionIds != null &&
+          widget.sessionIds!.isNotEmpty &&
+          widget.sessionIds![_currentPageIndex] == active;
+
+      if (!isActivePage) return;
+
+      final prevLen = prev?.currentSessionMessages.length ?? 0;
+      final nextLen = next.currentSessionMessages.length;
+
+      final appendedMessage = nextLen > prevLen;
+      final streamingUpdated = nextLen > 0 &&
+          prevLen > 0 &&
+          next.currentSessionMessages.last.message !=
+              prev!.currentSessionMessages.last.message;
+
+      if (appendedMessage || streamingUpdated) {
+        _scrollToBottomDebounced();
+      }
+    });
 
     return Scaffold(
       body: Column(
@@ -138,6 +193,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                 }
 
                 return SingleChildScrollView(
+                  controller: _scrollController,
                   child: Column(
                     children: List.generate(
                       viewModel.currentSessionMessages.length,

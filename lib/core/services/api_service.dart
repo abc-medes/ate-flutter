@@ -226,6 +226,67 @@ class ApiService {
     }
   }
 
+  static Future<List<dynamic>> generateTrackingQuestions({
+    String language = 'ko',
+    String maxQuestions = '2',
+    String optionsPerQuestion = '3',
+    String goalFocus = 'general',
+    Map<String, dynamic> trackingTargets = const {},
+  }) async {
+    try {
+      final session = _supabase.auth.currentSession;
+      if (session == null) {
+        throw Exception('Not authenticated');
+      }
+      String accessToken = session.accessToken;
+
+      Future<http.Response> executeRequest(String token) {
+        final uri = Uri.parse('$_baseUrl/tracking/questions');
+        return http.post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode({
+            'language': language,
+            'max_questions': maxQuestions,
+            'options_per_question': optionsPerQuestion,
+            'goal_focus': goalFocus,
+            'tracking_targets': trackingTargets,
+          }),
+        );
+      }
+
+      var response = await executeRequest(accessToken);
+
+      if (response.statusCode == 401) {
+        final refreshed = await _supabase.auth.refreshSession();
+        if (refreshed.session == null ||
+            refreshed.session!.accessToken.isEmpty) {
+          throw Exception('Authentication failed');
+        }
+        accessToken = refreshed.session!.accessToken;
+        response = await executeRequest(accessToken);
+      }
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          'Failed to generate tracking questions: ${response.statusCode} - ${response.body}',
+        );
+      }
+
+      final decoded =
+          jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      final questions = (decoded['questions'] as List?) ?? const [];
+      return questions;
+    } catch (e) {
+      throw Exception('Error generating tracking questions: $e');
+    }
+  }
+
+  
+
   static Stream<BodySimulatorStateSnapshotDTO> bodyStateStream({
     required String sessionId,
     Duration reconnectDelay = const Duration(seconds: 2),

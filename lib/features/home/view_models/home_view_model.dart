@@ -1,9 +1,11 @@
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/services/auth_service.dart';
+import 'package:bodido/core/services/tracking_questions_service.dart';
 import 'package:bodido/core/services/user_service.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/data/models/insight_model.dart';
+import 'package:bodido/data/models/tracking_question_model.dart';
 import 'package:bodido/features/home/views/widgets/_body_simultor_snapshot_details.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -14,8 +16,9 @@ final homeViewModelProvider =
   final authService = ref.watch(authServiceProvider).isAuthenticated;
   final viewModel = HomeViewModel(authService);
 
-  // Initialize both body state and insights
   viewModel.fetchBodySimulatorState(ref);
+  viewModel
+      .fetchUserQuestions(ref); // load questions-with-options on first load
 
   return viewModel;
 });
@@ -29,14 +32,20 @@ class HomeViewState {
   final List<InsightItem> insights;
   final bool isLoadingInsights;
 
+  // Questions with options
+  final List<TrackingQuestion> userQuestions;
+  final bool isLoadingUserQuestions;
+
   HomeViewState({
     this.missingBasicData = const [],
     this.isProcessing = false,
     this.isSaveMode = false,
     this.selectedHelperChip = ChatHelperType.ai,
     this.bodySimulatorState,
-    this.insights = const [], // Ensure this is never null
+    this.insights = const [],
     this.isLoadingInsights = false,
+    this.userQuestions = const [],
+    this.isLoadingUserQuestions = false,
   });
 
   HomeViewState copyWith({
@@ -48,14 +57,20 @@ class HomeViewState {
     BodySimulatorStateSnapshotDTO? bodySimulatorState,
     List<InsightItem>? insights,
     bool? isLoadingInsights,
+    List<TrackingQuestion>? userQuestions,
+    bool? isLoadingUserQuestions,
   }) {
     return HomeViewState(
       missingBasicData: missingBasicData ?? this.missingBasicData,
       isProcessing: isProcessing ?? this.isProcessing,
+      isSaveMode: isSaveMode ?? this.isSaveMode,
       selectedHelperChip: selectedHelperChip ?? this.selectedHelperChip,
       bodySimulatorState: bodySimulatorState ?? this.bodySimulatorState,
       insights: insights ?? this.insights,
       isLoadingInsights: isLoadingInsights ?? this.isLoadingInsights,
+      userQuestions: userQuestions ?? this.userQuestions,
+      isLoadingUserQuestions:
+          isLoadingUserQuestions ?? this.isLoadingUserQuestions,
     );
   }
 }
@@ -126,6 +141,23 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     } catch (e) {
       print('Error fetching insights: $e');
       state = state.copyWith(isLoadingInsights: false);
+    }
+  }
+
+  // Fetch the user's questions with options from Supabase (llm_questions)
+  Future<void> fetchUserQuestions(Ref ref) async {
+    if (state.isLoadingUserQuestions) return;
+    state = state.copyWith(isLoadingUserQuestions: true);
+    try {
+      final svc = ref.read(trackingQuestionsServiceProvider);
+      final questions = await svc.fetchUserQuestionsWithOptions(limit: 50);
+      state = state.copyWith(
+        userQuestions: questions,
+        isLoadingUserQuestions: false,
+      );
+    } catch (e) {
+      debugPrint('[HomeVM] fetchUserQuestions error: $e');
+      state = state.copyWith(isLoadingUserQuestions: false);
     }
   }
 }

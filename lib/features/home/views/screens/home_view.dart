@@ -7,6 +7,7 @@ import 'package:bodido/features/home/view_models/home_view_model.dart';
 import 'package:bodido/features/home/views/widgets/_insights_list.dart';
 import 'package:bodido/features/home/views/widgets/chat_helper.dart';
 import 'package:bodido/features/home/views/widgets/tappable_score.dart';
+import 'package:bodido/features/home/views/widgets/tracking_questions_section.dart';
 import 'package:intl/intl.dart';
 
 // --- Main HomeView Widget ---
@@ -58,75 +59,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   ),
                   SizedBox(height: $styles.insets.sm),
 
-                  if (state.isLoadingUserQuestions)
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: $styles.insets.md),
-                      child: const LinearProgressIndicator(minHeight: 2),
-                    )
-                  else if (state.userQuestions.isEmpty)
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: $styles.insets.md),
-                      child: Text('No questions yet.',
-                          style: $styles.text.bodySmall),
-                    )
-                  else
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: $styles.insets.md),
-                      child: ListView.separated(
-                        physics: const NeverScrollableScrollPhysics(),
-                        shrinkWrap: true,
-                        itemCount: state.userQuestions.length,
-                        separatorBuilder: (_, __) =>
-                            SizedBox(height: $styles.insets.sm),
-                        itemBuilder: (context, index) {
-                          final q = state.userQuestions[index];
-                          return Container(
-                            padding: EdgeInsets.all($styles.insets.md),
-                            decoration: BoxDecoration(
-                              color: $styles.colors.backgroundDark,
-                              borderRadius:
-                                  BorderRadius.circular($styles.insets.sm),
-                              border: Border.all(
-                                  color: $styles.colors.greyStrong
-                                      .withOpacity(0.1)),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(q.question, style: $styles.text.bodyBold),
-                                SizedBox(height: 6),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 4,
-                                  children: [
-                                    _Badge('System: ${q.system.name}'),
-                                    _Badge('Metric: ${q.metric}'),
-                                    _Badge('Tag: ${q.questionTag}'),
-                                  ],
-                                ),
-                                SizedBox(height: $styles.insets.sm),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: q.options.map((opt) {
-                                    return ChoiceChip(
-                                      label: Text(opt.label),
-                                      selected: false,
-                                      onSelected: (_) {
-                                        // TODO: handle selection (e.g. call a service)
-                                      },
-                                    );
-                                  }).toList(),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+                  TrackingQuestionsSection(
+                    isLoading: state.isLoadingUserQuestions,
+                    questions: state.userQuestions,
+                    onOptionSelected: (q, opt) {
+                      // ref.read(homeViewModelProvider.notifier)
+                      //   .selectQuestionOption(ref, questionId: q.id, option: opt);
+                    },
+                  ),
                   SizedBox(height: $styles.insets.sm),
                 ],
               ),

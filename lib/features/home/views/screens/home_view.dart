@@ -19,8 +19,6 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView> {
-  int _currentPage = 0; // State variable to track current page
-
   @override
   Widget build(BuildContext context) {
     final viewModel = ref.watch(homeViewModelProvider.notifier);
@@ -49,6 +47,87 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     isLoading: state.isLoadingInsights,
                   ),
                   SizedBox(height: $styles.insets.xl),
+                  // Tracking Questions
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: $styles.insets.md),
+                    child: Text(
+                      'Tracking Questions',
+                      style: $styles.text.bodyBold.copyWith(fontSize: 18),
+                    ),
+                  ),
+                  SizedBox(height: $styles.insets.sm),
+
+                  if (state.isLoadingUserQuestions)
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: $styles.insets.md),
+                      child: const LinearProgressIndicator(minHeight: 2),
+                    )
+                  else if (state.userQuestions.isEmpty)
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: $styles.insets.md),
+                      child: Text('No questions yet.',
+                          style: $styles.text.bodySmall),
+                    )
+                  else
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: $styles.insets.md),
+                      child: ListView.separated(
+                        physics: const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: state.userQuestions.length,
+                        separatorBuilder: (_, __) =>
+                            SizedBox(height: $styles.insets.sm),
+                        itemBuilder: (context, index) {
+                          final q = state.userQuestions[index];
+                          return Container(
+                            padding: EdgeInsets.all($styles.insets.md),
+                            decoration: BoxDecoration(
+                              color: $styles.colors.backgroundDark,
+                              borderRadius:
+                                  BorderRadius.circular($styles.insets.sm),
+                              border: Border.all(
+                                  color: $styles.colors.greyStrong
+                                      .withOpacity(0.1)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(q.question, style: $styles.text.bodyBold),
+                                SizedBox(height: 6),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 4,
+                                  children: [
+                                    _Badge('System: ${q.system.name}'),
+                                    _Badge('Metric: ${q.metric}'),
+                                    _Badge('Tag: ${q.questionTag}'),
+                                  ],
+                                ),
+                                SizedBox(height: $styles.insets.sm),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: q.options.map((opt) {
+                                    return ChoiceChip(
+                                      label: Text(opt.label),
+                                      selected: false,
+                                      onSelected: (_) {
+                                        // TODO: handle selection (e.g. call a service)
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  SizedBox(height: $styles.insets.sm),
                 ],
               ),
             ),
@@ -132,6 +211,29 @@ class _HomeViewState extends ConsumerState<HomeView> {
           ),
           SizedBox(height: $styles.insets.md),
         ],
+      ),
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  final String text;
+  const _Badge(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: $styles.insets.sm,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: $styles.colors.greyStrong.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: $styles.text.caption,
       ),
     );
   }

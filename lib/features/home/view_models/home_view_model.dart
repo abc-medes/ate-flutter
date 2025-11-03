@@ -1,6 +1,6 @@
 import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/services/api_service.dart';
 import 'package:bodido/core/services/auth_service.dart';
-import 'package:bodido/core/services/tracking_questions_service.dart';
 import 'package:bodido/core/services/user_service.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/health_model.dart';
@@ -17,8 +17,7 @@ final homeViewModelProvider =
   final viewModel = HomeViewModel(authService);
 
   viewModel.fetchBodySimulatorState(ref);
-  viewModel
-      .fetchUserQuestions(ref); // load questions-with-options on first load
+  viewModel.loadTrackingQuestions(ref);
 
   return viewModel;
 });
@@ -144,19 +143,23 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     }
   }
 
-  // Fetch the user's questions with options from Supabase (llm_questions)
-  Future<void> fetchUserQuestions(Ref ref) async {
+  Future<void> loadTrackingQuestions(Ref ref) async {
     if (state.isLoadingUserQuestions) return;
     state = state.copyWith(isLoadingUserQuestions: true);
     try {
-      final svc = ref.read(trackingQuestionsServiceProvider);
-      final questions = await svc.fetchUserQuestionsWithOptions(limit: 50);
+      final qs = await ApiService.getOrGenerateTrackingQuestions(
+        language: 'ko',
+        maxQuestions: '10',
+        optionsPerQuestion: '3',
+        goalFocus: 'general',
+        trackingTargets: const {},
+      );
       state = state.copyWith(
-        userQuestions: questions,
+        userQuestions: qs,
         isLoadingUserQuestions: false,
       );
     } catch (e) {
-      debugPrint('[HomeVM] fetchUserQuestions error: $e');
+      debugPrint('[HomeVM] loadTrackingQuestions error: $e');
       state = state.copyWith(isLoadingUserQuestions: false);
     }
   }

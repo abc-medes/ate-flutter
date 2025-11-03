@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/chat_model.dart';
+import 'package:bodido/data/models/tracking_question_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/status.dart' as ws_status;
@@ -226,7 +227,7 @@ class ApiService {
     }
   }
 
-  static Future<List<dynamic>> generateTrackingQuestions({
+  static Future<List<TrackingQuestion>> getOrGenerateTrackingQuestions({
     String language = 'ko',
     String maxQuestions = '2',
     String optionsPerQuestion = '3',
@@ -279,13 +280,12 @@ class ApiService {
       final decoded =
           jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
       final questions = (decoded['questions'] as List?) ?? const [];
-      return questions;
+      
+      return questions.map((e) => TrackingQuestion.fromJson(e)).toList();
     } catch (e) {
       throw Exception('Error generating tracking questions: $e');
     }
   }
-
-  
 
   static Stream<BodySimulatorStateSnapshotDTO> bodyStateStream({
     required String sessionId,

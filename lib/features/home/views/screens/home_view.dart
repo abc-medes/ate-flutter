@@ -35,15 +35,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: $styles.insets.lg),
-                  Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: $styles.insets.md),
-                    child: Text("Insights",
-                        style: $styles.text.bodyBold.copyWith(fontSize: 18)),
-                  ),
-                  SizedBox(height: $styles.insets.sm),
                   InsightsList(
+                    height: 440,
                     insights: state.insights,
                     isLoading: state.isLoadingInsights,
                   ),
@@ -90,8 +83,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
       BuildContext context, HomeViewState state, WidgetRef ref) {
     final mq = MediaQuery.of(context);
     return Container(
-      padding: EdgeInsets.fromLTRB($styles.insets.md, mq.padding.top,
-          $styles.insets.md, $styles.insets.md),
+      padding: EdgeInsets.fromLTRB(
+          $styles.insets.md, mq.padding.top, $styles.insets.md, 0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular($styles.insets.lg),

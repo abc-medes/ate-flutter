@@ -48,17 +48,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     isLoading: state.isLoadingInsights,
                   ),
                   SizedBox(height: $styles.insets.xl),
-                  // Tracking Questions
-                  Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: $styles.insets.md),
-                    child: Text(
-                      'Tracking Questions',
-                      style: $styles.text.bodyBold.copyWith(fontSize: 18),
-                    ),
-                  ),
-                  SizedBox(height: $styles.insets.sm),
-
                   TrackingQuestionsSection(
                     isLoading: state.isLoadingUserQuestions,
                     questions: state.userQuestions,

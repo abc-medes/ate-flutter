@@ -29,32 +29,23 @@ class TrackingQuestionsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (isLoading)
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: $styles.insets.sm),
-            child: const LinearProgressIndicator(minHeight: 2),
-          )
+          const LinearProgressIndicator(minHeight: 2)
         else if (questions.isEmpty)
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: $styles.insets.sm),
-            child: Text('No questions yet.', style: $styles.text.bodySmall),
-          )
+          Text('No questions yet.', style: $styles.text.bodySmall)
         else
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: $styles.insets.sm),
-            child: ListView.separated(
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: questions.length,
-              separatorBuilder: (_, __) => SizedBox(height: $styles.insets.xs),
-              itemBuilder: (context, index) {
-                final q = questions[index];
-                return TrackingQuestionCard(
-                  question: q,
-                  selectedOptionId: selectedOptions[q.id], // map drives UI
-                  onOptionSelected: onOptionSelected,
-                );
-              },
-            ),
+          ListView.separated(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            itemCount: questions.length,
+            separatorBuilder: (_, __) => SizedBox(height: $styles.insets.xs),
+            itemBuilder: (context, index) {
+              final q = questions[index];
+              return TrackingQuestionCard(
+                question: q,
+                selectedOptionId: selectedOptions[q.id], // map drives UI
+                onOptionSelected: onOptionSelected,
+              );
+            },
           ),
       ],
     );

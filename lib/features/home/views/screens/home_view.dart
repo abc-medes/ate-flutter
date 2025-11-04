@@ -1,15 +1,10 @@
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
-import 'package:bodido/core/services/api_service.dart';
 import 'package:bodido/core/widgets/chat_input.dart';
 import 'package:bodido/core/widgets/circular_icon_button.dart';
 import 'package:bodido/data/models/chat_model.dart';
 // removed model imports (not directly referenced here)
 import 'package:bodido/features/home/view_models/home_view_model.dart';
-import 'package:bodido/features/home/views/widgets/_insights_list.dart';
-import 'package:bodido/features/home/views/widgets/chat_helper.dart';
-import 'package:bodido/features/home/views/widgets/tappable_score.dart';
-import 'package:bodido/features/home/views/widgets/tracking_questions_section.dart';
 import 'package:intl/intl.dart';
 
 // --- Main HomeView Widget ---
@@ -22,6 +17,17 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView> {
+  Future<void> _openQuestionsSheet(BuildContext context, WidgetRef ref) async {
+    ref.read(homeViewModelProvider.notifier).showQuestionsSheet(context);
+  }
+
+  Future<void> _openScoreSheet(BuildContext context, WidgetRef ref) async {
+    // If needed, initialize body simulator state here. Keeping it simple and opening details.
+    ref
+        .read(homeViewModelProvider.notifier)
+        .showBodySimulatorSnapshotDetails(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final viewModel = ref.watch(homeViewModelProvider.notifier);
@@ -33,85 +39,49 @@ class _HomeViewState extends ConsumerState<HomeView> {
         children: [
           _buildHeader(context, state, ref),
           Expanded(
-            child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                  $styles.insets.md, 0, $styles.insets.md, $styles.insets.md),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: $styles.insets.md),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text("Overall Score", style: $styles.text.h3),
-                        SizedBox(height: $styles.insets.md),
-                        TappableScore(
-                          score: state.bodySimulatorState?.healthScore
-                                  .overallScore ??
-                              0,
-                          onTap: () => ref
-                              .read(homeViewModelProvider.notifier)
-                              .showBodySimulatorSnapshotDetails(context),
-                        ),
-                        SizedBox(height: $styles.insets.lg),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            icon: const Icon(Icons.monitor_heart_outlined),
-                            label: const Text('Create human body'),
-                            onPressed: () async {
-                              try {
-                                await ApiService.initializeBodySimulatorState();
-                                ref
-                                    .read(homeViewModelProvider.notifier)
-                                    .showBodySimulatorSnapshotDetails(context);
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content:
-                                          Text('Failed to create body: $e')),
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                      ],
+                  Expanded(
+                    child: _HomeBigButton(
+                      icon: Icons.insights_outlined,
+                      title: 'Score',
+                      subtitle:
+                          'Overall ${(state.bodySimulatorState?.healthScore.overallScore ?? 0).toStringAsFixed(1)}',
+                      gradientStart: $styles.colors.accent2,
+                      gradientEnd: $styles.colors.accent1,
+                      onTap: () => _openScoreSheet(context, ref),
                     ),
                   ),
-                  if (state.userQuestions.isNotEmpty)
-                    TrackingQuestionsSection(
-                      isLoading: state.isLoadingUserQuestions,
-                      questions: state.userQuestions,
-                      selectedOptions: state.selectedOptions,
-                      isSaving: state.isSavingSelections,
-                      onSavePressed: () {
-                        ref
-                            .read(homeViewModelProvider.notifier)
-                            .commitSelectedTrackingOptions();
-                      },
-                      onOptionSelected: (q, opt) {
-                        ref
-                            .read(homeViewModelProvider.notifier)
-                            .selectQuestionOptionLocal(q, opt);
-                      },
-                    ),
-                  Padding(
-                    padding: EdgeInsets.only(
-                        top: $styles.insets.sm, bottom: $styles.insets.xl),
-                    child: InsightsList(
-                      height: 440,
-                      insights: state.insights,
-                      isLoading: state.isLoadingInsights,
+                  SizedBox(height: $styles.insets.md),
+                  Expanded(
+                    child: _HomeBigButton(
+                      icon: Icons.rule_folder_outlined,
+                      title: 'Questions',
+                      subtitle: state.userQuestions.isEmpty
+                          ? 'No pending questions'
+                          : '${state.userQuestions.length} pending',
+                      gradientStart: $styles.colors.accent1,
+                      gradientEnd: $styles.colors.accent3,
+                      onTap: () => _openQuestionsSheet(context, ref),
                     ),
                   ),
-                  SizedBox(height: $styles.insets.sm),
+                  SizedBox(height: $styles.insets.md),
+                  Expanded(
+                    child: _HomeBigButton(
+                      icon: Icons.chat_bubble_outline,
+                      title: 'Chat History',
+                      subtitle: 'View your chat history',
+                      gradientStart: $styles.colors.accent3,
+                      gradientEnd: $styles.colors.accent2,
+                      onTap: () => context.push(RouteNames.chatHistory),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-          ChatHelper(
-            selectedChip: state.selectedHelperChip,
-            onChipSelected: viewModel.selectHelperChip,
           ),
           ChatInput(
             shouldSaveAsContext: state.isSaveMode,
@@ -184,6 +154,86 @@ class _HomeViewState extends ConsumerState<HomeView> {
   }
 }
 
-// (Removed _HomePages - switched to vertical sections)
+// Big button widget used on Home to represent each section
+class _HomeBigButton extends StatelessWidget {
+  const _HomeBigButton({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.gradientStart,
+    required this.gradientEnd,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color gradientStart;
+  final Color gradientEnd;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular($styles.corners.md),
+      child: Ink(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular($styles.corners.md),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              gradientStart.withOpacity(0.24),
+              gradientEnd.withOpacity(0.14),
+            ],
+          ),
+          border: Border.all(color: gradientStart.withOpacity(0.30), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: gradientStart.withOpacity(0.14),
+              blurRadius: 18,
+              offset: const Offset(0, 10),
+            ),
+          ],
+          color: $styles.colors.backgroundDark,
+        ),
+        child: Padding(
+          padding: EdgeInsets.all($styles.insets.md),
+          child: Row(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: gradientStart.withOpacity(0.20),
+                  borderRadius: BorderRadius.circular($styles.corners.md),
+                ),
+                child: Icon(icon, color: gradientStart, size: 32),
+              ),
+              SizedBox(width: $styles.insets.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(title,
+                        style: $styles.text.bodyBold.copyWith(fontSize: 20)),
+                    SizedBox(height: 4),
+                    Text(subtitle,
+                        style: $styles.text.caption
+                            .copyWith(color: $styles.colors.caption)),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right,
+                  color: $styles.colors.caption, size: 24),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 // (Badge widget removed - not used)

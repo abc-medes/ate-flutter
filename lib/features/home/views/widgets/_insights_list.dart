@@ -19,21 +19,6 @@ class InsightsList extends StatefulWidget {
 }
 
 class _InsightsListState extends State<InsightsList> {
-  late final PageController _controller;
-  int _current = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = PageController(viewportFraction: 1);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   bool _isGoodValue(String v) {
     final s = v.toLowerCase();
     return s.contains('좋음') ||
@@ -49,77 +34,53 @@ class _InsightsListState extends State<InsightsList> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            height: widget.height,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
-              child: _skeletonCard(),
-            ),
-          ),
-          SizedBox(height: $styles.insets.sm),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
-            child: Text(
-              '인사이트를 불러오는 중입니다...',
-              style: $styles.text.bodySmall.copyWith(
-                color: $styles.colors.caption,
-              ),
+            child: Column(
+              children: [
+                _skeletonCard(),
+                SizedBox(height: $styles.insets.sm),
+                _skeletonCard(),
+              ],
             ),
+          ),
+          SizedBox(height: $styles.insets.xs),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
+            child: Text('인사이트를 불러오는 중입니다...',
+                style: $styles.text.bodySmall
+                    .copyWith(color: $styles.colors.caption)),
           ),
         ],
       );
     }
 
-    // Sort: bad first, then higher priority
-    int rank(InsightItem i) => _isGoodValue(i.value) ? 1 : 0;
+    // Sort: good first (bad last), then higher priority
+    int rank(InsightItem i) => _isGoodValue(i.value) ? 0 : 1;
     final sorted = [...widget.insights]..sort((a, b) {
         final r = rank(a).compareTo(rank(b));
         if (r != 0) return r;
         return b.priority.compareTo(a.priority);
       });
 
-    return Column(
-      children: [
-        SizedBox(
-          height: widget.height,
-          child: PageView.builder(
-            controller: _controller,
-            itemCount: sorted.length,
-            onPageChanged: (index) => setState(() => _current = index),
-            itemBuilder: (context, index) {
-              final i = sorted[index];
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
-                child: InsightCard(
-                  icon: i.iconData,
-                  title: i.title,
-                  value: i.value,
-                  advice: i.advice,
-                  isGood: _isGoodValue(i.value),
-                ),
-              );
-            },
-          ),
-        ),
-        SizedBox(height: $styles.insets.sm),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            sorted.length,
-            (index) => Container(
-              width: 8,
-              height: 8,
-              margin: EdgeInsets.symmetric(horizontal: 4),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: index == _current
-                    ? $styles.colors.accent1
-                    : $styles.colors.greyMedium,
-              ),
-            ),
-          ),
-        ),
-      ],
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
+      child: ListView.separated(
+        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        itemCount: sorted.length,
+        separatorBuilder: (_, __) => SizedBox(height: $styles.insets.sm),
+        itemBuilder: (context, index) {
+          final i = sorted[index];
+          return InsightCard(
+            icon: i.iconData,
+            title: i.title,
+            value: i.value,
+            advice: i.advice,
+            isGood: _isGoodValue(i.value),
+          );
+        },
+      ),
     );
   }
 

@@ -28,26 +28,6 @@ class TrackingQuestionsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
-          child: Row(
-            children: [
-              Text('Tracking Questions',
-                  style: $styles.text.bodyBold.copyWith(fontSize: 18)),
-              Spacer(),
-              TextButton(
-                onPressed: (!hasSelection || isSaving) ? null : onSavePressed,
-                child: isSaving
-                    ? SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2))
-                    : Text('Save'),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: $styles.insets.sm),
         if (isLoading)
           Padding(
             padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),

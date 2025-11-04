@@ -14,10 +14,7 @@ class TrackingQuestionCard extends StatelessWidget {
     this.onOptionSelected,
   });
 
-  // Brand palette
-  static const _brandPrimary = Color(0xFF05804C); // Primary
-  static const _brandSecondary = Color(0xFFBEABA1); // Secondary
-  static const _brandTertiary = Color(0xFFC47642); // Tertiary
+  // Use centralized brand palette from $styles.colors
 
   @override
   Widget build(BuildContext context) {
@@ -27,10 +24,11 @@ class TrackingQuestionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: $styles.colors.backgroundDark,
         borderRadius: BorderRadius.circular($styles.insets.sm),
-        border: Border.all(color: _brandPrimary.withOpacity(0.20), width: 1),
+        border: Border.all(
+            color: $styles.colors.accent1.withOpacity(0.20), width: 1),
         boxShadow: [
           BoxShadow(
-            color: _brandPrimary.withOpacity(0.06),
+            color: $styles.colors.accent1.withOpacity(0.06),
             blurRadius: 10,
             offset: const Offset(0, 6),
           ),
@@ -39,8 +37,8 @@ class TrackingQuestionCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            _brandPrimary.withOpacity(0.05),
-            _brandSecondary.withOpacity(0.04),
+            $styles.colors.accent1.withOpacity(0.05),
+            $styles.colors.accent3.withOpacity(0.04),
           ],
         ),
       ),
@@ -55,18 +53,18 @@ class TrackingQuestionCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: _brandPrimary.withOpacity(0.12),
+                  color: $styles.colors.accent1.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(Icons.health_and_safety,
-                    size: 18, color: _brandPrimary),
+                    size: 18, color: $styles.colors.accent1),
               ),
               SizedBox(width: $styles.insets.sm),
               Text(
                 question.questionTag.toUpperCase(),
                 style: $styles.text.caption.copyWith(
                   letterSpacing: 0.5,
-                  color: _brandPrimary,
+                  color: $styles.colors.accent1,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -95,12 +93,13 @@ class TrackingQuestionCard extends StatelessWidget {
             children: [
               _MetaPill(
                   label: 'System: ${question.system.name}',
-                  color: _brandTertiary),
+                  color: $styles.colors.accent2),
               _MetaPill(
-                  label: 'Metric: ${question.metric}', color: _brandPrimary),
+                  label: 'Metric: ${question.metric}',
+                  color: $styles.colors.accent1),
               _MetaPill(
                   label: 'Category: ${question.category}',
-                  color: _brandSecondary),
+                  color: $styles.colors.accent3),
             ],
           ),
 
@@ -118,19 +117,19 @@ class TrackingQuestionCard extends StatelessWidget {
                   style: $styles.text.bodySmall.copyWith(
                     color: isSelected
                         ? Colors.white
-                        : _brandPrimary.withOpacity(0.9),
+                        : $styles.colors.accent1.withOpacity(0.9),
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   ),
                 ),
                 selected: isSelected,
-                backgroundColor: _brandPrimary.withOpacity(0.10),
-                selectedColor: _brandPrimary,
+                backgroundColor: $styles.colors.accent1.withOpacity(0.10),
+                selectedColor: $styles.colors.accent1,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: StadiumBorder(
                   side: BorderSide(
                     color: isSelected
-                        ? _brandPrimary
-                        : _brandPrimary.withOpacity(0.35),
+                        ? $styles.colors.accent1
+                        : $styles.colors.accent1.withOpacity(0.35),
                     width: 1,
                   ),
                 ),
@@ -180,8 +179,8 @@ class _PriorityDot extends StatelessWidget {
   Widget build(BuildContext context) {
     final clamped = priority.clamp(0.0, 1.0);
     final color = Color.lerp(
-      TrackingQuestionCard._brandSecondary,
-      TrackingQuestionCard._brandPrimary,
+      $styles.colors.accent3,
+      $styles.colors.accent1,
       clamped,
     )!;
     return Container(

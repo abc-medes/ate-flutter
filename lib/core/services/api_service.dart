@@ -227,6 +227,9 @@ class ApiService {
     }
   }
 
+  // ------------------------------------------------------------
+  ///                       Tracking Questions
+  // ------------------------------------------------------------
   static Future<List<TrackingQuestion>> getOrGenerateTrackingQuestions({
     String language = 'ko',
     String maxQuestions = '2',
@@ -280,12 +283,62 @@ class ApiService {
       final decoded =
           jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
       final questions = (decoded['questions'] as List?) ?? const [];
-      
+
       return questions.map((e) => TrackingQuestion.fromJson(e)).toList();
     } catch (e) {
       throw Exception('Error generating tracking questions: $e');
     }
   }
+
+  static Future<Map<String, dynamic>> selectTrackingOption({
+    required UserSelectionRequest request,
+    bool dryRun = false,
+  }) async {
+    try {
+      final session = _supabase.auth.currentSession;
+      if (session == null) {
+        throw Exception('Not authenticated');
+      }
+      String accessToken = session.accessToken;
+
+      Future<http.Response> executeRequest(String token) {
+        final uri = Uri.parse('$_baseUrl/tracking/select');
+        final body = request.toJson();
+        if (dryRun) body['dry_run'] = true;
+        return http.post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode(body),
+        );
+      }
+
+      var response = await executeRequest(accessToken);
+
+      if (response.statusCode == 401) {
+        final refreshed = await _supabase.auth.refreshSession();
+        if (refreshed.session == null ||
+            refreshed.session!.accessToken.isEmpty) {
+          throw Exception('Authentication failed');
+        }
+        accessToken = refreshed.session!.accessToken;
+        response = await executeRequest(accessToken);
+      }
+
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Failed select: ${response.statusCode} - ${response.body}');
+      }
+
+      return jsonDecode(utf8.decode(response.bodyBytes))
+          as Map<String, dynamic>;
+    } catch (e) {
+      throw Exception('Error selectTrackingOption: $e');
+    }
+  }
+// ------------------------------------------------------------
 
   static Stream<BodySimulatorStateSnapshotDTO> bodyStateStream({
     required String sessionId,

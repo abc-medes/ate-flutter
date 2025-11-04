@@ -44,9 +44,19 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   TrackingQuestionsSection(
                     isLoading: state.isLoadingUserQuestions,
                     questions: state.userQuestions,
+                    selectedOptions: state.selectedOptions, // ADD
+                    isSaving: state.isSavingSelections, // ADD
+                    onSavePressed: () {
+                      // ADD
+                      ref
+                          .read(homeViewModelProvider.notifier)
+                          .commitSelectedTrackingOptions();
+                    },
                     onOptionSelected: (q, opt) {
-                      // ref.read(homeViewModelProvider.notifier)
-                      //   .selectQuestionOption(ref, questionId: q.id, option: opt);
+                      // ADD
+                      ref
+                          .read(homeViewModelProvider.notifier)
+                          .selectQuestionOptionLocal(q, opt);
                     },
                   ),
                   SizedBox(height: $styles.insets.sm),

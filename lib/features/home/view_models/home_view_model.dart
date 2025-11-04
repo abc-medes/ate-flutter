@@ -9,6 +9,7 @@ import 'package:bodido/data/models/insight_model.dart';
 import 'package:bodido/data/models/tracking_question_model.dart';
 import 'package:bodido/data/repositories/app_lifecycle_repository.dart';
 import 'package:bodido/features/home/views/widgets/_body_simultor_snapshot_details.dart';
+import 'package:bodido/features/home/views/widgets/_questions_sheet.dart';
 import 'package:flutter/cupertino.dart';
 
 enum ChatHelperType { ai, alerts, waitlist, system, context }
@@ -123,6 +124,13 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     );
   }
 
+  void showQuestionsSheet(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => QuestionsSheet(),
+    );
+  }
+
   void fetchBodySimulatorState(Ref ref) async {
     final bodySimulatorState =
         await ref.read(userServiceProvider).bodySimulatorState();
@@ -216,6 +224,8 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
 
     try {
       final questions = state.userQuestions;
+      final committedIds = <String>{};
+
       for (final entry in state.selectedOptions.entries) {
         final qId = entry.key;
         final optId = entry.value;
@@ -231,12 +241,19 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
           clientLocalTimestamp: DateTime.now(),
         );
 
-        // Optional preview:
-        // await ApiService.selectTrackingOption(request: req, dryRun: true);
         await ApiService.selectTrackingOption(request: req, dryRun: false);
+        committedIds.add(qId);
       }
 
-      state = state.copyWith(selectedOptions: {});
+      // Locally remove committed questions from pending UI
+      final remaining = state.userQuestions
+          .where((q) => !committedIds.contains(q.id))
+          .toList();
+
+      state = state.copyWith(
+        userQuestions: remaining,
+        selectedOptions: {},
+      );
     } catch (e) {
       print('Error committing selections: $e');
     } finally {

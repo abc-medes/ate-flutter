@@ -304,7 +304,7 @@ class ApiService {
       String accessToken = session.accessToken;
 
       Future<http.Response> executeRequest(String token) {
-        final uri = Uri.parse('$_baseUrl/tracking/select');
+        final uri = Uri.parse('$_baseUrl/select/tracking-option');
         final body = request.toJson();
         if (dryRun) body['dry_run'] = true;
         return http.post(

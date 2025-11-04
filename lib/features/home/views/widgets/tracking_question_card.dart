@@ -20,7 +20,7 @@ class TrackingQuestionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.zero,
-      padding: EdgeInsets.all($styles.insets.md),
+      padding: EdgeInsets.all($styles.insets.sm),
       decoration: BoxDecoration(
         color: $styles.colors.backgroundDark,
         borderRadius: BorderRadius.circular($styles.insets.sm),
@@ -51,15 +51,15 @@ class TrackingQuestionCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.max,
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: $styles.colors.accent1.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(Icons.health_and_safety,
-                    size: 18, color: $styles.colors.accent1),
+                    size: 16, color: $styles.colors.accent1),
               ),
-              SizedBox(width: $styles.insets.sm),
+              SizedBox(width: $styles.insets.xs),
               Text(
                 question.questionTag.toUpperCase(),
                 style: $styles.text.caption.copyWith(
@@ -73,23 +73,23 @@ class TrackingQuestionCard extends StatelessWidget {
             ],
           ),
 
-          SizedBox(height: $styles.insets.sm),
+          SizedBox(height: $styles.insets.xs),
 
           // Question text
           Text(
             question.question,
             style: $styles.text.bodyBold.copyWith(
-              fontSize: 16.0,
-              height: 1.4, // safe line height
+              fontSize: 15.0,
+              height: 1.3,
             ),
           ),
 
-          SizedBox(height: $styles.insets.sm),
+          SizedBox(height: $styles.insets.xs),
 
           // Meta pills
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: [
               _MetaPill(
                   label: 'System: ${question.system.name}',
@@ -103,12 +103,12 @@ class TrackingQuestionCard extends StatelessWidget {
             ],
           ),
 
-          SizedBox(height: $styles.insets.md),
+          SizedBox(height: $styles.insets.sm),
 
           // Options
           Wrap(
-            spacing: 8,
-            runSpacing: 10,
+            spacing: 6,
+            runSpacing: 8,
             children: question.options.map((opt) {
               final isSelected = selectedOptionId == opt.id;
               return ChoiceChip(
@@ -122,14 +122,14 @@ class TrackingQuestionCard extends StatelessWidget {
                   ),
                 ),
                 selected: isSelected,
-                backgroundColor: $styles.colors.accent1.withOpacity(0.10),
+                backgroundColor: $styles.colors.accent1.withOpacity(0.08),
                 selectedColor: $styles.colors.accent1,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: StadiumBorder(
                   side: BorderSide(
                     color: isSelected
                         ? $styles.colors.accent1
-                        : $styles.colors.accent1.withOpacity(0.35),
+                        : $styles.colors.accent1.withOpacity(0.30),
                     width: 1,
                   ),
                 ),
@@ -184,16 +184,16 @@ class _PriorityDot extends StatelessWidget {
       clamped,
     )!;
     return Container(
-      width: 10,
-      height: 10,
+      width: 8,
+      height: 8,
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.35),
-            blurRadius: 8,
-            spreadRadius: 1,
+            color: color.withOpacity(0.28),
+            blurRadius: 6,
+            spreadRadius: 0.5,
           ),
         ],
       ),

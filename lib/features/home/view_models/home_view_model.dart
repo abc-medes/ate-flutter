@@ -1,6 +1,7 @@
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/services/api_service.dart';
 import 'package:bodido/core/services/auth_service.dart';
+import 'package:bodido/core/services/tracking_questions_service.dart';
 import 'package:bodido/core/services/user_service.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/health_model.dart';
@@ -30,10 +31,10 @@ class HomeViewState {
   final BodySimulatorStateSnapshotDTO? bodySimulatorState;
   final List<InsightItem> insights;
   final bool isLoadingInsights;
-
-  // Questions with options
   final List<TrackingQuestion> userQuestions;
   final bool isLoadingUserQuestions;
+  final Map<String, String> selectedOptions;
+  final bool isSavingSelections;
 
   HomeViewState({
     this.missingBasicData = const [],
@@ -45,6 +46,8 @@ class HomeViewState {
     this.isLoadingInsights = false,
     this.userQuestions = const [],
     this.isLoadingUserQuestions = false,
+    this.selectedOptions = const {},
+    this.isSavingSelections = false,
   });
 
   HomeViewState copyWith({
@@ -58,6 +61,8 @@ class HomeViewState {
     bool? isLoadingInsights,
     List<TrackingQuestion>? userQuestions,
     bool? isLoadingUserQuestions,
+    Map<String, String>? selectedOptions,
+    bool? isSavingSelections,
   }) {
     return HomeViewState(
       missingBasicData: missingBasicData ?? this.missingBasicData,
@@ -70,6 +75,8 @@ class HomeViewState {
       userQuestions: userQuestions ?? this.userQuestions,
       isLoadingUserQuestions:
           isLoadingUserQuestions ?? this.isLoadingUserQuestions,
+      selectedOptions: selectedOptions ?? this.selectedOptions,
+      isSavingSelections: isSavingSelections ?? this.isSavingSelections,
     );
   }
 }
@@ -143,17 +150,24 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
     }
   }
 
+  // ------------------------------------------------------------
+  ///                       Tracking Questions
+  // ------------------------------------------------------------
   Future<void> loadTrackingQuestions(Ref ref) async {
     if (state.isLoadingUserQuestions) return;
     state = state.copyWith(isLoadingUserQuestions: true);
     try {
-      final qs = await ApiService.getOrGenerateTrackingQuestions(
-        language: 'ko',
-        maxQuestions: '10',
-        optionsPerQuestion: '3',
-        goalFocus: 'general',
-        trackingTargets: const {},
-      );
+      final userId = ref.read(userServiceProvider).userId;
+      final qs =
+          await ref.read(trackingQuestionsServiceProvider).getPendingOrGenerate(
+                userId: userId,
+                language: 'ko',
+                maxQuestions: '10',
+                optionsPerQuestion: '3',
+                goalFocus: 'general',
+                trackingTargets: const {},
+                limit: 20,
+              );
       state = state.copyWith(
         userQuestions: qs,
         isLoadingUserQuestions: false,
@@ -163,4 +177,45 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
       state = state.copyWith(isLoadingUserQuestions: false);
     }
   }
+
+  void selectQuestionOptionLocal(TrackingQuestion q, QuestionOption opt) {
+    final updated = Map<String, String>.from(state.selectedOptions)
+      ..[q.id] = opt.id;
+    state = state.copyWith(selectedOptions: updated);
+  }
+
+  Future<void> commitSelectedTrackingOptions() async {
+    if (state.isSavingSelections || state.selectedOptions.isEmpty) return;
+    state = state.copyWith(isSavingSelections: true);
+
+    try {
+      final questions = state.userQuestions;
+      for (final entry in state.selectedOptions.entries) {
+        final qId = entry.key;
+        final optId = entry.value;
+
+        final q = questions.firstWhere((x) => x.id == qId);
+        final opt = q.options.firstWhere((o) => o.id == optId);
+
+        final req = UserSelectionRequest(
+          questionId: q.id,
+          questionTag: q.questionTag,
+          optionId: opt.id,
+          selectionKey: opt.selectionKey,
+          clientLocalTimestamp: DateTime.now(),
+        );
+
+        // Optional preview:
+        // await ApiService.selectTrackingOption(request: req, dryRun: true);
+        await ApiService.selectTrackingOption(request: req, dryRun: false);
+      }
+
+      state = state.copyWith(selectedOptions: {});
+    } catch (e) {
+      print('Error committing selections: $e');
+    } finally {
+      state = state.copyWith(isSavingSelections: false);
+    }
+  }
+  // ------------------------------------------------------------
 }

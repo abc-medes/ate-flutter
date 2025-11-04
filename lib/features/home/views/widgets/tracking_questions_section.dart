@@ -5,6 +5,9 @@ import 'package:bodido/features/home/views/widgets/tracking_question_card.dart';
 class TrackingQuestionsSection extends StatelessWidget {
   final bool isLoading;
   final List<TrackingQuestion> questions;
+  final Map<String, String> selectedOptions;
+  final bool isSaving;
+  final VoidCallback? onSavePressed;
   final void Function(TrackingQuestion q, QuestionOption option)?
       onOptionSelected;
 
@@ -12,19 +15,36 @@ class TrackingQuestionsSection extends StatelessWidget {
     super.key,
     required this.isLoading,
     required this.questions,
+    required this.selectedOptions,
+    this.isSaving = false,
+    this.onSavePressed,
     this.onOptionSelected,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasSelection = selectedOptions.isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
-          child: Text(
-            'Tracking Questions',
-            style: $styles.text.bodyBold.copyWith(fontSize: 18),
+          child: Row(
+            children: [
+              Text('Tracking Questions',
+                  style: $styles.text.bodyBold.copyWith(fontSize: 18)),
+              Spacer(),
+              TextButton(
+                onPressed: (!hasSelection || isSaving) ? null : onSavePressed,
+                child: isSaving
+                    ? SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : Text('Save'),
+              ),
+            ],
           ),
         ),
         SizedBox(height: $styles.insets.sm),
@@ -50,7 +70,7 @@ class TrackingQuestionsSection extends StatelessWidget {
                 final q = questions[index];
                 return TrackingQuestionCard(
                   question: q,
-                  selectedOptionId: null,
+                  selectedOptionId: selectedOptions[q.id], // map drives UI
                   onOptionSelected: onOptionSelected,
                 );
               },

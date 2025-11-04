@@ -73,7 +73,7 @@ class TrackingQuestionsService {
 
     // 2) Trigger generation (backend: generate-only)
     try {
-      await ApiService.getOrGenerateTrackingQuestions(
+      await ApiService.createTrackingQuestions(
         language: language,
         maxQuestions: maxQuestions,
         optionsPerQuestion: optionsPerQuestion,

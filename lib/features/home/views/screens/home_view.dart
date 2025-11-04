@@ -1,8 +1,10 @@
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/services/api_service.dart';
 import 'package:bodido/core/widgets/chat_input.dart';
 import 'package:bodido/core/widgets/circular_icon_button.dart';
 import 'package:bodido/data/models/chat_model.dart';
+// removed model imports (not directly referenced here)
 import 'package:bodido/features/home/view_models/home_view_model.dart';
 import 'package:bodido/features/home/views/widgets/_insights_list.dart';
 import 'package:bodido/features/home/views/widgets/chat_helper.dart';
@@ -35,29 +37,72 @@ class _HomeViewState extends ConsumerState<HomeView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InsightsList(
-                    height: 440,
-                    insights: state.insights,
-                    isLoading: state.isLoadingInsights,
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: $styles.insets.md),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text("Overall Score", style: $styles.text.h3),
+                        SizedBox(height: $styles.insets.md),
+                        TappableScore(
+                          score: state.bodySimulatorState?.healthScore
+                                  .overallScore ??
+                              0,
+                          onTap: () => ref
+                              .read(homeViewModelProvider.notifier)
+                              .showBodySimulatorSnapshotDetails(context),
+                        ),
+                        SizedBox(height: $styles.insets.lg),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.monitor_heart_outlined),
+                            label: const Text('Create human body'),
+                            onPressed: () async {
+                              try {
+                                await ApiService.initializeBodySimulatorState();
+                                ref
+                                    .read(homeViewModelProvider.notifier)
+                                    .showBodySimulatorSnapshotDetails(context);
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content:
+                                          Text('Failed to create body: $e')),
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  SizedBox(height: $styles.insets.xl),
-                  TrackingQuestionsSection(
-                    isLoading: state.isLoadingUserQuestions,
-                    questions: state.userQuestions,
-                    selectedOptions: state.selectedOptions, // ADD
-                    isSaving: state.isSavingSelections, // ADD
-                    onSavePressed: () {
-                      // ADD
-                      ref
-                          .read(homeViewModelProvider.notifier)
-                          .commitSelectedTrackingOptions();
-                    },
-                    onOptionSelected: (q, opt) {
-                      // ADD
-                      ref
-                          .read(homeViewModelProvider.notifier)
-                          .selectQuestionOptionLocal(q, opt);
-                    },
+                  if (state.userQuestions.isNotEmpty)
+                    TrackingQuestionsSection(
+                      isLoading: state.isLoadingUserQuestions,
+                      questions: state.userQuestions,
+                      selectedOptions: state.selectedOptions,
+                      isSaving: state.isSavingSelections,
+                      onSavePressed: () {
+                        ref
+                            .read(homeViewModelProvider.notifier)
+                            .commitSelectedTrackingOptions();
+                      },
+                      onOptionSelected: (q, opt) {
+                        ref
+                            .read(homeViewModelProvider.notifier)
+                            .selectQuestionOptionLocal(q, opt);
+                      },
+                    ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                        top: $styles.insets.sm, bottom: $styles.insets.xl),
+                    child: InsightsList(
+                      height: 440,
+                      insights: state.insights,
+                      isLoading: state.isLoadingInsights,
+                    ),
                   ),
                   SizedBox(height: $styles.insets.sm),
                 ],
@@ -133,40 +178,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
             ],
           ),
           SizedBox(height: $styles.insets.md),
-          Text("Overall Score", style: $styles.text.h3),
-          SizedBox(height: $styles.insets.md),
-          TappableScore(
-            score: state.bodySimulatorState?.healthScore.overallScore ?? 0,
-            onTap: () => ref
-                .read(homeViewModelProvider.notifier)
-                .showBodySimulatorSnapshotDetails(context),
-          ),
-          SizedBox(height: $styles.insets.md),
         ],
       ),
     );
   }
 }
 
-class _Badge extends StatelessWidget {
-  final String text;
-  const _Badge(this.text);
+// (Removed _HomePages - switched to vertical sections)
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: $styles.insets.sm,
-        vertical: 4,
-      ),
-      decoration: BoxDecoration(
-        color: $styles.colors.greyStrong.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        text,
-        style: $styles.text.caption,
-      ),
-    );
-  }
-}
+// (Badge widget removed - not used)

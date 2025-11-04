@@ -12,91 +12,108 @@ class QuestionsSheet extends ConsumerWidget {
     final state = ref.watch(homeViewModelProvider);
     final vm = ref.read(homeViewModelProvider.notifier);
 
-    return FractionallySizedBox(
-      heightFactor: 0.9,
-      child: SafeArea(
-        top: false,
-        child: Scaffold(
-          backgroundColor: $styles.colors.background,
-          body: Padding(
-            padding: EdgeInsets.fromLTRB(
-              $styles.insets.md,
-              $styles.insets.md,
-              $styles.insets.md,
-              0,
-            ),
-            child: SingleChildScrollView(
-              child: TrackingQuestionsSection(
-                isLoading: state.isLoadingUserQuestions,
-                questions: state.userQuestions,
-                selectedOptions: state.selectedOptions,
-                isSaving: state.isSavingSelections,
-                onOptionSelected: (q, opt) =>
-                    vm.selectQuestionOptionLocal(q, opt),
-              ),
-            ),
-          ),
-          bottomNavigationBar: _QuestionsBottomBar(
-            state: state,
-            onUpdatePressed: state.isSavingSelections
-                ? null
-                : () async {
-                    await vm.commitSelectedTrackingOptions();
-                  },
-            onAskAiPressed: () {
-              final selected = state.selectedOptions;
-              if (selected.isEmpty) return;
-
-              final qs = state.userQuestions;
-              final lines = <String>[];
-              for (final entry in selected.entries) {
-                final q = qs.firstWhere(
-                  (x) => x.id == entry.key,
-                  orElse: () => qs.first,
-                );
-                final opt = q.options.firstWhere(
-                  (o) => o.id == entry.value,
-                  orElse: () => q.options.first,
-                );
-                lines.add('- ${q.question}: ${opt.label}');
-              }
-
-              final prompt = [
-                'Here are my latest updates:',
-                ...lines,
-                'Please provide guidance and next steps.',
-              ].join('\n');
-
-              final userId = Supabase.instance.client.auth.currentUser?.id;
-              if (userId == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please sign in to start chat'),
+    return Material(
+      color: $styles.colors.background,
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular($styles.insets.lg),
+        topRight: Radius.circular($styles.insets.lg),
+      ),
+      child: DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.8,
+        minChildSize: 0.2,
+        maxChildSize: 0.95,
+        builder: (_, controller) => Padding(
+          padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
+          child: Column(
+            children: [
+              SizedBox(height: $styles.insets.sm),
+              Center(
+                child: Text(
+                  'Questions',
+                  style: $styles.text.bodyBold.copyWith(
+                    fontSize: 16,
+                    color: $styles.colors.accent1,
                   ),
-                );
-                return;
-              }
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: controller,
+                  child: TrackingQuestionsSection(
+                    isLoading: state.isLoadingUserQuestions,
+                    questions: state.userQuestions,
+                    selectedOptions: state.selectedOptions,
+                    isSaving: state.isSavingSelections,
+                    onOptionSelected: (q, opt) =>
+                        vm.selectQuestionOptionLocal(q, opt),
+                  ),
+                ),
+              ),
+              _QuestionsBottomBar(
+                state: state,
+                onUpdatePressed: state.isSavingSelections
+                    ? null
+                    : () async {
+                        await vm.commitSelectedTrackingOptions();
+                      },
+                onAskAiPressed: () {
+                  final selected = state.selectedOptions;
+                  if (selected.isEmpty) return;
 
-              final sessionId = 'qs-${DateTime.now().millisecondsSinceEpoch}';
+                  final qs = state.userQuestions;
+                  final lines = <String>[];
+                  for (final entry in selected.entries) {
+                    final q = qs.firstWhere(
+                      (x) => x.id == entry.key,
+                      orElse: () => qs.first,
+                    );
+                    final opt = q.options.firstWhere(
+                      (o) => o.id == entry.value,
+                      orElse: () => q.options.first,
+                    );
+                    lines.add('- ${q.question}: ${opt.label}');
+                  }
 
-              final msg = ChatMessageDTO(
-                userId: userId,
-                sessionId: sessionId,
-                message: prompt,
-                isUser: true,
-                createdAt: DateTime.now(),
-                clientLocalTimestamp: DateTime.now(),
-              );
+                  final prompt = [
+                    'Here are my latest updates:',
+                    ...lines,
+                    'Please provide guidance and next steps.',
+                  ].join('\n');
 
-              context.push(
-                RouteNames.chat,
-                extra: {
-                  'initialMessage': msg,
-                  'sessionIds': [sessionId],
-                  'selectedDate': DateTime.now(),
+                  final userId = Supabase.instance.client.auth.currentUser?.id;
+                  if (userId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please sign in to start chat'),
+                      ),
+                    );
+                    return;
+                  }
+
+                  final sessionId =
+                      'qs-${DateTime.now().millisecondsSinceEpoch}';
+
+                  final msg = ChatMessageDTO(
+                    userId: userId,
+                    sessionId: sessionId,
+                    message: prompt,
+                    isUser: true,
+                    createdAt: DateTime.now(),
+                    clientLocalTimestamp: DateTime.now(),
+                  );
+
+                  context.push(
+                    RouteNames.chat,
+                    extra: {
+                      'initialMessage': msg,
+                      'sessionIds': [sessionId],
+                      'selectedDate': DateTime.now(),
+                    },
+                  );
                 },
-              );
-            },
+              ),
+            ],
           ),
         ),
       ),

@@ -7,6 +7,7 @@ import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/data/models/insight_model.dart';
 import 'package:bodido/data/models/tracking_question_model.dart';
+import 'package:bodido/data/repositories/app_lifecycle_repository.dart';
 import 'package:bodido/features/home/views/widgets/_body_simultor_snapshot_details.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -155,23 +156,48 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
   // ------------------------------------------------------------
   Future<void> loadTrackingQuestions(Ref ref) async {
     if (state.isLoadingUserQuestions) return;
+
+    final shouldRefresh = await ref
+        .read(appLifecycleRepositoryProvider)
+        .shouldRefreshQuestions(minInterval: const Duration(hours: 6));
+
+    // If we already have questions and gate says "fresh enough", skip
+    if (state.userQuestions.isNotEmpty && !shouldRefresh) return;
+
     state = state.copyWith(isLoadingUserQuestions: true);
     try {
+      // keep unanswered in UI
+      final unanswered = state.userQuestions
+          .where((q) => !state.selectedOptions.containsKey(q.id))
+          .toList();
+
+      // prefer pending IDs, else create new
+      final svc = ref.read(trackingQuestionsServiceProvider);
       final userId = ref.read(userServiceProvider).userId;
-      final qs =
-          await ref.read(trackingQuestionsServiceProvider).getPendingOrGenerate(
-                userId: userId,
-                language: 'ko',
-                maxQuestions: '10',
-                optionsPerQuestion: '3',
-                goalFocus: 'general',
-                trackingTargets: const {},
-                limit: 20,
-              );
-      state = state.copyWith(
-        userQuestions: qs,
-        isLoadingUserQuestions: false,
-      );
+      final pendingIds = await svc.listPendingQuestionIds(userId, limit: 20);
+
+      final fetched = pendingIds.isNotEmpty
+          ? await svc.getManyByIds(pendingIds)
+          : await ApiService.createTrackingQuestions(
+              language: 'ko',
+              maxQuestions: '10',
+              optionsPerQuestion: '3',
+              goalFocus: 'general',
+              trackingTargets: const {},
+            );
+
+      // merge, unanswered first
+      final seen = <String>{};
+      final merged = <TrackingQuestion>[];
+      for (final q in [...unanswered, ...fetched]) {
+        if (seen.add(q.id)) merged.add(q);
+      }
+
+      // mark refresh persisted
+      await ref.read(appLifecycleRepositoryProvider).markQuestionsRefreshed();
+
+      state =
+          state.copyWith(userQuestions: merged, isLoadingUserQuestions: false);
     } catch (e) {
       debugPrint('[HomeVM] loadTrackingQuestions error: $e');
       state = state.copyWith(isLoadingUserQuestions: false);

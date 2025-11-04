@@ -230,9 +230,9 @@ class ApiService {
   // ------------------------------------------------------------
   ///                       Tracking Questions
   // ------------------------------------------------------------
-  static Future<List<TrackingQuestion>> getOrGenerateTrackingQuestions({
+  static Future<List<TrackingQuestion>> createTrackingQuestions({
     String language = 'ko',
-    String maxQuestions = '2',
+    String maxQuestions = '10',
     String optionsPerQuestion = '3',
     String goalFocus = 'general',
     Map<String, dynamic> trackingTargets = const {},
@@ -245,7 +245,7 @@ class ApiService {
       String accessToken = session.accessToken;
 
       Future<http.Response> executeRequest(String token) {
-        final uri = Uri.parse('$_baseUrl/tracking/questions');
+        final uri = Uri.parse('$_baseUrl/create/tracking-questions');
         return http.post(
           uri,
           headers: {
@@ -276,17 +276,19 @@ class ApiService {
 
       if (response.statusCode != 200) {
         throw Exception(
-          'Failed to generate tracking questions: ${response.statusCode} - ${response.body}',
+          'Failed to create tracking questions: ${response.statusCode} - ${response.body}',
         );
       }
 
       final decoded =
-          jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-      final questions = (decoded['questions'] as List?) ?? const [];
-
-      return questions.map((e) => TrackingQuestion.fromJson(e)).toList();
+          jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
+      return decoded
+          .map((e) => TrackingQuestion.fromJson(
+                e is Map<String, dynamic> ? e : Map<String, dynamic>.from(e),
+              ))
+          .toList();
     } catch (e) {
-      throw Exception('Error generating tracking questions: $e');
+      throw Exception('Error createTrackingQuestions: $e');
     }
   }
 

@@ -34,8 +34,11 @@ class HomeViewState {
   final List<InsightItem> insights;
   final bool isLoadingInsights;
   final List<TrackingQuestion> userQuestions;
+  final List<TrackingQuestion> answeredQuestions;
   final bool isLoadingUserQuestions;
+
   final Map<String, String> selectedOptions;
+  final Map<String, String> answeredOptions;
   final bool isSavingSelections;
 
   HomeViewState({
@@ -47,8 +50,10 @@ class HomeViewState {
     this.insights = const [],
     this.isLoadingInsights = false,
     this.userQuestions = const [],
+    this.answeredQuestions = const [],
     this.isLoadingUserQuestions = false,
     this.selectedOptions = const {},
+    this.answeredOptions = const {},
     this.isSavingSelections = false,
   });
 
@@ -62,8 +67,10 @@ class HomeViewState {
     List<InsightItem>? insights,
     bool? isLoadingInsights,
     List<TrackingQuestion>? userQuestions,
+    List<TrackingQuestion>? answeredQuestions,
     bool? isLoadingUserQuestions,
     Map<String, String>? selectedOptions,
+    Map<String, String>? answeredOptions,
     bool? isSavingSelections,
   }) {
     return HomeViewState(
@@ -75,9 +82,11 @@ class HomeViewState {
       insights: insights ?? this.insights,
       isLoadingInsights: isLoadingInsights ?? this.isLoadingInsights,
       userQuestions: userQuestions ?? this.userQuestions,
+      answeredQuestions: answeredQuestions ?? this.answeredQuestions,
       isLoadingUserQuestions:
           isLoadingUserQuestions ?? this.isLoadingUserQuestions,
       selectedOptions: selectedOptions ?? this.selectedOptions,
+      answeredOptions: answeredOptions ?? this.answeredOptions,
       isSavingSelections: isSavingSelections ?? this.isSavingSelections,
     );
   }
@@ -169,23 +178,39 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
         .read(appLifecycleRepositoryProvider)
         .shouldRefreshQuestions(minInterval: const Duration(hours: 6));
 
-    // If we already have questions and gate says "fresh enough", skip
     if (state.userQuestions.isNotEmpty && !shouldRefresh) return;
 
     state = state.copyWith(isLoadingUserQuestions: true);
     try {
-      // keep unanswered in UI
-      final unanswered = state.userQuestions
-          .where((q) => !state.selectedOptions.containsKey(q.id))
-          .toList();
-
-      // prefer pending IDs, else create new
       final svc = ref.read(trackingQuestionsServiceProvider);
       final userId = ref.read(userServiceProvider).userId;
-      final pendingIds = await svc.listPendingQuestionIds(userId, limit: 20);
 
-      final fetched = pendingIds.isNotEmpty
-          ? await svc.getManyByIds(pendingIds)
+      final pendingIds = await svc
+          .listQuestionIds(userId, limit: 10, statuses: const ['pending']);
+      final answeredIds = await svc
+          .listQuestionIds(userId, limit: 10, statuses: const ['selected']);
+
+      List<String> _uniqPreserveOrder(List<String> ids) {
+        final seen = <String>{};
+        final out = <String>[];
+        for (final id in ids) {
+          if (seen.add(id)) out.add(id);
+        }
+        return out;
+      }
+
+      final pendingUniq = _uniqPreserveOrder(pendingIds);
+      final pendingSet = pendingUniq.toSet();
+
+      final answeredUniq = <String>[];
+      for (final id in answeredIds) {
+        if (!pendingSet.contains(id) && !answeredUniq.contains(id)) {
+          answeredUniq.add(id);
+        }
+      }
+
+      final fetchedPending = pendingUniq.isNotEmpty
+          ? await svc.getManyByIds(pendingUniq)
           : await ApiService.createTrackingQuestions(
               language: 'ko',
               maxQuestions: '10',
@@ -194,18 +219,23 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
               trackingTargets: const {},
             );
 
-      // merge, unanswered first
-      final seen = <String>{};
-      final merged = <TrackingQuestion>[];
-      for (final q in [...unanswered, ...fetched]) {
-        if (seen.add(q.id)) merged.add(q);
-      }
+      final fetchedAnswered = answeredUniq.isNotEmpty
+          ? await svc.getManyByIds(answeredUniq)
+          : <TrackingQuestion>[];
 
-      // mark refresh persisted
+      final answeredOptions = await svc.listSelectedOptionsMap(
+        userId,
+        questionIds: answeredUniq,
+      );
+
       await ref.read(appLifecycleRepositoryProvider).markQuestionsRefreshed();
 
-      state =
-          state.copyWith(userQuestions: merged, isLoadingUserQuestions: false);
+      state = state.copyWith(
+        userQuestions: fetchedPending,
+        answeredQuestions: fetchedAnswered,
+        answeredOptions: answeredOptions,
+        isLoadingUserQuestions: false,
+      );
     } catch (e) {
       debugPrint('[HomeVM] loadTrackingQuestions error: $e');
       state = state.copyWith(isLoadingUserQuestions: false);

@@ -111,116 +111,113 @@ class _BodySimulatorSnapshotDetailsState
         maxChildSize: 0.95,
         builder: (_, controller) => DefaultTabController(
           length: 3,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
-            child: Column(
-              children: [
-                Center(
-                  child: Container(
-                    // margin: const EdgeInsets.only(top: 8, bottom: 16),
-                    height: 4,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      color: $styles.colors.caption,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+          child: Column(
+            children: [
+              SizedBox(height: $styles.insets.sm),
+              Center(
+                child: Container(
+                  height: 4,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    color: $styles.colors.caption,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                if (_isLoading)
-                  Padding(
-                    padding: EdgeInsets.all($styles.insets.lg),
-                    child: Column(
-                      children: [
-                        CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              $styles.colors.accent1),
-                        ),
-                        SizedBox(height: $styles.insets.md),
-                        Text(
-                          'getting body simulator data...',
-                          style: $styles.text.body,
-                        ),
-                      ],
-                    ),
-                  )
-                else if (_errorMessage != null)
-                  Padding(
-                    padding: EdgeInsets.all($styles.insets.lg),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 48,
-                          color: $styles.colors.error,
-                        ),
-                        SizedBox(height: $styles.insets.md),
-                        Text(
-                          _errorMessage!,
-                          style: $styles.text.body,
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: $styles.insets.md),
-                        if (_retryCount < _maxRetries)
-                          ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _isLoading = true;
-                                _errorMessage = null;
-                              });
-                              _initializeBodyStateStream();
-                            },
-                            child: Text('다시 시도'),
-                          ),
-                      ],
-                    ),
-                  )
-                else if (_bodyState != null) ...[
-                  TabBar(
-                    labelColor: $styles.colors.accent1,
-                    unselectedLabelColor: $styles.colors.caption,
-                    labelStyle: $styles.text.bodyBold.copyWith(fontSize: 16),
-                    unselectedLabelStyle:
-                        $styles.text.body.copyWith(fontSize: 16),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicatorColor: $styles.colors.accent1,
-                    tabs: const [
-                      Tab(text: 'Overview', height: 48),
-                      Tab(text: 'Highlights', height: 48),
-                      Tab(text: 'Metrics', height: 48),
+              ),
+              if (_isLoading)
+                Padding(
+                  padding: EdgeInsets.all($styles.insets.lg),
+                  child: Column(
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            $styles.colors.accent1),
+                      ),
+                      SizedBox(height: $styles.insets.md),
+                      Text(
+                        'getting body simulator data...',
+                        style: $styles.text.body,
+                      ),
                     ],
                   ),
-                  SizedBox(height: $styles.insets.sm),
-                  Expanded(
-                    child: TabBarView(
-                      children: [
-                        // Overview
-                        SingleChildScrollView(
-                          controller: controller,
-                          child: _buildOverviewPage(_bodyState!),
+                )
+              else if (_errorMessage != null)
+                Padding(
+                  padding: EdgeInsets.all($styles.insets.lg),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: $styles.colors.error,
+                      ),
+                      SizedBox(height: $styles.insets.md),
+                      Text(
+                        _errorMessage!,
+                        style: $styles.text.body,
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: $styles.insets.md),
+                      if (_retryCount < _maxRetries)
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _isLoading = true;
+                              _errorMessage = null;
+                            });
+                            _initializeBodyStateStream();
+                          },
+                          child: Text('다시 시도'),
                         ),
-                        // Highlights
-                        SingleChildScrollView(
-                          controller: controller,
-                          child: _buildHighlightsPage(_bodyState!.healthScore),
-                        ),
-                        // Metrics
-                        SingleChildScrollView(
-                          controller: controller,
-                          child: _buildMetricsPage(_bodyState!),
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
-                ] else
-                  Padding(
-                    padding: EdgeInsets.all($styles.insets.lg),
-                    child: Text(
-                      '데이터를 불러올 수 없습니다.',
-                      style: $styles.text.body,
-                    ),
+                )
+              else if (_bodyState != null) ...[
+                TabBar(
+                  labelColor: $styles.colors.accent1,
+                  unselectedLabelColor: $styles.colors.caption,
+                  labelStyle: $styles.text.bodyBold.copyWith(fontSize: 16),
+                  unselectedLabelStyle:
+                      $styles.text.body.copyWith(fontSize: 16),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  indicatorColor: $styles.colors.accent1,
+                  tabs: const [
+                    Tab(text: 'Overview', height: 24),
+                    Tab(text: 'Highlights', height: 24),
+                    Tab(text: 'Metrics', height: 24),
+                  ],
+                ),
+                SizedBox(height: $styles.insets.sm),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      // Overview
+                      SingleChildScrollView(
+                        controller: controller,
+                        child: _buildOverviewPage(_bodyState!),
+                      ),
+                      // Highlights
+                      SingleChildScrollView(
+                        controller: controller,
+                        child: _buildHighlightsPage(_bodyState!.healthScore),
+                      ),
+                      // Metrics
+                      SingleChildScrollView(
+                        controller: controller,
+                        child: _buildMetricsPage(_bodyState!),
+                      ),
+                    ],
                   ),
-              ],
-            ),
+                ),
+              ] else
+                Padding(
+                  padding: EdgeInsets.all($styles.insets.lg),
+                  child: Text(
+                    '데이터를 불러올 수 없습니다.',
+                    style: $styles.text.body,
+                  ),
+                ),
+            ],
           ),
         ),
       ),

@@ -133,6 +133,7 @@ class TrackingQuestionCard extends StatelessWidget {
                     width: 1,
                   ),
                 ),
+                avatar: null,
                 onSelected: (_) => onOptionSelected?.call(question, opt),
               );
             }).toList(),

@@ -1,4 +1,5 @@
 import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/widgets/typewriter_animated_text.dart';
 import 'package:bodido/data/models/tracking_question_model.dart';
 import 'package:bodido/features/home/views/widgets/tracking_question_card.dart';
 
@@ -29,24 +30,37 @@ class TrackingQuestionsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (isLoading)
-          const LinearProgressIndicator(minHeight: 2)
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: $styles.insets.md),
+            child: Center(
+              child: TypewriterAnimatedText(
+                const [
+                  "Getting your check-ins",
+                  "Almost ready",
+                  "Let's begin",
+                ],
+                textStyle: $styles.text.body.copyWith(
+                  color: $styles.colors.accent1,
+                ),
+                typingSpeed: const Duration(milliseconds: 40),
+                pauseBetween: const Duration(milliseconds: 800),
+                loop: true,
+                enableVibration: false,
+              ),
+            ),
+          )
         else if (questions.isEmpty)
           Text('No questions yet.', style: $styles.text.bodySmall)
-        else
-          ListView.separated(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: questions.length,
-            separatorBuilder: (_, __) => SizedBox(height: $styles.insets.xs),
-            itemBuilder: (context, index) {
-              final q = questions[index];
-              return TrackingQuestionCard(
-                question: q,
-                selectedOptionId: selectedOptions[q.id], // map drives UI
-                onOptionSelected: onOptionSelected,
-              );
-            },
-          ),
+        else ...[
+          for (int i = 0; i < questions.length; i++) ...[
+            TrackingQuestionCard(
+              question: questions[i],
+              selectedOptionId: selectedOptions[questions[i].id],
+              onOptionSelected: onOptionSelected,
+            ),
+            if (i < questions.length - 1) SizedBox(height: $styles.insets.xs),
+          ]
+        ],
       ],
     );
   }

@@ -38,16 +38,22 @@ class QuestionsSheet extends ConsumerWidget {
                 ),
               ),
               Expanded(
-                child: SingleChildScrollView(
+                child: ListView(
                   controller: controller,
-                  child: TrackingQuestionsSection(
-                    isLoading: state.isLoadingUserQuestions,
-                    questions: state.userQuestions,
-                    selectedOptions: state.selectedOptions,
-                    isSaving: state.isSavingSelections,
-                    onOptionSelected: (q, opt) =>
-                        vm.selectQuestionOptionLocal(q, opt),
+                  padding: EdgeInsets.only(
+                    top: $styles.insets.md,
+                    bottom: $styles.insets.md,
                   ),
+                  children: [
+                    TrackingQuestionsSection(
+                      isLoading: state.isLoadingUserQuestions,
+                      questions: state.userQuestions,
+                      selectedOptions: state.selectedOptions,
+                      isSaving: state.isSavingSelections,
+                      onOptionSelected: (q, opt) =>
+                          vm.selectQuestionOptionLocal(q, opt),
+                    ),
+                  ],
                 ),
               ),
               _QuestionsBottomBar(

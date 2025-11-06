@@ -152,7 +152,7 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
     chatService.sendPrompt(
       message,
       onChunk: (ChatMessageDTO chunkMessage) {
-        // Update the AI message with the chunk
+        if (!mounted) return;
         final currentMessages = state.currentSessionMessages;
         if (currentMessages.isNotEmpty && !currentMessages.last.isUser) {
           final updatedAI = currentMessages.last.copyWith(

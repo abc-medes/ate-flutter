@@ -301,6 +301,7 @@ class UserQuestionBinding {
   final DateTime? clientLocalTimestamp;
   final BindingStatus status; // "pending" | "selected" | "dismissed"
   final DateTime? generatedForBodyStateAt;
+  final DateTime? answeredAt;
 
   UserQuestionBinding({
     required this.userId,
@@ -316,6 +317,7 @@ class UserQuestionBinding {
     this.clientLocalTimestamp,
     this.status = BindingStatus.pending,
     this.generatedForBodyStateAt,
+    this.answeredAt,
   });
 
   factory UserQuestionBinding.fromJson(Map<String, dynamic> json) {
@@ -343,6 +345,9 @@ class UserQuestionBinding {
       generatedForBodyStateAt: json['generated_for_body_state_at'] != null
           ? DateTime.tryParse(json['generated_for_body_state_at'].toString())
           : null,
+      answeredAt: json['answered_at'] != null
+          ? DateTime.tryParse(json['answered_at'].toString())
+          : null,
     );
   }
 
@@ -364,6 +369,7 @@ class UserQuestionBinding {
       if (generatedForBodyStateAt != null)
         'generated_for_body_state_at':
             generatedForBodyStateAt!.toIso8601String(),
+      if (answeredAt != null) 'answered_at': answeredAt!.toIso8601String(),
     };
   }
 }

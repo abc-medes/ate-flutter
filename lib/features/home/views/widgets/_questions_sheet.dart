@@ -21,37 +21,69 @@ class QuestionsSheet extends ConsumerWidget {
       child: DraggableScrollableSheet(
         expand: false,
         initialChildSize: 0.8,
-        minChildSize: 0.2,
+        minChildSize: 0.25,
         maxChildSize: 0.95,
-        builder: (_, controller) => Padding(
-          padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
+        builder: (_, controller) => DefaultTabController(
+          length: 2,
           child: Column(
             children: [
               SizedBox(height: $styles.insets.sm),
-              Center(
-                child: Text(
-                  'Questions',
-                  style: $styles.text.bodyBold.copyWith(
-                    fontSize: 16,
-                    color: $styles.colors.accent1,
-                  ),
-                ),
+              TabBar(
+                labelColor: $styles.colors.accent1,
+                unselectedLabelColor: $styles.colors.caption,
+                labelStyle: $styles.text.bodyBold.copyWith(fontSize: 16),
+                unselectedLabelStyle: $styles.text.body.copyWith(fontSize: 16),
+                indicatorSize: TabBarIndicatorSize.tab,
+                indicatorColor: $styles.colors.accent1,
+                tabs: const [
+                  Tab(text: 'Questions', height: 48),
+                  Tab(text: 'Answered', height: 48),
+                ],
               ),
+              SizedBox(height: $styles.insets.sm),
               Expanded(
-                child: ListView(
-                  controller: controller,
-                  padding: EdgeInsets.only(
-                    top: $styles.insets.md,
-                    bottom: $styles.insets.md,
-                  ),
+                child: TabBarView(
                   children: [
-                    TrackingQuestionsSection(
-                      isLoading: state.isLoadingUserQuestions,
-                      questions: state.userQuestions,
-                      selectedOptions: state.selectedOptions,
-                      isSaving: state.isSavingSelections,
-                      onOptionSelected: (q, opt) =>
-                          vm.selectQuestionOptionLocal(q, opt),
+                    // Questions tab
+                    ListView(
+                      controller: controller,
+                      padding: EdgeInsets.only(
+                        top: $styles.insets.md,
+                        bottom: $styles.insets.md,
+                      ),
+                      children: [
+                        TrackingQuestionsSection(
+                          isLoading: state.isLoadingUserQuestions,
+                          questions: state.userQuestions,
+                          selectedOptions: state.selectedOptions,
+                          isSaving: state.isSavingSelections,
+                          onOptionSelected: (q, opt) =>
+                              vm.selectQuestionOptionLocal(q, opt),
+                        ),
+                      ],
+                    ),
+                    ListView(
+                      controller: controller,
+                      padding: EdgeInsets.only(
+                        top: $styles.insets.md,
+                        bottom: $styles.insets.md,
+                      ),
+                      children: [
+                        Builder(builder: (_) {
+                          final selectedForAnswered = <String, String>{
+                            ...state.answeredOptions,
+                            ...state.selectedOptions,
+                          };
+                          return TrackingQuestionsSection(
+                            isLoading: state.isLoadingUserQuestions,
+                            questions: state.answeredQuestions,
+                            selectedOptions: selectedForAnswered,
+                            isSaving: state.isSavingSelections,
+                            onOptionSelected: (q, opt) =>
+                                vm.selectQuestionOptionLocal(q, opt),
+                          );
+                        }),
+                      ],
                     ),
                   ],
                 ),

@@ -8,24 +8,72 @@ import 'package:bodido/data/models/tracking_question_model.dart';
 class TrackingQuestionsService {
   final SupabaseClient _client = Supabase.instance.client;
 
-  Future<List<String>> listPendingQuestionIds(String userId,
-      {int limit = 20}) async {
+  Future<List<UserQuestionBinding>> listQuestionBindings(
+    String userId, {
+    int limit = 10,
+    List<BindingStatus>? statuses,
+    Set<String> excludeQuestionIds = const {},
+  }) async {
     try {
-      final rows = await _client
+      final effectiveLimit = limit + excludeQuestionIds.length;
+
+      var query = _client
+          .from('user_question_bindings')
+          .select(
+              'question_id, status, option_id, answered_at, generated_for_body_state_at')
+          .eq('user_id', userId);
+
+      if (statuses != null && statuses.isNotEmpty) {
+        query = query.inFilter('status', statuses.map((s) => s.name).toList());
+      }
+
+      final rows = await query
+          .order('answered_at', ascending: false)
+          .order('generated_for_body_state_at', ascending: false)
+          .limit(effectiveLimit);
+
+      final list = <UserQuestionBinding>[];
+      for (final r in rows) {
+        final m = Map<String, dynamic>.from(r as Map);
+        final qid = m['question_id']?.toString();
+        if (qid == null || excludeQuestionIds.contains(qid)) continue;
+
+        // Minimal fields are fine; factory handles missing keys.
+        list.add(UserQuestionBinding.fromJson(m));
+        if (list.length >= limit) break;
+      }
+      return list;
+    } catch (e) {
+      debugPrint('[TQS] listQuestionBindings error: $e');
+      return <UserQuestionBinding>[];
+    }
+  }
+
+  Future<List<String>> listQuestionIds(
+    String userId, {
+    int limit = 20,
+    List<String>? statuses,
+  }) async {
+    try {
+      var query = _client
           .from('user_question_bindings')
           .select('question_id')
-          .eq('user_id', userId)
-          .eq('status', 'pending')
+          .eq('user_id', userId);
+
+      if (statuses != null && statuses.isNotEmpty) {
+        query = query.inFilter('status', statuses);
+      }
+
+      final rows = await query
           .order('generated_for_body_state_at', ascending: false)
           .limit(limit);
 
-      if (rows is! List) return <String>[];
       return rows
           .map((e) => (e as Map)['question_id']?.toString())
           .whereType<String>()
           .toList();
     } catch (e) {
-      debugPrint('[TQS] listPendingQuestionIds error: $e');
+      debugPrint('[TQS] listQuestionIds error: $e');
       return <String>[];
     }
   }
@@ -35,8 +83,6 @@ class TrackingQuestionsService {
     try {
       final rows =
           await _client.from('llm_questions').select('*').inFilter('id', ids);
-
-      if (rows is! List) return <TrackingQuestion>[];
 
       final list = rows
           .map((e) =>
@@ -54,6 +100,37 @@ class TrackingQuestionsService {
     }
   }
 
+  Future<Map<String, String>> listSelectedOptionsMap(
+    String userId, {
+    List<String>? questionIds, // optional: limit to these
+    int limit = 100,
+  }) async {
+    try {
+      var query = _client
+          .from('user_question_bindings')
+          .select('question_id, option_id, answered_at')
+          .eq('user_id', userId)
+          .eq('status', 'selected')
+          .inFilter('question_id', questionIds ?? [])
+          .order('answered_at', ascending: false);
+
+      final rows = await query.limit(limit);
+
+      final out = <String, String>{};
+      for (final r in rows) {
+        final m = Map<String, dynamic>.from(r as Map);
+        final qid = m['question_id']?.toString();
+        final oid = m['option_id']?.toString();
+        if (qid == null || oid == null) continue;
+        out.putIfAbsent(qid, () => oid);
+      }
+      return out;
+    } catch (e) {
+      debugPrint('[TQS] listSelectedOptionsMap error: $e');
+      return <String, String>{};
+    }
+  }
+
   Future<List<TrackingQuestion>> getPendingOrGenerate({
     required String userId,
     String language = 'ko',
@@ -66,7 +143,7 @@ class TrackingQuestionsService {
     Duration retryDelay = const Duration(milliseconds: 300),
   }) async {
     // 1) Try pending
-    var ids = await listPendingQuestionIds(userId, limit: limit);
+    var ids = await listQuestionIds(userId, limit: limit);
     if (ids.isNotEmpty) {
       return getManyByIds(ids);
     }
@@ -87,7 +164,7 @@ class TrackingQuestionsService {
     // 3) Poll for rows written by backend
     for (var i = 0; i < retries; i++) {
       await Future.delayed(retryDelay);
-      ids = await listPendingQuestionIds(userId, limit: limit);
+      ids = await listQuestionIds(userId, limit: limit);
       if (ids.isNotEmpty) {
         return getManyByIds(ids);
       }

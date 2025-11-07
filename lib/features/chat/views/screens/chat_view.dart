@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/utils/question_render_helper.dart';
 import 'package:bodido/core/widgets/chat_input.dart';
 import 'package:bodido/core/widgets/circular_icon_button.dart';
 import 'package:bodido/data/models/chat_model.dart';
 import 'package:bodido/features/chat/view_models/chat_history_view_model.dart';
 import 'package:bodido/features/chat/view_models/chat_view_model.dart';
+import 'package:bodido/features/chat/views/widgets/question_card_inline.dart';
 import 'package:intl/intl.dart';
 
 class ChatView extends ConsumerStatefulWidget {
@@ -263,6 +265,9 @@ class _ChatViewState extends ConsumerState<ChatView> {
   }
 
   Widget _buildMessageItem(ChatMessageDTO message, int index) {
+    final content = message.message ?? '';
+    final cardJson = !message.isUser ? parseQuestionCardBlock(content) : null;
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
@@ -318,14 +323,31 @@ class _ChatViewState extends ConsumerState<ChatView> {
                     ],
                   ),
                 ] else ...[
-                  Text(
-                    message.message ?? '',
-                    style: $styles.text.h3.copyWith(
-                      color: Colors.white,
-                      height: 1.4,
+                  if (cardJson != null) ...[
+                    if (stripQuestionCardBlock(content).isNotEmpty)
+                      Text(
+                        stripQuestionCardBlock(content),
+                        style: $styles.text.h3.copyWith(
+                          color: Colors.white,
+                          height: 1.4,
+                        ),
+                        textAlign: TextAlign.left,
+                      ),
+                    SizedBox(height: $styles.insets.xs),
+                    QuestionCardInline(
+                      card: cardJson!,
+                      sessionId: message.sessionId,
                     ),
-                    textAlign: TextAlign.left,
-                  ),
+                  ] else ...[
+                    Text(
+                      content,
+                      style: $styles.text.h3.copyWith(
+                        color: Colors.white,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
+                  ],
                 ],
                 if (message.clientLocalTimestamp != null) ...[
                   SizedBox(height: $styles.insets.sm),

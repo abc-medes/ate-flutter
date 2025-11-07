@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/config/env.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/chat_model.dart';
 import 'package:bodido/data/models/tracking_question_model.dart';
@@ -12,11 +13,11 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ApiService {
   // DEV
-  static const String _baseUrl = 'http://localhost:8080/api';
-  static const String _wsUrl = 'ws://localhost:8080';
+  // static const String _baseUrl = 'http://localhost:8080/api';
+  // static const String _wsUrl = 'ws://localhost:8080';
   // PROD
-  // static String get _baseUrl => Env.apiBaseUrl;
-  // static String get _wsUrl => Env.wsBaseUrl;
+  static String get _baseUrl => Env.apiBaseUrl;
+  static String get _wsUrl => Env.wsBaseUrl;
 
   static final SupabaseClient _supabase = Supabase.instance.client;
 

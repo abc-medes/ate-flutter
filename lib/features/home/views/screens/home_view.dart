@@ -122,12 +122,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CircularIconButton(
-                  icon: Icons.menu,
-                  size: 48,
-                  iconColor: $styles.colors.black,
-                  backgroundColor: Colors.transparent,
-                  onTap: () => print("Navigate to Detailed Analysis page")),
               GestureDetector(
                 onTap: () => context.push(RouteNames.chatHistory),
                 child: Row(
@@ -139,12 +133,23 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   ],
                 ),
               ),
-              CircularIconButton(
-                  size: 48,
-                  icon: Icons.settings,
-                  iconColor: $styles.colors.black,
-                  backgroundColor: Colors.transparent,
-                  onTap: () => context.go(RouteNames.settings)),
+              Row(
+                children: [
+                  CircularIconButton(
+                      size: 48,
+                      icon: Icons.shopping_bag,
+                      iconColor: $styles.colors.black,
+                      backgroundColor: Colors.transparent,
+                      onTap: () =>
+                          context.go(RouteNames.productRecommendations)),
+                  CircularIconButton(
+                      size: 48,
+                      icon: Icons.settings,
+                      iconColor: $styles.colors.black,
+                      backgroundColor: Colors.transparent,
+                      onTap: () => context.go(RouteNames.settings)),
+                ],
+              ),
             ],
           ),
           SizedBox(height: $styles.insets.md),

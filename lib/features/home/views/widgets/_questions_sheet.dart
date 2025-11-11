@@ -161,7 +161,6 @@ class QuestionsSheet extends ConsumerWidget {
 
 class _QuestionsBottomBar extends StatelessWidget {
   const _QuestionsBottomBar({
-    super.key,
     required this.state,
     required this.onUpdatePressed,
     required this.onAskAiPressed,

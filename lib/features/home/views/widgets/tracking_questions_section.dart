@@ -11,6 +11,7 @@ class TrackingQuestionsSection extends StatelessWidget {
   final VoidCallback? onSavePressed;
   final void Function(TrackingQuestion q, QuestionOption option)?
       onOptionSelected;
+  final bool isChat; // ADD
 
   const TrackingQuestionsSection({
     super.key,
@@ -20,12 +21,11 @@ class TrackingQuestionsSection extends StatelessWidget {
     this.isSaving = false,
     this.onSavePressed,
     this.onOptionSelected,
+    this.isChat = false, // ADD
   });
 
   @override
   Widget build(BuildContext context) {
-    // keep minimal UI; selection state handled by parent
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -40,7 +40,7 @@ class TrackingQuestionsSection extends StatelessWidget {
                   "Let's begin",
                 ],
                 textStyle: $styles.text.body.copyWith(
-                  color: $styles.colors.accent1,
+                  color: isChat ? Colors.white : $styles.colors.accent1,
                 ),
                 typingSpeed: const Duration(milliseconds: 40),
                 pauseBetween: const Duration(milliseconds: 800),
@@ -57,6 +57,7 @@ class TrackingQuestionsSection extends StatelessWidget {
               question: questions[i],
               selectedOptionId: selectedOptions[questions[i].id],
               onOptionSelected: onOptionSelected,
+              isChat: isChat,
             ),
             if (i < questions.length - 1) SizedBox(height: $styles.insets.xs),
           ]

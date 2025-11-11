@@ -2,7 +2,6 @@
 import 'dart:async';
 
 import 'package:bodido/common_libs.dart';
-import 'package:bodido/core/services/api_service.dart';
 import 'package:bodido/data/models/tracking_question_model.dart';
 
 class TrackingQuestionsService {
@@ -38,7 +37,6 @@ class TrackingQuestionsService {
         final qid = m['question_id']?.toString();
         if (qid == null || excludeQuestionIds.contains(qid)) continue;
 
-        // Minimal fields are fine; factory handles missing keys.
         list.add(UserQuestionBinding.fromJson(m));
         if (list.length >= limit) break;
       }
@@ -102,7 +100,7 @@ class TrackingQuestionsService {
 
   Future<Map<String, String>> listSelectedOptionsMap(
     String userId, {
-    List<String>? questionIds, // optional: limit to these
+    List<String>? questionIds,
     int limit = 100,
   }) async {
     try {
@@ -131,46 +129,38 @@ class TrackingQuestionsService {
     }
   }
 
-  Future<List<TrackingQuestion>> getPendingOrGenerate({
+  Future<List<TrackingQuestion>> listQuestionsByUserAndSession({
     required String userId,
-    String language = 'ko',
-    String maxQuestions = '10',
-    String optionsPerQuestion = '3',
-    String goalFocus = 'general',
-    Map<String, dynamic> trackingTargets = const {},
-    int limit = 20,
-    int retries = 3,
-    Duration retryDelay = const Duration(milliseconds: 300),
+    required String sessionId,
+    int limit = 50,
   }) async {
-    // 1) Try pending
-    var ids = await listQuestionIds(userId, limit: limit);
-    if (ids.isNotEmpty) {
-      return getManyByIds(ids);
-    }
-
-    // 2) Trigger generation (backend: generate-only)
     try {
-      await ApiService.createTrackingQuestions(
-        language: language,
-        maxQuestions: maxQuestions,
-        optionsPerQuestion: optionsPerQuestion,
-        goalFocus: goalFocus,
-        trackingTargets: trackingTargets,
-      );
+      final rows = await _client
+          .from('user_question_bindings')
+          .select('question_id')
+          .eq('user_id', userId)
+          .eq('session_id', sessionId)
+          .order('answered_at', ascending: false)
+          .order('generated_for_body_state_at', ascending: false)
+          .limit(limit);
+
+      final ids = rows
+          .map((e) => (e as Map)['question_id']?.toString())
+          .whereType<String>()
+          .toList();
+
+      if (ids.isEmpty) return <TrackingQuestion>[];
+
+      final questions = await getManyByIds(ids);
+
+      debugPrint('[TQS] list once user=$userId session=$sessionId '
+          'count=${questions.length} ids=${questions.map((q) => q.id).join(', ')}');
+
+      return questions;
     } catch (e) {
-      debugPrint('[TQS] generator call failed: $e');
+      debugPrint('[TQS] listQuestionsByUserAndSession error: $e');
+      return <TrackingQuestion>[];
     }
-
-    // 3) Poll for rows written by backend
-    for (var i = 0; i < retries; i++) {
-      await Future.delayed(retryDelay);
-      ids = await listQuestionIds(userId, limit: limit);
-      if (ids.isNotEmpty) {
-        return getManyByIds(ids);
-      }
-    }
-
-    return <TrackingQuestion>[];
   }
 }
 

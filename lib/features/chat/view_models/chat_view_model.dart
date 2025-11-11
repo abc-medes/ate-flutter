@@ -1,15 +1,12 @@
 import 'dart:async';
+import 'dart:convert' as convert;
 
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/services/chat_service.dart';
+import 'package:bodido/core/services/tracking_questions_service.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/chat_model.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-final chatViewModelProvider =
-    StateNotifierProvider.autoDispose<ChatViewModel, ChatViewState>(
-  (ref) => ChatViewModel(ref),
-);
+import 'package:bodido/data/models/tracking_question_model.dart';
 
 /// ─────────────────────────────────────────
 /// STATE
@@ -21,14 +18,19 @@ class ChatViewState {
   final String? error;
   final String? currentSessionId;
   final List<dynamic> timeline;
+  final Map<String, List<TrackingQuestion>> questionsByTag;
+  final Set<String> pendingQuestionTags; // NEW
 
-  const ChatViewState(
-      {this.currentSessionMessages = const [],
-      this.messagesBySession = const {},
-      this.isLoading = false,
-      this.error,
-      this.currentSessionId,
-      this.timeline = const []});
+  const ChatViewState({
+    this.currentSessionMessages = const [],
+    this.messagesBySession = const {},
+    this.isLoading = false,
+    this.error,
+    this.currentSessionId,
+    this.timeline = const [],
+    this.questionsByTag = const {},
+    this.pendingQuestionTags = const <String>{}, // NEW
+  });
 
   ChatViewState copyWith({
     List<ChatMessageDTO>? currentSessionMessages,
@@ -38,6 +40,8 @@ class ChatViewState {
     bool clearError = false,
     String? currentSessionId,
     List<dynamic>? timeline,
+    Map<String, List<TrackingQuestion>>? questionsByTag,
+    Set<String>? pendingQuestionTags, // NEW
   }) {
     return ChatViewState(
       currentSessionMessages:
@@ -47,6 +51,9 @@ class ChatViewState {
       error: clearError ? null : (error ?? this.error),
       currentSessionId: currentSessionId ?? this.currentSessionId,
       timeline: timeline ?? this.timeline,
+      questionsByTag: questionsByTag ?? this.questionsByTag,
+      pendingQuestionTags:
+          pendingQuestionTags ?? this.pendingQuestionTags, // NEW
     );
   }
 }
@@ -56,13 +63,17 @@ class ChatViewState {
 /// ─────────────────────────────────────────
 class ChatViewModel extends StateNotifier<ChatViewState> {
   final Ref ref;
-  StreamSubscription<String>? _sub;
+  final Map<String, StreamSubscription<List<TrackingQuestion>>> _tagWatchers =
+      {};
 
   ChatViewModel(this.ref) : super(const ChatViewState());
 
   @override
   void dispose() {
-    _sub?.cancel();
+    for (final s in _tagWatchers.values) {
+      s.cancel();
+    }
+    _tagWatchers.clear();
     super.dispose();
   }
 
@@ -93,8 +104,6 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
       final sessionMessages =
           messages.where((msg) => msg.sessionId == sessionId).toList();
 
-      print('sessionMessages: $sessionMessages');
-
       state = state.copyWith(
         currentSessionMessages: sessionMessages,
         messagesBySession: {
@@ -112,7 +121,38 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
     }
   }
 
-  Future<void> sendMessage(ChatMessageDTO message) async {
+  Future<void> fetchQuestionsBySessionOnce(String sessionId,
+      {int limit = 3}) async {
+    final uid = Supabase.instance.client.auth.currentUser?.id;
+    if (uid == null) return;
+
+    if (state.pendingQuestionTags.contains(sessionId)) return;
+
+    final nextPending = <String>{...state.pendingQuestionTags, sessionId};
+    state = state.copyWith(pendingQuestionTags: nextPending);
+
+    try {
+      final qs = await ref
+          .read(trackingQuestionsServiceProvider)
+          .listQuestionsByUserAndSession(
+              userId: uid, sessionId: sessionId, limit: limit);
+
+      state = state.copyWith(
+        questionsByTag: {
+          ...state.questionsByTag,
+          sessionId: qs.take(limit).toList(),
+        },
+      );
+    } catch (e) {
+      debugPrint('[ChatVM] fetchQuestionsBySessionOnce error: $e');
+    } finally {
+      final cleared = <String>{...state.pendingQuestionTags}..remove(sessionId);
+      state = state.copyWith(pendingQuestionTags: cleared);
+    }
+  }
+
+  Future<void> sendMessage(ChatMessageDTO message,
+      {String? watchTagOnDone}) async {
     if (message.message?.trim().isEmpty == true) return;
 
     // Add user message immediately
@@ -170,8 +210,28 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
             },
           );
         }
+
+        final chunkText = chunkMessage.message ?? '';
+        if (chunkText.contains('"event":"tracking_questions_ready"')) {
+          try {
+            final match = RegExp(
+                    r'\{[^{}]*"event"\s*:\s*"tracking_questions_ready"[^{}]*\}')
+                .allMatches(chunkText)
+                .last;
+            final obj = convert.jsonDecode(match.group(0)!);
+            final tag = obj['tag']?.toString();
+            final count = obj['count']?.toString();
+            debugPrint(
+                '[ChatVM] tracking_questions_ready: tag=$tag count=$count');
+
+            fetchQuestionsBySessionOnce(message.sessionId, limit: 3);
+          } catch (e) {
+            debugPrint(
+                '[ChatVM] failed to parse tracking_questions_ready event: $e');
+          }
+        }
       },
-      onDone: () {
+      onDone: () async {
         state = state.copyWith(isLoading: false);
       },
       onError: (String error) {
@@ -204,11 +264,6 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
         return ta.compareTo(tb);
       });
 
-    print('selectedSessionId: $selectedSessionId');
-    print('msgs: $msgs');
-    print('snaps: $snaps');
-    print('timeline: $timeline');
-
     final sessionId =
         selectedSessionId ?? (msgs.isNotEmpty ? msgs.first.sessionId : null);
     final sessionMsgs = sessionId == null
@@ -232,3 +287,7 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
 /// ─────────────────────────────────────────
 /// PROVIDER (prompt 파라미터 전달)
 /// ─────────────────────────────────────────
+final chatViewModelProvider =
+    StateNotifierProvider.autoDispose<ChatViewModel, ChatViewState>(
+  (ref) => ChatViewModel(ref),
+);

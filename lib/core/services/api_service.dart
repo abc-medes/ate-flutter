@@ -340,6 +340,7 @@ class ApiService {
       throw Exception('Error selectTrackingOption: $e');
     }
   }
+
 // ------------------------------------------------------------
 
   static Stream<BodySimulatorStateSnapshotDTO> bodyStateStream({

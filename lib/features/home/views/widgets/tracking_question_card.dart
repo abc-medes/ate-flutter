@@ -6,29 +6,42 @@ class TrackingQuestionCard extends StatelessWidget {
   final String? selectedOptionId;
   final void Function(TrackingQuestion q, QuestionOption option)?
       onOptionSelected;
+  final bool isChat;
 
   const TrackingQuestionCard({
     super.key,
     required this.question,
     this.selectedOptionId,
     this.onOptionSelected,
+    this.isChat = false,
   });
-
-  // Use centralized brand palette from $styles.colors
 
   @override
   Widget build(BuildContext context) {
+    final containerColor =
+        isChat ? Colors.white.withOpacity(0.6) : $styles.colors.backgroundDark;
+    final borderColor = isChat
+        ? Colors.white.withOpacity(0.12)
+        : $styles.colors.accent1.withOpacity(0.20);
+    final gradientColors = isChat
+        ? [Colors.white.withOpacity(0.06), Colors.white.withOpacity(0.04)]
+        : [
+            $styles.colors.accent1.withOpacity(0.05),
+            $styles.colors.accent3.withOpacity(0.04),
+          ];
+    final tagColor = isChat ? Colors.white : $styles.colors.accent1;
+
     return Container(
       margin: EdgeInsets.zero,
       padding: EdgeInsets.all($styles.insets.sm),
       decoration: BoxDecoration(
-        color: $styles.colors.backgroundDark,
+        color: containerColor,
         borderRadius: BorderRadius.circular($styles.insets.sm),
-        border: Border.all(
-            color: $styles.colors.accent1.withOpacity(0.20), width: 1),
+        border: Border.all(color: borderColor, width: 1),
         boxShadow: [
           BoxShadow(
-            color: $styles.colors.accent1.withOpacity(0.06),
+            color: (isChat ? Colors.black : $styles.colors.accent1)
+                .withOpacity(0.06),
             blurRadius: 10,
             offset: const Offset(0, 6),
           ),
@@ -36,39 +49,42 @@ class TrackingQuestionCard extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            $styles.colors.accent1.withOpacity(0.05),
-            $styles.colors.accent3.withOpacity(0.04),
-          ],
+          colors: gradientColors,
         ),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min, // avoid unbounded stretch
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row
           Row(
             mainAxisSize: MainAxisSize.max,
             children: [
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: $styles.colors.accent1.withOpacity(0.12),
+                  color: (isChat ? Colors.white : $styles.colors.accent1)
+                      .withOpacity(0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(Icons.health_and_safety,
-                    size: 16, color: $styles.colors.accent1),
+                    size: 16,
+                    color: isChat ? Colors.white : $styles.colors.accent1),
               ),
               SizedBox(width: $styles.insets.xs),
-              Text(
-                question.questionTag.toUpperCase(),
-                style: $styles.text.caption.copyWith(
-                  letterSpacing: 0.5,
-                  color: $styles.colors.accent1,
-                  fontWeight: FontWeight.w700,
+              Expanded(
+                child: Text(
+                  question.questionTag.toUpperCase(),
+                  style: $styles.text.caption.copyWith(
+                    letterSpacing: 0.5,
+                    color: tagColor,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: true,
                 ),
               ),
-              const Spacer(),
+              SizedBox(width: $styles.insets.xs),
               _PriorityDot(priority: question.priority),
             ],
           ),
@@ -81,6 +97,7 @@ class TrackingQuestionCard extends StatelessWidget {
             style: $styles.text.bodyBold.copyWith(
               fontSize: 15.0,
               height: 1.3,
+              color: isChat ? Colors.white : null, // ADD
             ),
           ),
 
@@ -92,14 +109,17 @@ class TrackingQuestionCard extends StatelessWidget {
             runSpacing: 6,
             children: [
               _MetaPill(
-                  label: 'System: ${question.system.name}',
-                  color: $styles.colors.accent2),
+                label: 'System: ${question.system.name}',
+                color: isChat ? Colors.white : $styles.colors.accent2, // ADD
+              ),
               _MetaPill(
-                  label: 'Metric: ${question.metric}',
-                  color: $styles.colors.accent1),
+                label: 'Metric: ${question.metric}',
+                color: isChat ? Colors.white : $styles.colors.accent1, // ADD
+              ),
               _MetaPill(
-                  label: 'Category: ${question.category}',
-                  color: $styles.colors.accent3),
+                label: 'Category: ${question.category}',
+                color: isChat ? Colors.white : $styles.colors.accent3, // ADD
+              ),
             ],
           ),
 
@@ -111,25 +131,38 @@ class TrackingQuestionCard extends StatelessWidget {
             runSpacing: 8,
             children: question.options.map((opt) {
               final isSelected = selectedOptionId == opt.id;
+              final labelStyleChat = $styles.text.bodySmall.copyWith(
+                color: isSelected ? Colors.white : $styles.colors.accent1,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+              );
+              final labelStyleHome = $styles.text.bodySmall.copyWith(
+                color: isSelected ? Colors.white : $styles.colors.accent1,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+              );
+
               return ChoiceChip(
                 label: Text(
                   opt.label,
-                  style: $styles.text.bodySmall.copyWith(
-                    color: isSelected
-                        ? Colors.white
-                        : $styles.colors.accent1.withOpacity(0.9),
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                  ),
+                  style: isChat ? labelStyleChat : labelStyleHome, // ADD
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
                 ),
                 selected: isSelected,
-                backgroundColor: $styles.colors.accent1.withOpacity(0.08),
-                selectedColor: $styles.colors.accent1,
+                backgroundColor:
+                    $styles.colors.accent1.withOpacity(0.08), // CHANGED
+                selectedColor:
+                    isChat ? Colors.white : $styles.colors.accent1, // CHANGED
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: StadiumBorder(
                   side: BorderSide(
-                    color: isSelected
-                        ? $styles.colors.accent1
-                        : $styles.colors.accent1.withOpacity(0.30),
+                    color: isChat
+                        ? (isSelected
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.30))
+                        : (isSelected
+                            ? $styles.colors.accent1
+                            : $styles.colors.accent1.withOpacity(0.30)), // ADD
                     width: 1,
                   ),
                 ),
@@ -201,3 +234,11 @@ class _PriorityDot extends StatelessWidget {
     );
   }
 }
+
+final _eventReadyRe = RegExp(
+  r'\{[^{}]*"event"\s*:\s*"tracking_questions_ready"[^{}]*\}',
+  multiLine: true,
+);
+
+String stripBackendEventTokens(String s) =>
+    s.replaceAll(_eventReadyRe, '').trim();

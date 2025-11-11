@@ -2,13 +2,15 @@ import 'dart:async';
 
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
-import 'package:bodido/core/utils/question_render_helper.dart';
+import 'package:bodido/core/services/api_service.dart';
+import 'package:bodido/core/services/user_service.dart';
 import 'package:bodido/core/widgets/chat_input.dart';
 import 'package:bodido/core/widgets/circular_icon_button.dart';
 import 'package:bodido/data/models/chat_model.dart';
+import 'package:bodido/data/models/tracking_question_model.dart';
 import 'package:bodido/features/chat/view_models/chat_history_view_model.dart';
 import 'package:bodido/features/chat/view_models/chat_view_model.dart';
-import 'package:bodido/features/chat/views/widgets/question_card_inline.dart';
+import 'package:bodido/features/home/views/widgets/tracking_questions_section.dart';
 import 'package:intl/intl.dart';
 
 class ChatView extends ConsumerStatefulWidget {
@@ -152,7 +154,10 @@ class _ChatViewState extends ConsumerState<ChatView> {
           ),
           ChatInput(
             onSubmit: (ChatMessageDTO message) {
-              viewModelNotifier.sendMessage(message);
+              viewModelNotifier.sendMessage(
+                message,
+                watchTagOnDone: message.sessionId,
+              );
             },
             isProcessing: viewModel.isLoading,
           ),
@@ -266,7 +271,6 @@ class _ChatViewState extends ConsumerState<ChatView> {
 
   Widget _buildMessageItem(ChatMessageDTO message, int index) {
     final content = message.message ?? '';
-    final cardJson = !message.isUser ? parseQuestionCardBlock(content) : null;
 
     return Container(
       width: double.infinity,
@@ -323,31 +327,81 @@ class _ChatViewState extends ConsumerState<ChatView> {
                     ],
                   ),
                 ] else ...[
-                  if (cardJson != null) ...[
-                    if (stripQuestionCardBlock(content).isNotEmpty)
-                      Text(
-                        stripQuestionCardBlock(content),
-                        style: $styles.text.h3.copyWith(
-                          color: Colors.white,
-                          height: 1.4,
-                        ),
-                        textAlign: TextAlign.left,
-                      ),
-                    SizedBox(height: $styles.insets.xs),
-                    QuestionCardInline(
-                      card: cardJson!,
-                      sessionId: message.sessionId,
+                  Text(
+                    content,
+                    style: $styles.text.h3.copyWith(
+                      color: Colors.white,
+                      height: 1.4,
                     ),
-                  ] else ...[
-                    Text(
-                      content,
-                      style: $styles.text.h3.copyWith(
-                        color: Colors.white,
-                        height: 1.4,
-                      ),
-                      textAlign: TextAlign.left,
-                    ),
-                  ],
+                    textAlign: TextAlign.left,
+                  ),
+                  Builder(
+                    builder: (_) {
+                      if (message.isUser) return const SizedBox.shrink();
+
+                      final vm = ref.watch(chatViewModelProvider);
+                      final isLastMessage =
+                          index == (vm.currentSessionMessages.length - 1);
+                      if (!isLastMessage) return const SizedBox.shrink();
+
+                      final sid = message.sessionId;
+                      if (sid == null) return const SizedBox.shrink();
+
+                      final qs = vm.questionsByTag[sid] ?? const [];
+                      final isPending = vm.pendingQuestionTags.contains(sid);
+
+                      if (isPending) {
+                        return Padding(
+                          padding: EdgeInsets.only(top: $styles.insets.xs),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                              SizedBox(width: $styles.insets.xs),
+                              Text(
+                                'Getting your check-ins...',
+                                style: $styles.text.caption.copyWith(
+                                  color: Colors.white.withOpacity(0.85),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      if (qs.isEmpty) return const SizedBox.shrink();
+
+                      return Padding(
+                          padding: EdgeInsets.only(top: $styles.insets.sm),
+                          child: TrackingQuestionsSection(
+                            isLoading: false,
+                            questions: qs,
+                            selectedOptions: const {},
+                            isChat: true,
+                            onOptionSelected: (q, opt) async {
+                              final uid = ref.read(userServiceProvider).userId;
+                              await ref
+                                  .read(chatViewModelProvider.notifier)
+                                  .sendMessage(
+                                    ChatMessageDTO(
+                                      userId: uid,
+                                      sessionId: sid,
+                                      message: '${q.question} - ${opt.label}',
+                                      isUser: true,
+                                      createdAt: DateTime.now(),
+                                      clientLocalTimestamp: DateTime.now(),
+                                    ),
+                                    watchTagOnDone: sid,
+                                  );
+                            },
+                          ));
+                    },
+                  ),
                 ],
                 if (message.clientLocalTimestamp != null) ...[
                   SizedBox(height: $styles.insets.sm),

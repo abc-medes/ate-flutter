@@ -133,13 +133,20 @@ class TrackingQuestionsService {
     required String userId,
     required String sessionId,
     int limit = 50,
+    String? questionTag,
   }) async {
     try {
-      final rows = await _client
+      var query = _client
           .from('user_question_bindings')
           .select('question_id')
           .eq('user_id', userId)
-          .eq('session_id', sessionId)
+          .eq('session_id', sessionId);
+
+      if (questionTag != null && questionTag.isNotEmpty) {
+        query = query.eq('question_tag', questionTag);
+      }
+
+      final rows = await query
           .order('answered_at', ascending: false)
           .order('generated_for_body_state_at', ascending: false)
           .limit(limit);
@@ -154,7 +161,8 @@ class TrackingQuestionsService {
       final questions = await getManyByIds(ids);
 
       debugPrint('[TQS] list once user=$userId session=$sessionId '
-          'count=${questions.length} ids=${questions.map((q) => q.id).join(', ')}');
+          'tag=${questionTag ?? '-'} count=${questions.length} '
+          'ids=${questions.map((q) => q.id).join(', ')}');
 
       return questions;
     } catch (e) {

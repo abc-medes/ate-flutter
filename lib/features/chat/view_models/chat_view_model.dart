@@ -41,7 +41,7 @@ class ChatViewState {
     String? currentSessionId,
     List<dynamic>? timeline,
     Map<String, List<TrackingQuestion>>? questionsByTag,
-    Set<String>? pendingQuestionTags, // NEW
+    Set<String>? pendingQuestionTags,
   }) {
     return ChatViewState(
       currentSessionMessages:
@@ -65,6 +65,13 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
   final Ref ref;
   final Map<String, StreamSubscription<List<TrackingQuestion>>> _tagWatchers =
       {};
+
+  static final _trackingEventRe = RegExp(
+      r'\{[^{}]*"event"\s*:\s*"tracking_questions_(?:generating|ready)"[^{}]*\}');
+  static final _trackingReadyRe =
+      RegExp(r'\{[^{}]*"event"\s*:\s*"tracking_questions_ready"[^{}]*\}');
+  static final _trackingGeneratingRe =
+      RegExp(r'\{[^{}]*"event"\s*:\s*"tracking_questions_generating"[^{}]*\}');
 
   ChatViewModel(this.ref) : super(const ChatViewState());
 
@@ -121,32 +128,43 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
     }
   }
 
-  Future<void> fetchQuestionsBySessionOnce(String sessionId,
-      {int limit = 3}) async {
+  Future<void> fetchQuestionsBySessionOnce(
+    String sessionId, {
+    int limit = 3,
+    String? questionTag,
+  }) async {
     final uid = Supabase.instance.client.auth.currentUser?.id;
     if (uid == null) return;
 
-    if (state.pendingQuestionTags.contains(sessionId)) return;
+    final pendingKey =
+        questionTag == null ? sessionId : '${sessionId}::$questionTag';
+    if (state.pendingQuestionTags.contains(pendingKey)) return;
 
-    final nextPending = <String>{...state.pendingQuestionTags, sessionId};
+    final nextPending = <String>{...state.pendingQuestionTags, pendingKey};
     state = state.copyWith(pendingQuestionTags: nextPending);
 
     try {
       final qs = await ref
           .read(trackingQuestionsServiceProvider)
           .listQuestionsByUserAndSession(
-              userId: uid, sessionId: sessionId, limit: limit);
+            userId: uid,
+            sessionId: sessionId,
+            limit: limit,
+            questionTag: questionTag,
+          );
 
+      final questionsKey = questionTag ?? sessionId;
       state = state.copyWith(
         questionsByTag: {
           ...state.questionsByTag,
-          sessionId: qs.take(limit).toList(),
+          questionsKey: qs.take(limit).toList(),
         },
       );
     } catch (e) {
       debugPrint('[ChatVM] fetchQuestionsBySessionOnce error: $e');
     } finally {
-      final cleared = <String>{...state.pendingQuestionTags}..remove(sessionId);
+      final cleared = <String>{...state.pendingQuestionTags}
+        ..remove(pendingKey);
       state = state.copyWith(pendingQuestionTags: cleared);
     }
   }
@@ -193,11 +211,12 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
       message,
       onChunk: (ChatMessageDTO chunkMessage) {
         if (!mounted) return;
+        final chunkText = chunkMessage.message ?? '';
+        final sanitizedChunk = chunkText.replaceAll(_trackingEventRe, '');
         final currentMessages = state.currentSessionMessages;
         if (currentMessages.isNotEmpty && !currentMessages.last.isUser) {
           final updatedAI = currentMessages.last.copyWith(
-            message: (currentMessages.last.message ?? '') +
-                (chunkMessage.message ?? ''),
+            message: (currentMessages.last.message ?? '') + sanitizedChunk,
           );
           final updatedMessages = [...currentMessages];
           updatedMessages[updatedMessages.length - 1] = updatedAI;
@@ -211,20 +230,33 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
           );
         }
 
-        final chunkText = chunkMessage.message ?? '';
-        if (chunkText.contains('"event":"tracking_questions_ready"')) {
+        if (_trackingGeneratingRe.hasMatch(chunkText)) {
+          final match = _trackingGeneratingRe.allMatches(chunkText).last;
+          final obj = convert.jsonDecode(match.group(0)!);
+          final tag = obj['tag']?.toString();
+          final pendingKey =
+              tag == null ? message.sessionId : '${message.sessionId}::$tag';
+          final nextPending = <String>{
+            ...state.pendingQuestionTags,
+            pendingKey
+          };
+          state = state.copyWith(pendingQuestionTags: nextPending);
+        }
+
+        if (_trackingReadyRe.hasMatch(chunkText)) {
           try {
-            final match = RegExp(
-                    r'\{[^{}]*"event"\s*:\s*"tracking_questions_ready"[^{}]*\}')
-                .allMatches(chunkText)
-                .last;
+            final match = _trackingReadyRe.allMatches(chunkText).last;
             final obj = convert.jsonDecode(match.group(0)!);
             final tag = obj['tag']?.toString();
             final count = obj['count']?.toString();
             debugPrint(
                 '[ChatVM] tracking_questions_ready: tag=$tag count=$count');
 
-            fetchQuestionsBySessionOnce(message.sessionId, limit: 3);
+            fetchQuestionsBySessionOnce(
+              message.sessionId,
+              limit: 3,
+              questionTag: tag,
+            );
           } catch (e) {
             debugPrint(
                 '[ChatVM] failed to parse tracking_questions_ready event: $e');

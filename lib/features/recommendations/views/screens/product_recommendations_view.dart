@@ -3,6 +3,7 @@ import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/widgets/circular_icon_button.dart';
 import 'package:bodido/features/recommendations/view_models/product_view_model.dart';
 import 'package:bodido/data/models/product_recommendations_model.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProductRecommendationsView extends ConsumerWidget {
   const ProductRecommendationsView({super.key});
@@ -317,6 +318,27 @@ class _RecommendationCard extends StatelessWidget {
                 softWrap: true,
               ),
             ],
+            SizedBox(height: $styles.insets.md),
+            Row(
+              children: [
+                Spacer(),
+                OutlinedButton.icon(
+                  onPressed: () => _openCoupang(context, item),
+                  icon: Icon(Icons.open_in_new,
+                      size: 18, color: $styles.colors.accent1),
+                  label: Text(
+                    '쿠팡에서 검색',
+                    style: $styles.text.bodySmall
+                        .copyWith(color: $styles.colors.accent1),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(
+                        color: $styles.colors.accent1.withOpacity(0.5),
+                        width: 1),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -359,6 +381,27 @@ class _CategoryChip extends StatelessWidget {
             softWrap: false,
           ),
         ],
+      ),
+    );
+  }
+}
+
+Uri _coupangSearchUri(String query) {
+  final q = Uri.encodeQueryComponent(query);
+  return Uri.parse('https://www.coupang.com/np/search?q=$q&channel=user');
+}
+
+Future<void> _openCoupang(
+    BuildContext context, ProductRecommendationItem item) async {
+  final uri = _coupangSearchUri(item.productName);
+  if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Could not open Coupang',
+          style: $styles.text.body.copyWith(color: $styles.colors.white),
+        ),
+        backgroundColor: $styles.colors.error,
       ),
     );
   }

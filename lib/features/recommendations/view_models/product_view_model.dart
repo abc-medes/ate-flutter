@@ -1,16 +1,20 @@
 import 'package:bodido/common_libs.dart';
-import 'package:bodido/core/services/product_recommendations_service.dart';
+import 'package:bodido/core/services/product/product_link_bindings_service.dart';
+import 'package:bodido/core/services/product/product_recommendations_service.dart';
 import 'package:bodido/core/services/user_service.dart';
+import 'package:bodido/data/models/product_recommendations_model.dart';
 
 class ProductRecommendationsState {
   final bool isLoading;
   final List<Map<String, dynamic>> items;
   final String? error;
+  final Map<String, Map<String, dynamic>> linksByBindingKey;
 
   const ProductRecommendationsState({
     this.isLoading = false,
     this.items = const [],
     this.error,
+    this.linksByBindingKey = const {},
   });
 
   ProductRecommendationsState copyWith({
@@ -18,11 +22,14 @@ class ProductRecommendationsState {
     List<Map<String, dynamic>>? items,
     String? error,
     bool clearError = false,
+    Map<String, Map<String, dynamic>>? linksByTitle,
+    Map<String, Map<String, dynamic>>? linksByBindingKey,
   }) {
     return ProductRecommendationsState(
       isLoading: isLoading ?? this.isLoading,
       items: items ?? this.items,
       error: clearError ? null : (error ?? this.error),
+      linksByBindingKey: linksByTitle ?? this.linksByBindingKey,
     );
   }
 }
@@ -39,7 +46,34 @@ class ProductRecommendationsViewModel
       final userId = ref.read(userServiceProvider).userId;
       final svc = ref.read(productRecommendationsServiceProvider);
       final items = await svc.listByUserId(userId, limit: limit);
-      state = state.copyWith(items: items, isLoading: false);
+
+      final rows = items
+          .map((row) => ProductRecommendationsRow.fromJson(
+                Map<String, dynamic>.from(row),
+              ))
+          .toList();
+      final all = rows.expand((r) => r.recommendations).toList();
+
+      final keys = <String>{
+        for (final it in all)
+          if ((it.bindingKey ?? '').isNotEmpty) it.bindingKey!,
+      };
+
+      Map<String, Map<String, dynamic>> linkMap = {};
+      if (keys.isNotEmpty) {
+        final linkSvc = ref.read(productLinkBindingsServiceProvider);
+        final links = await linkSvc.getByBindingKeys(keys.toList());
+        linkMap = {
+          for (final r in links)
+            (r['binding_key']?.toString() ?? ''): Map<String, dynamic>.from(r),
+        }..removeWhere((k, _) => k.isEmpty);
+      }
+
+      state = state.copyWith(
+        items: items,
+        linksByBindingKey: linkMap,
+        isLoading: false,
+      );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }

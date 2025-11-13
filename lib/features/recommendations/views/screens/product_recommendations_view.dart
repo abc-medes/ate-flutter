@@ -20,6 +20,9 @@ class ProductRecommendationsView extends ConsumerWidget {
         .toList()
       ..sort((a, b) => a.priority.compareTo(b.priority));
 
+    String _normalizeTitle(String v) =>
+        v.toLowerCase().replaceAll(RegExp(r'[^가-힣a-z0-9]+'), '');
+
     return Scaffold(
       backgroundColor: $styles.colors.background,
       body: Column(
@@ -54,7 +57,6 @@ class ProductRecommendationsView extends ConsumerWidget {
                     );
                   }
 
-                  // Responsive, single scrollable ListView (no overflow)
                   return Align(
                     alignment: Alignment.topCenter,
                     child: ConstrainedBox(
@@ -67,7 +69,13 @@ class ProductRecommendationsView extends ConsumerWidget {
                             SizedBox(height: $styles.insets.md),
                         itemBuilder: (context, index) {
                           final item = items[index];
-                          return _RecommendationCard(item: item);
+                          final key = item.bindingKey;
+                          final link =
+                              key == null ? null : state.linksByBindingKey[key];
+                          return _RecommendationCard(
+                            item: item,
+                            linkBinding: link,
+                          );
                         },
                       ),
                     ),
@@ -132,12 +140,36 @@ class ProductRecommendationsView extends ConsumerWidget {
 }
 
 class _RecommendationCard extends StatelessWidget {
-  const _RecommendationCard({required this.item});
+  const _RecommendationCard({required this.item, this.linkBinding});
 
   final ProductRecommendationItem item;
+  final Map<String, dynamic>? linkBinding;
+
+  Uri? _affiliateUri() {
+    final url = linkBinding?['affiliate_url']?.toString();
+    if (url == null || url.isEmpty) return null;
+    return Uri.tryParse(url);
+  }
+
+  Future<void> _openAffiliate(BuildContext context) async {
+    final uri = _affiliateUri();
+    if (uri == null) return;
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Could not open link',
+            style: $styles.text.body.copyWith(color: $styles.colors.white),
+          ),
+          backgroundColor: $styles.colors.error,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final hasAffiliate = _affiliateUri() != null;
     return Container(
       decoration: BoxDecoration(
         color: $styles.colors.backgroundDark,
@@ -159,6 +191,7 @@ class _RecommendationCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // top row
             Row(
               children: [
                 _CategoryChip(label: item.category),
@@ -205,28 +238,24 @@ class _RecommendationCard extends StatelessWidget {
                   ),
               ],
             ),
+
             SizedBox(height: $styles.insets.md),
-            Text(
-              item.productName,
-              style: $styles.text.h3,
-              softWrap: true,
-            ),
+
+            Text(item.productName, style: $styles.text.h3, softWrap: true),
+
             SizedBox(height: $styles.insets.sm),
+
             if (item.whyItHelps.isNotEmpty) ...[
               Text(
                 item.whyItHelps,
-                style: $styles.text.body.copyWith(
-                  color: $styles.colors.body,
-                ),
+                style: $styles.text.body.copyWith(color: $styles.colors.body),
                 softWrap: true,
               ),
               SizedBox(height: $styles.insets.md),
             ],
+
             if (item.keyBenefits.isNotEmpty) ...[
-              Text(
-                'Key benefits',
-                style: $styles.text.bodyBold,
-              ),
+              Text('Key benefits', style: $styles.text.bodyBold),
               SizedBox(height: $styles.insets.xs),
               ...item.keyBenefits.map(
                 (b) => Padding(
@@ -237,24 +266,16 @@ class _RecommendationCard extends StatelessWidget {
                       Icon(Icons.check_circle,
                           size: 18, color: $styles.colors.accent2),
                       SizedBox(width: $styles.insets.xs),
-                      Expanded(
-                        child: Text(
-                          b,
-                          style: $styles.text.body,
-                          softWrap: true,
-                        ),
-                      ),
+                      Expanded(child: Text(b, style: $styles.text.body)),
                     ],
                   ),
                 ),
               ),
               SizedBox(height: $styles.insets.md),
             ],
+
             if (item.recommendedUseCases.isNotEmpty) ...[
-              Text(
-                'Recommended use',
-                style: $styles.text.bodyBold,
-              ),
+              Text('Recommended use', style: $styles.text.bodyBold),
               SizedBox(height: $styles.insets.xs),
               ...item.recommendedUseCases.map(
                 (u) => Padding(
@@ -265,19 +286,14 @@ class _RecommendationCard extends StatelessWidget {
                       Icon(Icons.schedule,
                           size: 18, color: $styles.colors.accent3),
                       SizedBox(width: $styles.insets.xs),
-                      Expanded(
-                        child: Text(
-                          u,
-                          style: $styles.text.body,
-                          softWrap: true,
-                        ),
-                      ),
+                      Expanded(child: Text(u, style: $styles.text.body)),
                     ],
                   ),
                 ),
               ),
               SizedBox(height: $styles.insets.sm),
             ],
+
             if (item.searchKeywords.isNotEmpty) ...[
               Wrap(
                 spacing: $styles.insets.xs,
@@ -294,9 +310,8 @@ class _RecommendationCard extends StatelessWidget {
                     ),
                     child: Text(
                       k,
-                      style: $styles.text.caption.copyWith(
-                        color: $styles.colors.caption,
-                      ),
+                      style: $styles.text.caption
+                          .copyWith(color: $styles.colors.caption),
                       overflow: TextOverflow.ellipsis,
                       softWrap: false,
                     ),
@@ -304,41 +319,38 @@ class _RecommendationCard extends StatelessWidget {
                 }).toList(),
               ),
             ],
+
             if (item.additionalNotes != null &&
                 item.additionalNotes!.trim().isNotEmpty) ...[
               SizedBox(height: $styles.insets.md),
-              Text(
-                'Notes',
-                style: $styles.text.bodyBold,
-              ),
+              Text('Notes', style: $styles.text.bodyBold),
               SizedBox(height: $styles.insets.xs),
-              Text(
-                item.additionalNotes!,
-                style: $styles.text.body,
-                softWrap: true,
+              Text(item.additionalNotes!, style: $styles.text.body),
+            ],
+
+            if (hasAffiliate) ...[
+              SizedBox(height: $styles.insets.md),
+              Row(
+                children: [
+                  Spacer(),
+                  OutlinedButton.icon(
+                    onPressed: () => _openAffiliate(context),
+                    icon: Icon(Icons.open_in_new,
+                        size: 18, color: $styles.colors.accent1),
+                    label: Text(
+                      '쿠팡에서 보기',
+                      style: $styles.text.bodySmall
+                          .copyWith(color: $styles.colors.accent1),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(
+                          color: $styles.colors.accent1.withOpacity(0.5),
+                          width: 1),
+                    ),
+                  ),
+                ],
               ),
             ],
-            SizedBox(height: $styles.insets.md),
-            Row(
-              children: [
-                Spacer(),
-                OutlinedButton.icon(
-                  onPressed: () => _openCoupang(context, item),
-                  icon: Icon(Icons.open_in_new,
-                      size: 18, color: $styles.colors.accent1),
-                  label: Text(
-                    '쿠팡에서 검색',
-                    style: $styles.text.bodySmall
-                        .copyWith(color: $styles.colors.accent1),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                        color: $styles.colors.accent1.withOpacity(0.5),
-                        width: 1),
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -381,27 +393,6 @@ class _CategoryChip extends StatelessWidget {
             softWrap: false,
           ),
         ],
-      ),
-    );
-  }
-}
-
-Uri _coupangSearchUri(String query) {
-  final q = Uri.encodeQueryComponent(query);
-  return Uri.parse('https://www.coupang.com/np/search?q=$q&channel=user');
-}
-
-Future<void> _openCoupang(
-    BuildContext context, ProductRecommendationItem item) async {
-  final uri = _coupangSearchUri(item.productName);
-  if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Could not open Coupang',
-          style: $styles.text.body.copyWith(color: $styles.colors.white),
-        ),
-        backgroundColor: $styles.colors.error,
       ),
     );
   }

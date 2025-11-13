@@ -11,6 +11,7 @@ class ProductRecommendationItem {
   final String? additionalNotes;
   final String? approxPriceRange;
   final List<String> recommendedUseCases;
+  final String? bindingKey;
 
   ProductRecommendationItem({
     required this.category,
@@ -23,6 +24,7 @@ class ProductRecommendationItem {
     this.additionalNotes,
     this.approxPriceRange,
     required this.recommendedUseCases,
+    this.bindingKey,
   });
 
   factory ProductRecommendationItem.fromJson(Map<String, dynamic> json) {
@@ -42,6 +44,7 @@ class ProductRecommendationItem {
       additionalNotes: json['additional_notes']?.toString(),
       approxPriceRange: json['approx_price_range']?.toString(),
       recommendedUseCases: _toStringList(json['recommended_use_cases']),
+      bindingKey: json['binding_key']?.toString(),
     );
   }
 
@@ -57,6 +60,7 @@ class ProductRecommendationItem {
       if (additionalNotes != null) 'additional_notes': additionalNotes,
       if (approxPriceRange != null) 'approx_price_range': approxPriceRange,
       'recommended_use_cases': recommendedUseCases,
+      if (bindingKey != null) 'binding_key': bindingKey,
     };
   }
 }

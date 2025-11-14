@@ -5,18 +5,10 @@ class ProductRecommendationsService {
   final SupabaseClient _client = Supabase.instance.client;
   static const String _table = 'product_recommendations';
 
-  Future<List<Map<String, dynamic>>> listByUserId(
-    String userId, {
-    int limit = 50,
-  }) async {
-    final rows = await _client
-        .from(_table)
-        .select()
-        .eq('user_id', userId)
-        .order('created_at', ascending: false)
-        .limit(limit);
-
-    return rows.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  Future<Map<String, dynamic>?> getByUserIdSingle(String userId) async {
+    final row =
+        await _client.from(_table).select().eq('user_id', userId).maybeSingle();
+    return row == null ? null : Map<String, dynamic>.from(row as Map);
   }
 
   Future<List<Map<String, dynamic>>> listAll({int limit = 100}) async {

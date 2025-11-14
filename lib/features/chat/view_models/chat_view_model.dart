@@ -52,8 +52,7 @@ class ChatViewState {
       currentSessionId: currentSessionId ?? this.currentSessionId,
       timeline: timeline ?? this.timeline,
       questionsByTag: questionsByTag ?? this.questionsByTag,
-      pendingQuestionTags:
-          pendingQuestionTags ?? this.pendingQuestionTags, // NEW
+      pendingQuestionTags: pendingQuestionTags ?? this.pendingQuestionTags,
     );
   }
 }

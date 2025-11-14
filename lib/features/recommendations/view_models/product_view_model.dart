@@ -8,13 +8,13 @@ class ProductRecommendationsState {
   final bool isLoading;
   final List<Map<String, dynamic>> items;
   final String? error;
-  final Map<String, Map<String, dynamic>> linksByBindingKey;
+  final Map<String, Map<String, dynamic>> linksByBindingId;
 
   const ProductRecommendationsState({
     this.isLoading = false,
     this.items = const [],
     this.error,
-    this.linksByBindingKey = const {},
+    this.linksByBindingId = const {},
   });
 
   ProductRecommendationsState copyWith({
@@ -22,14 +22,13 @@ class ProductRecommendationsState {
     List<Map<String, dynamic>>? items,
     String? error,
     bool clearError = false,
-    Map<String, Map<String, dynamic>>? linksByTitle,
-    Map<String, Map<String, dynamic>>? linksByBindingKey,
+    Map<String, Map<String, dynamic>>? linksByBindingId,
   }) {
     return ProductRecommendationsState(
       isLoading: isLoading ?? this.isLoading,
       items: items ?? this.items,
       error: clearError ? null : (error ?? this.error),
-      linksByBindingKey: linksByTitle ?? this.linksByBindingKey,
+      linksByBindingId: linksByBindingId ?? this.linksByBindingId,
     );
   }
 }
@@ -39,39 +38,40 @@ class ProductRecommendationsViewModel
   ProductRecommendationsViewModel()
       : super(const ProductRecommendationsState());
 
-  Future<void> load(Ref ref, {int limit = 50}) async {
+  Future<void> load(Ref ref) async {
     if (state.isLoading) return;
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final userId = ref.read(userServiceProvider).userId;
       final svc = ref.read(productRecommendationsServiceProvider);
-      final items = await svc.listByUserId(userId, limit: limit);
+      final row = await svc.getByUserIdSingle(userId); // unique row per user
+      final items =
+          row == null ? <Map<String, dynamic>>[] : <Map<String, dynamic>>[row];
 
-      final rows = items
-          .map((row) => ProductRecommendationsRow.fromJson(
-                Map<String, dynamic>.from(row),
-              ))
+      final parsed = items
+          .map((r) =>
+              ProductRecommendationsRow.fromJson(Map<String, dynamic>.from(r)))
           .toList();
-      final all = rows.expand((r) => r.recommendations).toList();
+      final recs = parsed.expand((r) => r.recommendations).toList();
 
-      final keys = <String>{
-        for (final it in all)
-          if ((it.bindingKey ?? '').isNotEmpty) it.bindingKey!,
+      final ids = <String>{
+        for (final it in recs)
+          if ((it.bindingId ?? '').isNotEmpty) it.bindingId!,
       };
 
-      Map<String, Map<String, dynamic>> linkMap = {};
-      if (keys.isNotEmpty) {
+      Map<String, Map<String, dynamic>> linksById = {};
+      if (ids.isNotEmpty) {
         final linkSvc = ref.read(productLinkBindingsServiceProvider);
-        final links = await linkSvc.getByBindingKeys(keys.toList());
-        linkMap = {
+        final links = await linkSvc.getByIds(ids.toList());
+        linksById = {
           for (final r in links)
-            (r['binding_key']?.toString() ?? ''): Map<String, dynamic>.from(r),
+            (r['id']?.toString() ?? ''): Map<String, dynamic>.from(r),
         }..removeWhere((k, _) => k.isEmpty);
       }
 
       state = state.copyWith(
         items: items,
-        linksByBindingKey: linkMap,
+        linksByBindingId: linksById, // NEW
         isLoading: false,
       );
     } catch (e) {

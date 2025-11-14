@@ -57,5 +57,24 @@
 		</array>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<!-- webview -->
+		<key>NSAppTransportSecurity</key>
+		<dict>
+		<key>NSAllowsArbitraryLoadsInWebContent</key><true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>coupa.ng</key>
+			<dict>
+			<key>NSIncludesSubdomains</key><true/>
+			<key>NSExceptionAllowsInsecureHTTPLoads</key><false/>
+			</dict>
+			<key>coupang.com</key>
+			<dict>
+			<key>NSIncludesSubdomains</key><true/>
+			<key>NSExceptionAllowsInsecureHTTPLoads</key><false/>
+			</dict>
+		</dict>
+		<!-- webview -->
+		</dict>
 	</dict>
 </plist>

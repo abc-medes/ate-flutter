@@ -16,7 +16,7 @@ enum MessageTone { normal, success, error }
 class CustomMessageSheet {
   static Future<void> show({
     required BuildContext context,
-    String title = 'Message',
+    String? title,
     required String message,
     List<MessageAction> actions = const [],
     VoidCallback? onDismiss,
@@ -46,7 +46,7 @@ class CustomMessageSheet {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title,
+                title ?? $strings.msg_title_generic,
                 style: TextStyle(
                   fontSize: $styles.text.h3.fontSize,
                   fontWeight: FontWeight.bold,
@@ -96,11 +96,11 @@ class CustomMessageSheet {
     required String message,
     List<MessageAction> actions = const [],
     VoidCallback? onDismiss,
-    String title = 'Error',
+    String? title,
   }) {
     show(
       context: context,
-      title: title,
+      title: title ?? $strings.msg_title_error,
       message: message,
       actions: actions,
       onDismiss: onDismiss,
@@ -113,11 +113,11 @@ class CustomMessageSheet {
     required String message,
     List<MessageAction> actions = const [],
     VoidCallback? onDismiss,
-    String title = 'Success',
+    String? title,
   }) {
     show(
       context: context,
-      title: title,
+      title: title ?? $strings.msg_title_success,
       message: message,
       actions: actions,
       onDismiss: onDismiss,

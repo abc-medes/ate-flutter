@@ -40,9 +40,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  const SectionHeader(title: 'Account'),
+                  SectionHeader(title: $strings.settings_section_account),
                   SettingItem(
-                    title: 'Sign Out',
+                    title: $strings.settings_sign_out,
                     icon: Icons.exit_to_app,
                     onTap: () async {
                       await authService.signOut();
@@ -53,7 +53,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     isDestructive: true,
                   ),
                   SettingItem(
-                    title: 'Reset Health Data',
+                    title: $strings.settings_reset_health_data,
                     icon: Icons.medical_services_outlined,
                     onTap: () {
                       _showResetHealthDataDialog(context);
@@ -64,7 +64,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   PaddedDivider.medium(color: $styles.colors.caption),
 
                   // AI Settings section
-                  const SectionHeader(title: 'AI Settings'),
+                  SectionHeader(title: $strings.settings_section_ai),
                   if (settingsState.aiSettings == null) ...[
                     Padding(
                       padding:
@@ -74,42 +74,42 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   ] else ...[
                     ...[
                       {
-                        'title': 'Tone',
+                        'title': $strings.ai_tone,
                         'icon': Icons.record_voice_over,
                         'value': settingsState.aiSettings!.tone
                       },
                       {
-                        'title': 'Language',
+                        'title': $strings.ai_language,
                         'icon': Icons.language,
                         'value': settingsState.aiSettings!.language
                       },
                       {
-                        'title': 'Formality',
+                        'title': $strings.ai_formality,
                         'icon': Icons.school_outlined,
                         'value': settingsState.aiSettings!.formality
                       },
                       {
-                        'title': 'Detail Level',
+                        'title': $strings.ai_detail_level,
                         'icon': Icons.tune,
                         'value': settingsState.aiSettings!.detailLevel
                       },
                       {
-                        'title': 'Emoji Usage',
+                        'title': $strings.ai_emoji_usage,
                         'icon': Icons.emoji_emotions_outlined,
                         'value': settingsState.aiSettings!.emojiUsage
                       },
                       {
-                        'title': 'Response Length',
+                        'title': $strings.ai_response_length,
                         'icon': Icons.text_fields,
                         'value': settingsState.aiSettings!.responseLength
                       },
                       {
-                        'title': 'Goal Focus',
+                        'title': $strings.ai_goal_focus,
                         'icon': Icons.flag_outlined,
                         'value': settingsState.aiSettings!.goalFocus
                       },
                       {
-                        'title': 'Summarize Style',
+                        'title': $strings.ai_summarize_style,
                         'icon': Icons.summarize_outlined,
                         'value': settingsState.aiSettings!.summarizeStyle
                       },
@@ -130,22 +130,22 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   PaddedDivider.medium(color: $styles.colors.caption),
 
                   // Health Context section
-                  const SectionHeader(title: 'Health Context'),
+                  SectionHeader(title: $strings.settings_section_health_context),
                   const HealthContextSection(),
 
                   PaddedDivider.medium(color: $styles.colors.caption),
 
                   // Memorized Data section
-                  const SectionHeader(title: 'Memorized Context'),
+                  SectionHeader(title: $strings.settings_section_memorized),
                   MemorizedContextSection(
                       memorizedData: settingsState.memorizedData),
 
                   PaddedDivider.medium(color: $styles.colors.caption),
 
                   // Appearance section
-                  const SectionHeader(title: 'Appearance'),
+                  SectionHeader(title: $strings.settings_section_appearance),
                   SettingItem(
-                    title: 'Dark Mode',
+                    title: $strings.settings_dark_mode,
                     icon: Icons.dark_mode,
                     onTap: () {},
                     trailing: Switch(
@@ -158,9 +158,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   PaddedDivider.medium(color: $styles.colors.caption),
 
                   // About section
-                  const SectionHeader(title: 'About'),
+                  SectionHeader(title: $strings.settings_section_about),
                   SettingItem(
-                    title: 'App Version',
+                    title: $strings.settings_app_version,
                     icon: Icons.info,
                     onTap: () {},
                     trailing: Text('1.0.0',
@@ -169,12 +169,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         )),
                   ),
                   SettingItem(
-                    title: 'Terms of Service',
+                    title: $strings.settings_terms,
                     icon: Icons.description,
                     onTap: () {},
                   ),
                   SettingItem(
-                    title: 'Privacy Policy',
+                    title: $strings.settings_privacy,
                     icon: Icons.policy,
                     onTap: () {},
                   ),
@@ -195,9 +195,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               ),
             ),
             child: ContextInput(
-              title: 'Personalize your assistant',
-              subtitle:
-                  'Share details that help responses stay relevant long-term — preferences, health history, routines, or goals.',
+              title: $strings.context_title,
+              subtitle: $strings.context_subtitle,
             ),
           ),
         ],
@@ -227,9 +226,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Reset Health Data', style: $styles.text.h3),
+          title: Text($strings.settings_reset_title, style: $styles.text.h3),
           content: Text(
-            'This will reset all your health-related data including height, weight, conditions, and more. This action cannot be undone.',
+            $strings.settings_reset_content,
             style: $styles.text.body.copyWith(
               color: $styles.colors.body,
             ),
@@ -237,7 +236,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('CANCEL',
+              child: Text($strings.action_cancel.toUpperCase(),
                   style: $styles.text.bodySmall.copyWith(
                     color: $styles.colors.accent1,
                     fontWeight: FontWeight.bold,
@@ -259,7 +258,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                                 $styles.colors.accent1),
                           ),
                           SizedBox(width: $styles.insets.md),
-                          Text("Resetting health data...",
+                          Text($strings.settings_resetting,
                               style: $styles.text.body),
                         ],
                       ),
@@ -276,7 +275,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          'Health data reset successfully',
+                          $strings.settings_reset_success,
                           style: $styles.text.body.copyWith(
                             color: $styles.colors.white,
                           ),
@@ -291,7 +290,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          'Error resetting health data: $e',
+                          $strings.settings_reset_error(e.toString()),
                           style: $styles.text.body.copyWith(
                             color: $styles.colors.white,
                           ),
@@ -302,7 +301,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   }
                 }
               },
-              child: Text('RESET',
+              child: Text($strings.action_reset,
                   style: $styles.text.bodySmall.copyWith(
                     color: $styles.colors.error,
                     fontWeight: FontWeight.bold,

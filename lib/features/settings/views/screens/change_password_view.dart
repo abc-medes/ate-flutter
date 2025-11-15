@@ -54,7 +54,7 @@ class _ChangePasswordViewState extends ConsumerState<ChangePasswordView> {
     if (!valid) {
       CustomMessageSheet.showError(
         context: context,
-        message: 'Please correct the errors before continuing',
+        message: $strings.error_fix_before_continue,
       );
       return;
     }
@@ -69,7 +69,7 @@ class _ChangePasswordViewState extends ConsumerState<ChangePasswordView> {
       if (!mounted) return;
       CustomMessageSheet.showSuccess(
         context: context,
-        message: 'Password updated',
+        message: $strings.success_password_updated,
         onDismiss: () => Navigator.of(context).pop(),
       );
     } on AuthException catch (e) {
@@ -97,7 +97,7 @@ class _ChangePasswordViewState extends ConsumerState<ChangePasswordView> {
     return Scaffold(
       backgroundColor: $styles.colors.background,
       appBar: AppPageAppBar(
-        title: 'Change Password',
+        title: $strings.change_password_title,
         onBack: () => context.go(RouteNames.settings),
       ),
       body: SafeArea(
@@ -112,7 +112,7 @@ class _ChangePasswordViewState extends ConsumerState<ChangePasswordView> {
                     children: [
                       CustomedTextInput(
                         controller: _currentController,
-                        hintText: 'Current Password',
+                        hintText: $strings.field_current_password,
                         isRequired: true,
                         obscureText: !_isCurrentVisible,
                         suffixIcon: IconButton(
@@ -136,7 +136,7 @@ class _ChangePasswordViewState extends ConsumerState<ChangePasswordView> {
                       SizedBox(height: $styles.insets.sm),
                       CustomedTextInput(
                         controller: _newController,
-                        hintText: 'New Password',
+                        hintText: $strings.field_new_password,
                         isRequired: true,
                         obscureText: !_isNewVisible,
                         onChanged: (_) => _validateNew(),
@@ -164,7 +164,7 @@ class _ChangePasswordViewState extends ConsumerState<ChangePasswordView> {
                       SizedBox(height: $styles.insets.sm),
                       CustomedTextInput(
                         controller: _confirmController,
-                        hintText: 'Confirm New Password',
+                        hintText: $strings.field_confirm_new_password,
                         isRequired: true,
                         obscureText: !_isConfirmVisible,
                         onChanged: (_) => _validateMatch(),
@@ -194,7 +194,7 @@ class _ChangePasswordViewState extends ConsumerState<ChangePasswordView> {
                 ),
               ),
               AppButton(
-                label: 'Update Password',
+                label: $strings.action_update_password,
                 isLoading: _isLoading,
                 onPressed: _isLoading ? null : _submit,
               ),

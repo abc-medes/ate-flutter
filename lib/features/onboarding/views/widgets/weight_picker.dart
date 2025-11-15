@@ -31,10 +31,7 @@ class WeightPickerWidget extends StatelessWidget {
             },
             children: weightOptions.map((weight) {
               return Center(
-                child: Text(
-                  '$weight kg',
-                  style: $styles.text.h3,
-                ),
+                child: Text($strings.unit_kg(weight), style: $styles.text.h3),
               );
             }).toList(),
           ),

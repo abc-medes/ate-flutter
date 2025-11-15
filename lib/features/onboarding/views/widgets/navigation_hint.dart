@@ -18,7 +18,7 @@ class NavigationHint extends StatelessWidget {
                     size: 32, color: Theme.of(context).colorScheme.primary),
                 SizedBox(height: $styles.insets.sm),
                 Text(
-                  "Scroll down to save and continue",
+                  $strings.onboarding_scroll_down,
                   style:
                       TextStyle(color: Theme.of(context).colorScheme.primary),
                 ),
@@ -28,7 +28,7 @@ class NavigationHint extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.only(top: $styles.insets.sm),
                 child: Text(
-                  "Scroll up to go back",
+                  $strings.onboarding_scroll_up,
                   style: TextStyle(
                     color:
                         Theme.of(context).colorScheme.primary.withOpacity(0.7),
@@ -49,7 +49,7 @@ class NavigationHint extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                   const SizedBox(width: 12),
-                  Text("Saving...",
+                  Text($strings.onboarding_saving,
                       style: TextStyle(
                           color: Theme.of(context).colorScheme.primary)),
                 ],

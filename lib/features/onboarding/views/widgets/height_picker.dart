@@ -31,10 +31,7 @@ class HeightPickerWidget extends StatelessWidget {
             },
             children: heightOptions.map((height) {
               return Center(
-                child: Text(
-                  '$height cm',
-                  style: $styles.text.h3,
-                ),
+                child: Text($strings.unit_cm(height), style: $styles.text.h3),
               );
             }).toList(),
           ),

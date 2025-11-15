@@ -68,6 +68,24 @@
         "signupNextStep1": "받은편지함에서 인증 메일을 확인하세요",
         "signupNextStep2": "메일의 링크를 눌러 계정을 인증하세요",
         "signupNextStep3": "앱으로 돌아와 회원가입을 완료하세요",
+        "onboarding_scroll_down": "아래로 스크롤하여 저장하고 계속하세요",
+        "onboarding_scroll_up": "위로 스크롤하여 뒤로 가기",
+        "onboarding_saving": "저장 중...",
+        "unit_cm": "{value} cm",
+        "@unit_cm": {
+                "description": "센티미터 단위 표시",
+                "placeholders": { "value": { "type": "int" } }
+        },
+        "unit_kg": "{value} kg",
+        "@unit_kg": {
+                "description": "킬로그램 단위 표시",
+                "placeholders": { "value": { "type": "int" } }
+        },
+        "intro_title": "AI 식단 플래너",
+        "intro_subtitle": "AI로 영양을 기록, 분석하고 최적화하세요. 똑똑한 식사, 더 나은 습관.",
+        "intro_get_started": "시작하기",
+        "onboarding_log_saving_metrics": "건강 지표를 저장하는 중…",
+        "onboarding_log_initializing_simulator": "신체 시뮬레이터를 초기화하는 중…",
         "errorInvalidEmailShort": "유효한 이메일을 입력해 주세요",
         "termsTitle": "이용약관 및 개인정보처리방침",
         "termsDescription": "계속하기 전에 이용약관과 개인정보처리방침을 확인하고 동의해 주세요.",

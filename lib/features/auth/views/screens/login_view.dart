@@ -35,13 +35,11 @@ class _LoginViewState extends ConsumerState<LoginView> {
   Widget build(BuildContext context) {
     final viewState = ref.watch(loginViewModelProvider);
 
-    final isLoading = viewState.isLoading;
-
     ref.listen<bool>(
       loginViewModelProvider.select((s) => s.isLoading),
       (prev, isLoading) {
         if (isLoading) {
-          LoadingScreen.show(context, message: 'Signing in...');
+          LoadingScreen.show(context, message: $strings.authSigningIn);
         } else {
           LoadingScreen.dismiss(context);
         }
@@ -118,7 +116,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                   children: [
                     SocialAuthButton(
                       ref: ref,
-                      text: 'Continue with Google',
+                      text: $strings.continueWithGoogle,
                       icon: Icons.g_mobiledata_rounded,
                       iconColor: $styles.colors.black,
                       onPressed: () {
@@ -129,7 +127,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       const SizedBox(height: 12),
                       SocialAuthButton(
                         ref: ref,
-                        text: 'Continue with Apple',
+                        text: $strings.continueWithApple,
                         icon: Icons.apple,
                         iconColor: $styles.colors.black,
                         onPressed: () {

@@ -1,7 +1,6 @@
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/widgets/app_button.dart';
 import 'package:bodido/features/auth/views/widgets/_policy_viewer_sheet.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class TermsConsentSheet extends StatefulWidget {
   final Uri termsUrl;
@@ -24,10 +23,9 @@ class TermsConsentSheet extends StatefulWidget {
     BuildContext context, {
     required Uri termsUrl,
     required Uri privacyUrl,
-    String title = 'Terms & Privacy',
-    String description =
-        'Before continuing, please review and accept our Terms of Service and Privacy Policy.',
-    String confirmLabel = 'Accept and Continue',
+    String? title,
+    String? description,
+    String? confirmLabel,
   }) {
     return showModalBottomSheet<bool>(
       context: context,
@@ -39,9 +37,9 @@ class TermsConsentSheet extends StatefulWidget {
       builder: (_) => TermsConsentSheet(
         termsUrl: termsUrl,
         privacyUrl: privacyUrl,
-        title: title,
-        description: description,
-        confirmLabel: confirmLabel,
+        title: title ?? $strings.termsTitle,
+        description: description ?? $strings.termsDescription,
+        confirmLabel: confirmLabel ?? $strings.termsAcceptAndContinue,
       ),
     );
   }
@@ -53,21 +51,6 @@ class TermsConsentSheet extends StatefulWidget {
 class _TermsConsentSheetState extends State<TermsConsentSheet> {
   bool _acceptedTerms = false;
   bool _acceptedPrivacy = false;
-
-  Future<void> _openUrl(Uri uri) async {
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
-        mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Could not open: ${uri.toString()}',
-            style: $styles.text.body.copyWith(color: $styles.colors.white),
-          ),
-          backgroundColor: $styles.colors.error,
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,18 +116,18 @@ class _TermsConsentSheetState extends State<TermsConsentSheet> {
                         color: $styles.colors.black,
                       ),
                       children: [
-                        const TextSpan(text: 'I agree to the '),
+                        TextSpan(text: $strings.iAgreeTo),
                         WidgetSpan(
                           alignment: PlaceholderAlignment.baseline,
                           baseline: TextBaseline.alphabetic,
                           child: InkWell(
                             onTap: () => PolicyViewerSheet.show(
                               context,
-                              title: 'Terms of Service',
+                              title: $strings.termsOfService,
                               assetPath: 'assets/legal/terms_en.txt',
                             ),
                             child: Text(
-                              'Terms of Service', // or 'Privacy Policy'
+                              $strings.termsOfService, // or 'Privacy Policy'
                               style: $styles.text.bodySmall.copyWith(
                                 fontSize:
                                     ($styles.text.bodySmall.fontSize ?? 16) + 2,
@@ -197,18 +180,18 @@ class _TermsConsentSheetState extends State<TermsConsentSheet> {
                       style: $styles.text.bodySmall
                           .copyWith(color: $styles.colors.black),
                       children: [
-                        const TextSpan(text: 'I agree to the '),
+                        TextSpan(text: $strings.iAgreeTo),
                         WidgetSpan(
                           alignment: PlaceholderAlignment.baseline,
                           baseline: TextBaseline.alphabetic,
                           child: InkWell(
                             onTap: () => PolicyViewerSheet.show(
                               context,
-                              title: 'Privacy Policy',
+                              title: $strings.privacyPolicy,
                               assetPath: 'assets/legal/privacy_en.txt',
                             ),
                             child: Text(
-                              'Privacy Policy',
+                              $strings.privacyPolicy,
                               style: $styles.text.bodySmall.copyWith(
                                 color: $styles.colors.accent1,
                                 decoration: TextDecoration.underline,

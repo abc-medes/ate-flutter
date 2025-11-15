@@ -47,9 +47,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   Expanded(
                     child: _HomeBigButton(
                       icon: Icons.insights_outlined,
-                      title: 'Score',
-                      subtitle:
-                          'Overall ${(state.bodySimulatorState?.healthScore.overallScore ?? 0).toStringAsFixed(1)}',
+                      title: $strings.home_score,
+                      subtitle: $strings.home_overall_score((state.bodySimulatorState?.healthScore.overallScore ?? 0).toStringAsFixed(1)),
                       gradientStart: $styles.colors.accent2,
                       gradientEnd: $styles.colors.accent1,
                       onTap: () => _openScoreSheet(context, ref),
@@ -59,10 +58,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   Expanded(
                     child: _HomeBigButton(
                       icon: Icons.rule_folder_outlined,
-                      title: 'Questions',
+                      title: $strings.home_questions,
                       subtitle: state.userQuestions.isEmpty
-                          ? 'No pending questions'
-                          : '${state.userQuestions.length} pending',
+                          ? $strings.home_no_pending_questions
+                          : $strings.home_num_pending(state.userQuestions.length),
                       gradientStart: $styles.colors.accent1,
                       gradientEnd: $styles.colors.accent3,
                       onTap: () => _openQuestionsSheet(context, ref),
@@ -72,8 +71,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   Expanded(
                     child: _HomeBigButton(
                       icon: Icons.chat_bubble_outline,
-                      title: 'Chat History',
-                      subtitle: 'View your chat history',
+                      title: $strings.home_chat_history,
+                      subtitle: $strings.home_chat_history_subtitle,
                       gradientStart: $styles.colors.accent3,
                       gradientEnd: $styles.colors.accent2,
                       onTap: () => context.push(RouteNames.chatHistory),

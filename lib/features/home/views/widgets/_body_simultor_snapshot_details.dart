@@ -135,7 +135,7 @@ class _BodySimulatorSnapshotDetailsState
                       ),
                       SizedBox(height: $styles.insets.md),
                       Text(
-                        'getting body simulator data...',
+                        $strings.bs_loading,
                         style: $styles.text.body,
                       ),
                     ],
@@ -167,7 +167,7 @@ class _BodySimulatorSnapshotDetailsState
                             });
                             _initializeBodyStateStream();
                           },
-                          child: Text('다시 시도'),
+                          child: Text($strings.action_retry),
                         ),
                     ],
                   ),
@@ -181,10 +181,10 @@ class _BodySimulatorSnapshotDetailsState
                       $styles.text.body.copyWith(fontSize: 16),
                   indicatorSize: TabBarIndicatorSize.tab,
                   indicatorColor: $styles.colors.accent1,
-                  tabs: const [
-                    Tab(text: 'Overview', height: 24),
-                    Tab(text: 'Highlights', height: 24),
-                    Tab(text: 'Metrics', height: 24),
+                  tabs: [
+                    Tab(text: $strings.tab_overview, height: 24),
+                    Tab(text: $strings.tab_highlights, height: 24),
+                    Tab(text: $strings.tab_metrics, height: 24),
                   ],
                 ),
                 SizedBox(height: $styles.insets.sm),
@@ -278,65 +278,65 @@ class _BodySimulatorSnapshotDetailsState
 
   // ---------- per-organ tables ----------------------------------------------
   Widget _brainTable(BrainData d) => _metricTable([
-        ('Stress level', d.stressLevel, false, '%'),
-        ('Serotonin', d.serotonin, true, ''),
-        ('Sleep rhythm', d.sleepRhythm, true, ' h'),
-        ('Cortisol', d.cortisol, false, ''),
+        ($strings.brain_stress_level, d.stressLevel, false, '%'),
+        ($strings.brain_serotonin, d.serotonin, true, ''),
+        ($strings.brain_sleep_rhythm, d.sleepRhythm, true, ' h'),
+        ($strings.brain_cortisol, d.cortisol, false, ''),
       ]);
 
   Widget _heartTable(HeartData d) => _metricTable([
-        ('Blood sugar', d.bloodSugar, false, ' mg/dL'),
-        ('Blood pressure', d.bloodPressure, false, ' mmHg'),
-        ('Heart rate', d.heartRate, false, ' bpm'),
-        ('HRV', d.hrv, true, ' ms'),
+        ($strings.heart_blood_sugar, d.bloodSugar, false, ' mg/dL'),
+        ($strings.heart_blood_pressure, d.bloodPressure, false, ' mmHg'),
+        ($strings.heart_heart_rate, d.heartRate, false, ' bpm'),
+        ($strings.heart_hrv, d.hrv, true, ' ms'),
       ]);
 
   Widget _lungsTable(LungsData d) => _metricTable([
-        ('O₂ saturation', d.oxygenSaturation, true, '%'),
-        ('Health index', d.lungHealth, true, ''),
-        ('PM exposure', d.pmExposure, false, ' μg/m³'),
-        ('Respiratory rate', d.respiratoryRate, false, ' bpm'),
+        ($strings.lungs_o2_saturation, d.oxygenSaturation, true, '%'),
+        ($strings.lungs_health_index, d.lungHealth, true, ''),
+        ($strings.lungs_pm_exposure, d.pmExposure, false, ' μg/m³'),
+        ($strings.lungs_respiratory_rate, d.respiratoryRate, false, ' bpm'),
       ]);
 
   Widget _liverTable(LiverData d) => _metricTable([
-        ('Detox capacity', d.detoxCapacity, true, '%'),
-        ('Liver enzymes', d.liverEnzymes, false, ''),
-        ('Fat processing', d.fatProcessing, true, '%'),
-        ('Alcohol load', d.alcoholLoad, false, '%'),
+        ($strings.liver_detox_capacity, d.detoxCapacity, true, '%'),
+        ($strings.liver_enzymes, d.liverEnzymes, false, ''),
+        ($strings.liver_fat_processing, d.fatProcessing, true, '%'),
+        ($strings.liver_alcohol_load, d.alcoholLoad, false, '%'),
       ]);
 
   Widget _stomachTable(StomachData d) => _metricTable([
-        ('Digestion speed', d.digestionSpeed, true, '%'),
-        ('Acidity', d.acidity, false, ''),
-        ('Nausea risk', d.nauseaRisk, false, '%'),
-        ('Food retention', d.foodRetention, false, '%'),
+        ($strings.stomach_digestion_speed, d.digestionSpeed, true, '%'),
+        ($strings.stomach_acidity, d.acidity, false, ''),
+        ($strings.stomach_nausea_risk, d.nauseaRisk, false, '%'),
+        ($strings.stomach_food_retention, d.foodRetention, false, '%'),
       ]);
 
   Widget _intestinesTable(IntestinesData d) => _metricTable([
-        ('Bacteria diversity', d.gutBacteriaDiversity, true, '%'),
-        ('Inflammation', d.inflammation, false, '%'),
-        ('Absorption rate', d.absorptionRate, true, '%'),
-        ('Gas level', d.gasLevel, false, '%'),
+        ($strings.intestines_bacteria_diversity, d.gutBacteriaDiversity, true, '%'),
+        ($strings.intestines_inflammation, d.inflammation, false, '%'),
+        ($strings.intestines_absorption_rate, d.absorptionRate, true, '%'),
+        ($strings.intestines_gas_level, d.gasLevel, false, '%'),
       ]);
 
   Widget _kidneysTable(KidneysData d) => _metricTable([
-        ('Hydration', d.hydration, true, '%'),
-        ('Electrolyte balance', d.electrolyteBalance, true, '%'),
-        ('Urea clearance', d.ureaClearance, true, '%'),
-        ('Toxicity load', d.toxicityLoad, false, '%'),
+        ($strings.kidneys_hydration, d.hydration, true, '%'),
+        ($strings.kidneys_electrolyte_balance, d.electrolyteBalance, true, '%'),
+        ($strings.kidneys_urea_clearance, d.ureaClearance, true, '%'),
+        ($strings.kidneys_toxicity_load, d.toxicityLoad, false, '%'),
       ]);
 
   Widget _endocrineTable(EndocrineData d) => _metricTable([
-        ('Insulin sensitivity', d.insulinSensitivity, true, '%'),
-        ('Thyroid function', d.thyroidFunction, true, '%'),
-        ('E/T ratio', d.estrogenTestosteroneRatio, false, ''),
+        ($strings.endocrine_insulin_sensitivity, d.insulinSensitivity, true, '%'),
+        ($strings.endocrine_thyroid_function, d.thyroidFunction, true, '%'),
+        ($strings.endocrine_et_ratio, d.estrogenTestosteroneRatio, false, ''),
       ]);
 
   Widget _nervousTable(NervousData d) => _metricTable([
-        ('Focus level', d.focusLevel, true, '%'),
-        ('Mood stability', d.moodStability, true, '%'),
-        ('Anxiety level', d.anxietyLevel, false, '%'),
-        ('Neuro flexibility', d.neuroFlexibility, true, '%'),
+        ($strings.nervous_focus_level, d.focusLevel, true, '%'),
+        ($strings.nervous_mood_stability, d.moodStability, true, '%'),
+        ($strings.nervous_anxiety_level, d.anxietyLevel, false, '%'),
+        ($strings.nervous_neuro_flexibility, d.neuroFlexibility, true, '%'),
       ]);
 }
 
@@ -351,14 +351,14 @@ extension _ReportPages on _BodySimulatorSnapshotDetailsState {
         children: [
           Row(
             children: [
-              Text('Overall score',
+              Text($strings.label_overall_score,
                   style: $styles.text.bodyBold.copyWith(fontSize: 18)),
               SizedBox(width: $styles.insets.sm),
               AnimatedMetricValue(value: hs.overallScore),
             ],
           ),
           SizedBox(height: $styles.insets.md),
-          Text('Insights', style: $styles.text.bodyBold.copyWith(fontSize: 18)),
+          Text($strings.label_insights, style: $styles.text.bodyBold.copyWith(fontSize: 18)),
           SizedBox(height: $styles.insets.xs),
           Column(
             children: widget.insights
@@ -375,7 +375,7 @@ extension _ReportPages on _BodySimulatorSnapshotDetailsState {
                 .toList(),
           ),
           SizedBox(height: $styles.insets.md),
-          Text('Organ scores',
+          Text($strings.label_organ_scores,
               style: $styles.text.bodyBold.copyWith(fontSize: 18)),
           SizedBox(height: $styles.insets.xs),
           Wrap(
@@ -415,13 +415,13 @@ extension _ReportPages on _BodySimulatorSnapshotDetailsState {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (hs.strengths.isNotEmpty) ...[
-            _sectionHeader('Strengths 💪'),
+            _sectionHeader($strings.label_strengths),
             SizedBox(height: $styles.insets.xs),
             _analysisListView(hs.strengths, accent: $styles.colors.accent1),
             SizedBox(height: $styles.insets.md),
           ],
           if (hs.concerns.isNotEmpty) ...[
-            _sectionHeader('Areas of Concern ⚠️'),
+            _sectionHeader($strings.label_concerns),
             SizedBox(height: $styles.insets.xs),
             _analysisListView(hs.concerns, accent: $styles.colors.warning),
           ],
@@ -452,23 +452,23 @@ extension _ReportPages on _BodySimulatorSnapshotDetailsState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          block('Brain', scores['Brain'],
+          block($strings.organ_brain, scores['Brain'],
               s.brain != null ? _brainTable(s.brain!) : null),
-          block('Heart', scores['Heart'],
+          block($strings.organ_heart, scores['Heart'],
               s.heart != null ? _heartTable(s.heart!) : null),
-          block('Lungs', scores['Lungs'],
+          block($strings.organ_lungs, scores['Lungs'],
               s.lungs != null ? _lungsTable(s.lungs!) : null),
-          block('Liver', scores['Liver'],
+          block($strings.organ_liver, scores['Liver'],
               s.liver != null ? _liverTable(s.liver!) : null),
-          block('Stomach', scores['Stomach'],
+          block($strings.organ_stomach, scores['Stomach'],
               s.stomach != null ? _stomachTable(s.stomach!) : null),
-          block('Intestines', scores['Intestines'],
+          block($strings.organ_intestines, scores['Intestines'],
               s.intestines != null ? _intestinesTable(s.intestines!) : null),
-          block('Kidneys', scores['Kidneys'],
+          block($strings.organ_kidneys, scores['Kidneys'],
               s.kidneys != null ? _kidneysTable(s.kidneys!) : null),
-          block('Endocrine', scores['Endocrine'],
+          block($strings.organ_endocrine, scores['Endocrine'],
               s.endocrine != null ? _endocrineTable(s.endocrine!) : null),
-          block('Nervous', scores['Nervous'],
+          block($strings.organ_nervous, scores['Nervous'],
               s.nervous != null ? _nervousTable(s.nervous!) : null),
         ],
       ),

@@ -49,12 +49,11 @@ class _ContextInputState extends ConsumerState<ContextInput> {
     if (widget.hintText != null) return widget.hintText!;
     switch (_currentMode) {
       case ContextPurpose.memory:
-        return 'What should we know about you?';
+        return $strings.context_hint_memory;
       case ContextPurpose.aiSettings:
-        return 'Adjust AI preferences (language, tone, style)...';
+        return $strings.context_hint_ai;
       case ContextPurpose.auto:
-      default:
-        return 'Share context or preferences to personalize your experience';
+        return $strings.context_hint_auto;
     }
   }
 
@@ -191,9 +190,9 @@ class _ContextInputState extends ConsumerState<ContextInput> {
           if (onModeChanged != null) onModeChanged(ContextPurpose.values[idx]);
         },
         children: [
-          Center(child: Text('Auto', style: $styles.text.bodySmall)),
-          Center(child: Text('Mem', style: $styles.text.bodySmall)),
-          Center(child: Text('AI', style: $styles.text.bodySmall)),
+          Center(child: Text($strings.context_mode_auto, style: $styles.text.bodySmall)),
+          Center(child: Text($strings.context_mode_mem, style: $styles.text.bodySmall)),
+          Center(child: Text($strings.context_mode_ai, style: $styles.text.bodySmall)),
         ],
       ),
     );
@@ -235,9 +234,8 @@ class _ContextInputState extends ConsumerState<ContextInput> {
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.title ?? 'Tell us about you';
-    final subtitle = widget.subtitle ??
-        'What should we know about you? This helps personalize your experience.';
+    final title = widget.title ?? $strings.context_title;
+    final subtitle = widget.subtitle ?? $strings.context_subtitle;
     final hint = _computedHint;
 
     return Column(
@@ -276,7 +274,7 @@ class _ContextInputState extends ConsumerState<ContextInput> {
                         color: $styles.colors.accent2,
                       ),
                       onPressed: _isSubmitting ? null : _handleSubmit,
-                      tooltip: 'Save context',
+                      tooltip: $strings.tooltip_save_context,
                     ),
                   ],
                 ),

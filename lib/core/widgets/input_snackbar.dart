@@ -90,8 +90,7 @@ class InputSnackbar {
     );
   }
 
-  static void showProcessing(BuildContext context,
-      {String message = 'Saving to memory...'}) {
+  static void showProcessing(BuildContext context, {String? message}) {
     _show(
       context,
       content: Row(
@@ -107,7 +106,7 @@ class InputSnackbar {
           SizedBox(width: $styles.insets.sm),
           Expanded(
             child: Text(
-              message,
+              message ?? $strings.snackbar_processing,
               style:
                   $styles.text.bodySmall.copyWith(color: $styles.colors.white),
             ),
@@ -119,8 +118,7 @@ class InputSnackbar {
     );
   }
 
-  static void showSuccess(BuildContext context,
-      {String message = 'Saved to memory'}) {
+  static void showSuccess(BuildContext context, {String? message}) {
     _show(
       context,
       content: Row(
@@ -129,7 +127,7 @@ class InputSnackbar {
           SizedBox(width: $styles.insets.sm),
           Expanded(
             child: Text(
-              message,
+              message ?? $strings.snackbar_saved,
               style:
                   $styles.text.bodySmall.copyWith(color: $styles.colors.white),
             ),
@@ -140,8 +138,7 @@ class InputSnackbar {
     );
   }
 
-  static void showError(BuildContext context,
-      {String message = 'Failed to save'}) {
+  static void showError(BuildContext context, {String? message}) {
     _show(
       context,
       content: Row(
@@ -150,7 +147,7 @@ class InputSnackbar {
           SizedBox(width: $styles.insets.sm),
           Expanded(
             child: Text(
-              message,
+              message ?? $strings.snackbar_failed,
               style:
                   $styles.text.bodySmall.copyWith(color: $styles.colors.white),
             ),

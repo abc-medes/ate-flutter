@@ -191,7 +191,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                 if (viewModel.currentSessionMessages.isEmpty) {
                   return Center(
                     child: Text(
-                      'No messages in this session',
+                      $strings.chat_no_messages,
                       style: $styles.text.body.copyWith(
                         color: $styles.colors.caption,
                       ),
@@ -221,7 +221,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                       CircularProgressIndicator(),
                       SizedBox(height: $styles.insets.md),
                       Text(
-                        'Loading session ${index + 1}',
+                        $strings.chat_loading_session(index + 1),
                         style: $styles.text.body.copyWith(
                           color: $styles.colors.caption,
                         ),
@@ -251,7 +251,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                 ),
                 SizedBox(width: $styles.insets.xs),
                 Text(
-                  '좌우로 스와이프하여 다른 채팅 보기',
+                  $strings.chat_swipe_hint,
                   style: $styles.text.caption.copyWith(
                     color: $styles.colors.caption,
                   ),
@@ -319,7 +319,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                       ),
                       SizedBox(width: $styles.insets.xs),
                       Text(
-                        'Generating...',
+                        $strings.chat_generating,
                         style: $styles.text.caption.copyWith(
                           color: Colors.white.withOpacity(0.85),
                         ),
@@ -364,7 +364,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                               ),
                               SizedBox(width: $styles.insets.xs),
                               Text(
-                                'Getting your check-ins...',
+                                $strings.chat_getting_checkins,
                                 style: $styles.text.caption.copyWith(
                                   color: Colors.white.withOpacity(0.85),
                                 ),
@@ -425,13 +425,13 @@ class _ChatViewState extends ConsumerState<ChatView> {
     final difference = now.difference(timestamp);
 
     if (difference.inMinutes < 1) {
-      return 'Just now';
+      return $strings.time_just_now;
     } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}m ago';
+      return $strings.time_minutes_ago(difference.inMinutes);
     } else if (difference.inDays < 1) {
-      return '${difference.inHours}h ago';
+      return $strings.time_hours_ago(difference.inHours);
     } else {
-      return '${difference.inDays}d ago';
+      return $strings.time_days_ago(difference.inDays);
     }
   }
 
@@ -489,7 +489,8 @@ class _ChatViewState extends ConsumerState<ChatView> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Session ${_currentPageIndex + 1} of ${widget.sessionIds!.length}',
+                  $strings.chat_session_indicator(
+                      _currentPageIndex + 1, widget.sessionIds!.length),
                   style: $styles.text.caption.copyWith(
                     color: $styles.colors.caption,
                   ),

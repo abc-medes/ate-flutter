@@ -69,6 +69,24 @@
         "signupNextStep1": "Check your email inbox for a verification link from us",
         "signupNextStep2": "Click on the link in the email to verify your account",
         "signupNextStep3": "Return to the app to complete your registration",
+        "onboarding_scroll_down": "Scroll down to save and continue",
+        "onboarding_scroll_up": "Scroll up to go back",
+        "onboarding_saving": "Saving...",
+        "unit_cm": "{value} cm",
+        "@unit_cm": {
+                "description": "Centimeter unit label with value",
+                "placeholders": { "value": { "type": "int" } }
+        },
+        "unit_kg": "{value} kg",
+        "@unit_kg": {
+                "description": "Kilogram unit label with value",
+                "placeholders": { "value": { "type": "int" } }
+        },
+        "intro_title": "AI Meal Planner",
+        "intro_subtitle": "Track, analyze, and optimize your nutrition using AI. Smart meals, smarter habits.",
+        "intro_get_started": "Get Started",
+        "onboarding_log_saving_metrics": "Saving your health metrics…",
+        "onboarding_log_initializing_simulator": "Initializing body simulator…",
         "errorInvalidEmailShort": "Please enter a valid email",
         "termsTitle": "Terms & Privacy",
         "termsDescription": "Before continuing, please review and accept our Terms of Service and Privacy Policy.",

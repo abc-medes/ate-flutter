@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:bodido/main.dart';
 
 class IntroView extends StatelessWidget {
   const IntroView({super.key});
@@ -11,11 +12,11 @@ class IntroView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("AI Meal Planner",
+            Text($strings.intro_title,
                 style: Theme.of(context).textTheme.headlineLarge),
             const SizedBox(height: 16),
             Text(
-              "Track, analyze, and optimize your nutrition using AI. Smart meals, smarter habits.",
+              $strings.intro_subtitle,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const Spacer(),
@@ -24,7 +25,7 @@ class IntroView extends StatelessWidget {
                 onPressed: () {
                   // TODO: Go to next onboarding step or login
                 },
-                child: const Text("Get Started"),
+                child: Text($strings.intro_get_started),
               ),
             )
           ],

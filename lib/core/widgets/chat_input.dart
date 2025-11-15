@@ -188,7 +188,8 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                             ),
                           ),
                           for (int h = 1; h <= 10; h++)
-                            Text($strings.time_hours_ago_short(h), style: $styles.text.bodySmall),
+                            Text($strings.time_hours_ago_short(h),
+                                style: $styles.text.bodySmall),
                         ],
                       ),
                     ),

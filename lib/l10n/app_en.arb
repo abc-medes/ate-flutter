@@ -248,4 +248,14 @@
         "snackbar_processing": "Saving to memory...",
         "snackbar_saved": "Saved to memory",
         "snackbar_failed": "Failed to save"
+        ,
+        "recs_title": "Product Recommendations",
+        "recs_empty": "No product recommendations yet",
+        "recs_priority": "Priority {value}",
+        "@recs_priority": { "placeholders": { "value": { "type": "int" } } },
+        "recs_key_benefits": "Key benefits",
+        "recs_recommended_use": "Recommended use",
+        "recs_notes": "Notes",
+        "recs_category_fallback": "item",
+        "recs_open_link": "Open link"
 }

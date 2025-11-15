@@ -52,7 +52,7 @@ class ProductRecommendationsView extends ConsumerWidget {
                   if (items.isEmpty) {
                     return Center(
                       child: Text(
-                        'No product recommendations yet',
+                        $strings.recs_empty,
                         style: $styles.text.body,
                       ),
                     );
@@ -115,7 +115,7 @@ class ProductRecommendationsView extends ConsumerWidget {
                 SizedBox(width: $styles.insets.sm),
                 Flexible(
                   child: Text(
-                    'Product Recommendations',
+                    $strings.recs_title,
                     style: $styles.text.bodySmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

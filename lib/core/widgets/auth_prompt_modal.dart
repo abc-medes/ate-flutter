@@ -1,12 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:bodido/common_libs.dart';
-import 'package:go_router/go_router.dart';
 import 'package:bodido/core/routes/route_names.dart';
 
-/// Helper class for showing authentication prompts throughout the app
 class AuthPromptHelper {
-  /// Shows a Cupertino-style dialog prompting the user to login
-  /// Returns true if the user chose to login, false otherwise
   static Future<bool> showLoginPrompt(
     BuildContext context, {
     String? title,

@@ -23,14 +23,14 @@ class ChatHelper extends StatelessWidget {
         children: [
           _HelperChip(
             icon: Icons.auto_awesome_outlined,
-            label: 'AI suggestions',
+            label: $strings.chat_helper_ai_suggestions,
             isSelected: selectedChip == ChatHelperType.ai,
             onTap: () => onChipSelected(ChatHelperType.ai),
           ),
           SizedBox(width: $styles.insets.sm),
           _HelperChip(
             icon: Icons.warning_amber_rounded,
-            label: 'Body Alerts',
+            label: $strings.chat_helper_body_alerts,
             isSelected: selectedChip == ChatHelperType.alerts,
             onTap: () => onChipSelected(ChatHelperType.alerts),
             color: $styles.colors.accent3,
@@ -45,14 +45,14 @@ class ChatHelper extends StatelessWidget {
           SizedBox(width: $styles.insets.sm),
           _HelperChip(
             icon: Icons.health_and_safety_outlined,
-            label: '신체 계통 선택',
+            label: $strings.chat_helper_select_system,
             isSelected: selectedChip == ChatHelperType.system,
             onTap: () => onChipSelected(ChatHelperType.system),
           ),
           SizedBox(width: $styles.insets.sm),
           _HelperChip(
             icon: Icons.biotech_outlined,
-            label: 'Current health context',
+            label: $strings.chat_helper_current_context,
             isSelected: selectedChip == ChatHelperType.context,
             onTap: () => onChipSelected(ChatHelperType.context),
           ),

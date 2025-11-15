@@ -1,10 +1,17 @@
-import 'package:intl/intl.dart';
+import 'dart:async';
+
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/services/api_service.dart';
+import 'package:bodido/core/services/user_service.dart';
 import 'package:bodido/core/widgets/chat_input.dart';
 import 'package:bodido/core/widgets/circular_icon_button.dart';
 import 'package:bodido/data/models/chat_model.dart';
+import 'package:bodido/data/models/tracking_question_model.dart';
+import 'package:bodido/features/chat/view_models/chat_history_view_model.dart';
 import 'package:bodido/features/chat/view_models/chat_view_model.dart';
+import 'package:bodido/features/home/views/widgets/tracking_questions_section.dart';
+import 'package:intl/intl.dart';
 
 class ChatView extends ConsumerStatefulWidget {
   final ChatMessageDTO? initialMessage;
@@ -26,30 +33,79 @@ class _ChatViewState extends ConsumerState<ChatView> {
   late PageController _pageController;
   int _currentPageIndex = 0;
 
+  final ScrollController _scrollController = ScrollController();
+  Timer? _scrollDebounce;
+
+  void _scrollToBottom({bool animated = true}) {
+    if (!_scrollController.hasClients) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      final pos = _scrollController.position.maxScrollExtent;
+      if (animated) {
+        _scrollController.animateTo(
+          pos,
+          duration: Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      } else {
+        _scrollController.jumpTo(pos);
+      }
+    });
+  }
+
+  void _scrollToBottomDebounced() {
+    _scrollDebounce?.cancel();
+    _scrollDebounce = Timer(const Duration(milliseconds: 50), _scrollToBottom);
+  }
+
   @override
   void initState() {
     super.initState();
 
-    // Initialize page controller with the selected session index
     if (widget.sessionIds != null && widget.sessionIds!.isNotEmpty) {
-      _currentPageIndex = 0; // Always start with first session
+      _currentPageIndex = 0;
     }
 
     _pageController = PageController(initialPage: _currentPageIndex);
 
-    // Initialize the chat with the view model
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.sessionIds != null && widget.sessionIds!.isNotEmpty) {
-        ref.read(chatViewModelProvider.notifier).initializeChat(
-              selectedSessionId: widget.sessionIds!.first,
-              initialMessage: widget.initialMessage,
-            );
+      final history = ref.read(chatHistoryViewModelProvider);
+      final date = widget.selectedDate ?? DateTime.now();
+      final dayUtc = DateTime.utc(date.year, date.month, date.day);
+      final events = history.eventsByDate[dayUtc] ?? [];
+
+      final sessionsFromEvents = events
+          .whereType<ChatMessageDTO>()
+          .map((e) => e.sessionId)
+          .toSet()
+          .toList();
+
+      final selectedId = (widget.sessionIds?.isNotEmpty ?? false)
+          ? widget.sessionIds!.first
+          : (sessionsFromEvents.isNotEmpty ? sessionsFromEvents.first : null);
+
+      final vm = ref.read(chatViewModelProvider.notifier);
+
+      // Hydrate when there are existing events
+      if (events.isNotEmpty) {
+        vm.initializeFromEvents(
+          events: events,
+          selectedSessionId: selectedId,
+        );
       }
+
+      // Always ensure currentSessionId is set and initialMessage is sent
+      vm.initializeChat(
+        selectedSessionId: selectedId,
+        initialMessage: widget.initialMessage,
+      );
     });
   }
 
   @override
   void dispose() {
+    _scrollDebounce?.cancel();
+    _scrollController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -58,6 +114,31 @@ class _ChatViewState extends ConsumerState<ChatView> {
   Widget build(BuildContext context) {
     final viewModel = ref.watch(chatViewModelProvider);
     final viewModelNotifier = ref.read(chatViewModelProvider.notifier);
+
+    ref.listen<ChatViewState>(chatViewModelProvider, (prev, next) {
+      if (!mounted) return;
+
+      final active = next.currentSessionId;
+      final isActivePage = active != null &&
+          widget.sessionIds != null &&
+          widget.sessionIds!.isNotEmpty &&
+          widget.sessionIds![_currentPageIndex] == active;
+
+      if (!isActivePage) return;
+
+      final prevLen = prev?.currentSessionMessages.length ?? 0;
+      final nextLen = next.currentSessionMessages.length;
+
+      final appendedMessage = nextLen > prevLen;
+      final streamingUpdated = nextLen > 0 &&
+          prevLen > 0 &&
+          next.currentSessionMessages.last.message !=
+              prev!.currentSessionMessages.last.message;
+
+      if (appendedMessage || streamingUpdated) {
+        _scrollToBottomDebounced();
+      }
+    });
 
     return Scaffold(
       body: Column(
@@ -73,7 +154,10 @@ class _ChatViewState extends ConsumerState<ChatView> {
           ),
           ChatInput(
             onSubmit: (ChatMessageDTO message) {
-              viewModelNotifier.sendMessage(message);
+              viewModelNotifier.sendMessage(
+                message,
+                watchTagOnDone: message.sessionId,
+              );
             },
             isProcessing: viewModel.isLoading,
           ),
@@ -83,43 +167,17 @@ class _ChatViewState extends ConsumerState<ChatView> {
   }
 
   Widget _buildDynamicScrollView(ChatViewState viewModel) {
-    if (widget.sessionIds == null || widget.sessionIds!.isEmpty) {
-      // Single session mode - show messages directly
-      if (viewModel.currentSessionMessages.isEmpty) {
-        return Center(
-          child: Text(
-            'No messages yet',
-            style: $styles.text.body.copyWith(
-              color: $styles.colors.caption,
-            ),
-          ),
-        );
-      }
-
-      return SingleChildScrollView(
-        child: Column(
-          children: List.generate(
-            viewModel.currentSessionMessages.length,
-            (index) {
-              final message = viewModel.currentSessionMessages[index];
-              return _buildMessageItem(message, index);
-            },
-          ),
-        ),
-      );
-    }
-
-    // Multiple sessions mode - show PageView with guide text
     return Column(
       children: [
         Expanded(
           child: PageView.builder(
+            padEnds: false,
             controller: _pageController,
+            itemCount: widget.sessionIds!.length,
             onPageChanged: (index) {
               setState(() {
                 _currentPageIndex = index;
               });
-              // Load messages for the new session
               final sessionId = widget.sessionIds![index];
               ref
                   .read(chatViewModelProvider.notifier)
@@ -130,11 +188,10 @@ class _ChatViewState extends ConsumerState<ChatView> {
               final isCurrentSession = sessionId == viewModel.currentSessionId;
 
               if (isCurrentSession) {
-                // Show messages for current session
                 if (viewModel.currentSessionMessages.isEmpty) {
                   return Center(
                     child: Text(
-                      'No messages in this session',
+                      $strings.chat_no_messages,
                       style: $styles.text.body.copyWith(
                         color: $styles.colors.caption,
                       ),
@@ -143,6 +200,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                 }
 
                 return SingleChildScrollView(
+                  controller: _scrollController,
                   child: Column(
                     children: List.generate(
                       viewModel.currentSessionMessages.length,
@@ -163,7 +221,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                       CircularProgressIndicator(),
                       SizedBox(height: $styles.insets.md),
                       Text(
-                        'Loading session ${index + 1}',
+                        $strings.chat_loading_session(index + 1),
                         style: $styles.text.body.copyWith(
                           color: $styles.colors.caption,
                         ),
@@ -193,7 +251,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                 ),
                 SizedBox(width: $styles.insets.xs),
                 Text(
-                  '좌우로 스와이프하여 다른 채팅 보기',
+                  $strings.chat_swipe_hint,
                   style: $styles.text.caption.copyWith(
                     color: $styles.colors.caption,
                   ),
@@ -212,6 +270,8 @@ class _ChatViewState extends ConsumerState<ChatView> {
   }
 
   Widget _buildMessageItem(ChatMessageDTO message, int index) {
+    final content = message.message ?? '';
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
@@ -219,11 +279,9 @@ class _ChatViewState extends ConsumerState<ChatView> {
         vertical: $styles.insets.sm,
       ),
       child: Row(
-        mainAxisAlignment:
-            message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           Container(
-            width: MediaQuery.of(context).size.width * 0.8,
+            width: MediaQuery.of(context).size.width * 0.85,
             padding: EdgeInsets.symmetric(
               horizontal: $styles.insets.lg,
               vertical: $styles.insets.md,
@@ -243,21 +301,108 @@ class _ChatViewState extends ConsumerState<ChatView> {
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: message.isUser
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Message text
-                Text(
-                  message.message ?? '',
-                  style: $styles.text.h3.copyWith(
-                    color: Colors.white,
-                    height: 1.4,
+                if (!message.isUser &&
+                    (message.message == null || message.message!.isEmpty)) ...[
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                      SizedBox(width: $styles.insets.xs),
+                      Text(
+                        $strings.chat_generating,
+                        style: $styles.text.caption.copyWith(
+                          color: Colors.white.withOpacity(0.85),
+                        ),
+                      ),
+                    ],
                   ),
-                  textAlign: message.isUser ? TextAlign.right : TextAlign.left,
-                ),
+                ] else ...[
+                  Text(
+                    content,
+                    style: $styles.text.h3.copyWith(
+                      color: Colors.white,
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
+                  Builder(
+                    builder: (_) {
+                      if (message.isUser) return const SizedBox.shrink();
 
-                // Timestamp
+                      final vm = ref.watch(chatViewModelProvider);
+                      final isLastMessage =
+                          index == (vm.currentSessionMessages.length - 1);
+                      if (!isLastMessage) return const SizedBox.shrink();
+
+                      final sid = message.sessionId;
+                      if (sid == null) return const SizedBox.shrink();
+
+                      final qs = vm.questionsByTag[sid] ?? const [];
+                      final isPending = vm.pendingQuestionTags.contains(sid);
+
+                      if (isPending) {
+                        return Padding(
+                          padding: EdgeInsets.only(top: $styles.insets.xs),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                              SizedBox(width: $styles.insets.xs),
+                              Text(
+                                $strings.chat_getting_checkins,
+                                style: $styles.text.caption.copyWith(
+                                  color: Colors.white.withOpacity(0.85),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      if (qs.isEmpty) return const SizedBox.shrink();
+
+                      return Padding(
+                          padding: EdgeInsets.only(top: $styles.insets.sm),
+                          child: TrackingQuestionsSection(
+                            isLoading: false,
+                            questions: qs,
+                            selectedOptions: const {},
+                            isChat: true,
+                            onOptionSelected: (q, opt) async {
+                              final uid = ref.read(userServiceProvider).userId;
+                              await ref
+                                  .read(chatViewModelProvider.notifier)
+                                  .sendMessage(
+                                    ChatMessageDTO(
+                                      userId: uid,
+                                      sessionId: sid,
+                                      message: '${q.question} - ${opt.label}',
+                                      isUser: true,
+                                      createdAt: DateTime.now(),
+                                      clientLocalTimestamp: DateTime.now(),
+                                    ),
+                                    watchTagOnDone: sid,
+                                  );
+                            },
+                          ));
+                    },
+                  ),
+                ],
                 if (message.clientLocalTimestamp != null) ...[
                   SizedBox(height: $styles.insets.sm),
                   Text(
@@ -280,13 +425,13 @@ class _ChatViewState extends ConsumerState<ChatView> {
     final difference = now.difference(timestamp);
 
     if (difference.inMinutes < 1) {
-      return 'Just now';
+      return $strings.time_just_now;
     } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}m ago';
+      return $strings.time_minutes_ago(difference.inMinutes);
     } else if (difference.inDays < 1) {
-      return '${difference.inHours}h ago';
+      return $strings.time_hours_ago(difference.inHours);
     } else {
-      return '${difference.inDays}d ago';
+      return $strings.time_days_ago(difference.inDays);
     }
   }
 
@@ -302,7 +447,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
       if (firstMessage.clientLocalTimestamp != null) {
         sessionDate = firstMessage.clientLocalTimestamp!;
       } else if (firstMessage.createdAt != null) {
-        sessionDate = firstMessage.createdAt!;
+        sessionDate = firstMessage.createdAt;
       }
     }
 
@@ -344,7 +489,8 @@ class _ChatViewState extends ConsumerState<ChatView> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Session ${_currentPageIndex + 1} of ${widget.sessionIds!.length}',
+                  $strings.chat_session_indicator(
+                      _currentPageIndex + 1, widget.sessionIds!.length),
                   style: $styles.text.caption.copyWith(
                     color: $styles.colors.caption,
                   ),

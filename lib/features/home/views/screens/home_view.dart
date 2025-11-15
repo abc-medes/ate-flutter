@@ -1,12 +1,11 @@
-import 'package:intl/intl.dart';
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/widgets/chat_input.dart';
 import 'package:bodido/core/widgets/circular_icon_button.dart';
 import 'package:bodido/data/models/chat_model.dart';
+// removed model imports (not directly referenced here)
 import 'package:bodido/features/home/view_models/home_view_model.dart';
-import 'package:bodido/features/home/views/widgets/chat_helper.dart';
-import 'package:bodido/features/home/views/widgets/tappable_score.dart';
+import 'package:intl/intl.dart';
 
 // --- Main HomeView Widget ---
 // Converted to ConsumerStatefulWidget to manage FocusNode
@@ -18,7 +17,16 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView> {
-  int _currentPage = 0; // State variable to track current page
+  Future<void> _openQuestionsSheet(BuildContext context, WidgetRef ref) async {
+    ref.read(homeViewModelProvider.notifier).showQuestionsSheet(context);
+  }
+
+  Future<void> _openScoreSheet(BuildContext context, WidgetRef ref) async {
+    // If needed, initialize body simulator state here. Keeping it simple and opening details.
+    ref
+        .read(homeViewModelProvider.notifier)
+        .showBodySimulatorSnapshotDetails(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,26 +39,48 @@ class _HomeViewState extends ConsumerState<HomeView> {
         children: [
           _buildHeader(context, state, ref),
           Expanded(
-            child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                  $styles.insets.md, 0, $styles.insets.md, $styles.insets.md),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: $styles.insets.lg),
-                  Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: $styles.insets.md),
-                    child: Text("오늘의 인사이트", style: $styles.text.h3),
+                  Expanded(
+                    child: _HomeBigButton(
+                      icon: Icons.insights_outlined,
+                      title: $strings.home_score,
+                      subtitle: $strings.home_overall_score((state.bodySimulatorState?.healthScore.overallScore ?? 0).toStringAsFixed(1)),
+                      gradientStart: $styles.colors.accent2,
+                      gradientEnd: $styles.colors.accent1,
+                      onTap: () => _openScoreSheet(context, ref),
+                    ),
                   ),
-                  SizedBox(height: $styles.insets.sm),
-                  _buildInsightsList(),
-                  SizedBox(height: $styles.insets.xl),
+                  SizedBox(height: $styles.insets.md),
+                  Expanded(
+                    child: _HomeBigButton(
+                      icon: Icons.rule_folder_outlined,
+                      title: $strings.home_questions,
+                      subtitle: state.userQuestions.isEmpty
+                          ? $strings.home_no_pending_questions
+                          : $strings.home_num_pending(state.userQuestions.length),
+                      gradientStart: $styles.colors.accent1,
+                      gradientEnd: $styles.colors.accent3,
+                      onTap: () => _openQuestionsSheet(context, ref),
+                    ),
+                  ),
+                  SizedBox(height: $styles.insets.md),
+                  Expanded(
+                    child: _HomeBigButton(
+                      icon: Icons.chat_bubble_outline,
+                      title: $strings.home_chat_history,
+                      subtitle: $strings.home_chat_history_subtitle,
+                      gradientStart: $styles.colors.accent3,
+                      gradientEnd: $styles.colors.accent2,
+                      onTap: () => context.push(RouteNames.chatHistory),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-          ChatHelper(
-            selectedChip: state.selectedHelperChip,
-            onChipSelected: viewModel.selectHelperChip,
           ),
           ChatInput(
             shouldSaveAsContext: state.isSaveMode,
@@ -77,8 +107,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
       BuildContext context, HomeViewState state, WidgetRef ref) {
     final mq = MediaQuery.of(context);
     return Container(
-      padding: EdgeInsets.fromLTRB($styles.insets.md, mq.padding.top,
-          $styles.insets.md, $styles.insets.md),
+      padding: EdgeInsets.fromLTRB(
+          $styles.insets.md, mq.padding.top, $styles.insets.md, 0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular($styles.insets.lg),
@@ -91,12 +121,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CircularIconButton(
-                  icon: Icons.menu,
-                  size: 48,
-                  iconColor: $styles.colors.black,
-                  backgroundColor: Colors.transparent,
-                  onTap: () => print("Navigate to Detailed Analysis page")),
               GestureDetector(
                 onTap: () => context.push(RouteNames.chatHistory),
                 child: Row(
@@ -108,201 +132,112 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   ],
                 ),
               ),
-              CircularIconButton(
-                  size: 48,
-                  icon: Icons.settings,
-                  iconColor: $styles.colors.black,
-                  backgroundColor: Colors.transparent,
-                  onTap: () => context.go(RouteNames.settings)),
+              Row(
+                children: [
+                  CircularIconButton(
+                      size: 48,
+                      icon: Icons.shopping_bag,
+                      iconColor: $styles.colors.black,
+                      backgroundColor: Colors.transparent,
+                      onTap: () =>
+                          context.go(RouteNames.productRecommendations)),
+                  CircularIconButton(
+                      size: 48,
+                      icon: Icons.settings,
+                      iconColor: $styles.colors.black,
+                      backgroundColor: Colors.transparent,
+                      onTap: () => context.go(RouteNames.settings)),
+                ],
+              ),
             ],
-          ),
-          SizedBox(height: $styles.insets.md),
-          Text("Overall Score", style: $styles.text.h3),
-          SizedBox(height: $styles.insets.md),
-          TappableScore(
-            score: state.bodySimulatorState?.healthScore.overallScore ?? 0,
-            onTap: () => ref
-                .read(homeViewModelProvider.notifier)
-                .showBodySimulatorSnapshotDetails(context),
           ),
           SizedBox(height: $styles.insets.md),
         ],
       ),
     );
   }
+}
 
-  Widget _buildInsightsList() {
-    final state = ref.watch(homeViewModelProvider);
+// Big button widget used on Home to represent each section
+class _HomeBigButton extends StatelessWidget {
+  const _HomeBigButton({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.gradientStart,
+    required this.gradientEnd,
+    required this.onTap,
+  });
 
-    final insights = state.insights;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color gradientStart;
+  final Color gradientEnd;
+  final VoidCallback onTap;
 
-    if (insights.isEmpty) {
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
-        child: Text(
-          '인사이트를 불러오는 중입니다...',
-          style: $styles.text.bodySmall.copyWith(
-            color: $styles.colors.caption,
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular($styles.corners.md),
+      child: Ink(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular($styles.corners.md),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              gradientStart.withOpacity(0.24),
+              gradientEnd.withOpacity(0.14),
+            ],
           ),
-        ),
-      );
-    }
-
-    return Column(
-      children: [
-        SizedBox(
-          height: 220,
-          child: PageView.builder(
-            itemCount: insights.length,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-            itemBuilder: (context, index) {
-              final insight = insights[index];
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
-                child: _buildInsightCard(
-                  insight.iconData,
-                  insight.title,
-                  insight.value,
-                  insight.advice,
-                ),
-              );
-            },
-          ),
-        ),
-        SizedBox(height: $styles.insets.sm),
-        // Page indicator
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            insights.length,
-            (index) => Container(
-              width: 8,
-              height: 8,
-              margin: EdgeInsets.symmetric(horizontal: 4),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: index == _currentPage
-                    ? $styles.colors.accent1
-                    : $styles.colors.greyMedium,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInsightCard(
-      IconData icon, String title, String value, String advice) {
-    return Card(
-      elevation: 10,
-      child: Padding(
-        padding: EdgeInsets.all($styles.insets.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: 20, color: $styles.colors.accent1),
-                SizedBox(width: $styles.insets.sm),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: $styles.text.bodySmall.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Text(
-                  value,
-                  style: $styles.text.bodySmall.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: $styles.colors.accent1,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: $styles.insets.sm),
-            Text(
-              advice,
-              style: $styles.text.bodySmall.copyWith(
-                color: $styles.colors.body,
-                height: 1.3,
-              ),
+          border: Border.all(color: gradientStart.withOpacity(0.30), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: gradientStart.withOpacity(0.14),
+              blurRadius: 18,
+              offset: const Offset(0, 10),
             ),
           ],
+          color: $styles.colors.backgroundDark,
         ),
-      ),
-    );
-  }
-
-  Widget _buildInsightCardSkeleton() {
-    return Card(
-      elevation: 8,
-      shadowColor: $styles.colors.black.withOpacity(0.15),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular($styles.corners.lg),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all($styles.insets.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min, // Add this
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: $styles.colors.greyMedium,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+        child: Padding(
+          padding: EdgeInsets.all($styles.insets.md),
+          child: Row(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: gradientStart.withOpacity(0.20),
+                  borderRadius: BorderRadius.circular($styles.corners.md),
                 ),
-                SizedBox(width: $styles.insets.md),
-                Expanded(
-                  child: Container(
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: $styles.colors.greyMedium,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-                Container(
-                  width: 60,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: $styles.colors.greyMedium,
-                    borderRadius: BorderRadius.circular($styles.corners.sm),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: $styles.insets.lg),
-            // Remove Expanded and use simple containers
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: List.generate(
-                3,
-                (index) => Container(
-                  width: double.infinity,
-                  height: 16,
-                  margin: EdgeInsets.only(bottom: index < 2 ? 8 : 0),
-                  decoration: BoxDecoration(
-                    color: $styles.colors.greyMedium,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+                child: Icon(icon, color: gradientStart, size: 32),
+              ),
+              SizedBox(width: $styles.insets.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(title,
+                        style: $styles.text.bodyBold.copyWith(fontSize: 20)),
+                    SizedBox(height: 4),
+                    Text(subtitle,
+                        style: $styles.text.caption
+                            .copyWith(color: $styles.colors.caption)),
+                  ],
                 ),
               ),
-            ),
-          ],
+              Icon(Icons.chevron_right,
+                  color: $styles.colors.caption, size: 24),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+// (Badge widget removed - not used)

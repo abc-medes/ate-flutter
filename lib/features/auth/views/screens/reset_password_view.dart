@@ -42,21 +42,20 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
               if (viewState.currentStep == LoginStep.resettingEmailSent)
                 Expanded(
                     child: EmailSentStep(
-                  title: 'Check Your Email',
-                  description:
-                      "We've sent a password reset approval link to ${viewState.emailController.text}. Please check your inbox and follow the instructions to reset your password.",
-                  nextStepsTitle: 'Next steps:',
+                  title: $strings.checkYourEmail,
+                  description: $strings.resetEmailSentDescription(viewState.emailController.text),
+                  nextStepsTitle: $strings.nextSteps,
                   nextSteps: [
                     'Check your email inbox for a password reset link.',
                     'Click on the link in the email to reset your password.',
                   ],
-                  resendButtonText: "Didn't receive the email? Resend",
+                  resendButtonText: $strings.resendEmail,
                   onResend: viewState.isLoading
                       ? null
                       : () async {
                           await viewModel.resendResetPasswordEmail();
                         },
-                  backToLoginText: 'Back to Login',
+                  backToLoginText: $strings.actionBackToLogin,
                   onBackToLogin: () => context.go(RouteNames.login),
                   isLoading: viewState.isLoading,
                 )),
@@ -67,7 +66,7 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
                 ),
               AppButton(
                 label: viewState.currentStep == LoginStep.resettingEmailSent
-                    ? 'Continue'
+                    ? $strings.actionContinue
                     : $strings.sendEmail,
                 isLoading: viewState.isLoading,
                 onPressed: viewState.isLoading
@@ -100,12 +99,12 @@ class EmailInputStep extends StatelessWidget {
       children: [
         CustomedTextInput(
           controller: viewState.emailController,
-          hintText: 'Email',
+          hintText: $strings.fieldEmail,
           keyboardType: TextInputType.emailAddress,
           onChanged: (_) => viewModel.onEmailChanged(),
           enabled: !viewState.isLoading,
           errorText:
-              !viewState.isEmailValid ? 'Please enter a valid email' : null,
+              !viewState.isEmailValid ? $strings.errorInvalidEmailShort : null,
         ),
       ],
     );

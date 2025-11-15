@@ -19,9 +19,7 @@ class TappableScoreState extends State<TappableScore> {
   }
 
   void _onTapUp(TapUpDetails details) {
-    // We call the onTap callback on tap up to ensure the animation completes
     widget.onTap();
-    // A slight delay before scaling back up to make the tap feel more deliberate.
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {
         setState(() {
@@ -55,7 +53,6 @@ class TappableScoreState extends State<TappableScore> {
                 fontWeight: FontWeight.w900,
                 letterSpacing: -10),
             children: <TextSpan>[
-              // Split score into integer and fractional parts for styling
               ..._buildScoreSpans(widget.score),
             ],
           ),
@@ -64,9 +61,7 @@ class TappableScoreState extends State<TappableScore> {
     );
   }
 
-  /// Returns two TextSpan: integer part and fractional part (with dot)
   List<TextSpan> _buildScoreSpans(double value) {
-    // Keep one decimal place
     final fixed = value.toStringAsFixed(1);
     final parts = fixed.split('.');
     final intPart = parts.first;

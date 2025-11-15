@@ -1,6 +1,7 @@
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/services/session_service.dart';
 import 'package:bodido/core/services/user_service.dart';
+import 'package:bodido/data/repositories/app_lifecycle_repository.dart';
 import 'package:uuid/uuid.dart';
 
 /// Keeps the user’s profile in sync with app-lifecycle events (open / close).
@@ -46,6 +47,7 @@ class LifecycleLogic with WidgetsBindingObserver {
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
       _userService.setUserAppOpened(user.id);
+      _ref.read(appLifecycleRepositoryProvider).setLastOpen(DateTime.now().toUtc());
     }
   }
 

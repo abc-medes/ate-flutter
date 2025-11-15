@@ -2,19 +2,21 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:bodido/common_libs.dart';
-import 'package:bodido/core/config/env.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/chat_model.dart';
+import 'package:bodido/data/models/tracking_question_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/status.dart' as ws_status;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ApiService {
-  // static const String _baseUrl = 'http://localhost:8080/api';
-  static String get _baseUrl => Env.apiBaseUrl;
-
-  static String get _wsUrl => Env.wsBaseUrl;
+  // DEV
+  static const String _baseUrl = 'http://localhost:8080/api';
+  static const String _wsUrl = 'ws://localhost:8080';
+  // PROD
+  // static String get _baseUrl => Env.apiBaseUrl;
+  // static String get _wsUrl => Env.wsBaseUrl;
 
   static final SupabaseClient _supabase = Supabase.instance.client;
 
@@ -224,6 +226,122 @@ class ApiService {
       throw Exception('Error processing settings or memory: $e');
     }
   }
+
+  // ------------------------------------------------------------
+  ///                       Tracking Questions
+  // ------------------------------------------------------------
+  static Future<List<TrackingQuestion>> createTrackingQuestions({
+    String language = 'ko',
+    String maxQuestions = '10',
+    String optionsPerQuestion = '3',
+    String goalFocus = 'general',
+    Map<String, dynamic> trackingTargets = const {},
+  }) async {
+    try {
+      final session = _supabase.auth.currentSession;
+      if (session == null) {
+        throw Exception('Not authenticated');
+      }
+      String accessToken = session.accessToken;
+
+      Future<http.Response> executeRequest(String token) {
+        final uri = Uri.parse('$_baseUrl/create/tracking-questions');
+        return http.post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode({
+            'language': language,
+            'max_questions': maxQuestions,
+            'options_per_question': optionsPerQuestion,
+            'goal_focus': goalFocus,
+            'tracking_targets': trackingTargets,
+          }),
+        );
+      }
+
+      var response = await executeRequest(accessToken);
+
+      if (response.statusCode == 401) {
+        final refreshed = await _supabase.auth.refreshSession();
+        if (refreshed.session == null ||
+            refreshed.session!.accessToken.isEmpty) {
+          throw Exception('Authentication failed');
+        }
+        accessToken = refreshed.session!.accessToken;
+        response = await executeRequest(accessToken);
+      }
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          'Failed to create tracking questions: ${response.statusCode} - ${response.body}',
+        );
+      }
+
+      final decoded =
+          jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
+      return decoded
+          .map((e) => TrackingQuestion.fromJson(
+                e is Map<String, dynamic> ? e : Map<String, dynamic>.from(e),
+              ))
+          .toList();
+    } catch (e) {
+      throw Exception('Error createTrackingQuestions: $e');
+    }
+  }
+
+  static Future<Map<String, dynamic>> selectTrackingOption({
+    required UserSelectionRequest request,
+    bool dryRun = false,
+  }) async {
+    try {
+      final session = _supabase.auth.currentSession;
+      if (session == null) {
+        throw Exception('Not authenticated');
+      }
+      String accessToken = session.accessToken;
+
+      Future<http.Response> executeRequest(String token) {
+        final uri = Uri.parse('$_baseUrl/select/tracking-option');
+        final body = request.toJson();
+        if (dryRun) body['dry_run'] = true;
+        return http.post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode(body),
+        );
+      }
+
+      var response = await executeRequest(accessToken);
+
+      if (response.statusCode == 401) {
+        final refreshed = await _supabase.auth.refreshSession();
+        if (refreshed.session == null ||
+            refreshed.session!.accessToken.isEmpty) {
+          throw Exception('Authentication failed');
+        }
+        accessToken = refreshed.session!.accessToken;
+        response = await executeRequest(accessToken);
+      }
+
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Failed select: ${response.statusCode} - ${response.body}');
+      }
+
+      return jsonDecode(utf8.decode(response.bodyBytes))
+          as Map<String, dynamic>;
+    } catch (e) {
+      throw Exception('Error selectTrackingOption: $e');
+    }
+  }
+
+// ------------------------------------------------------------
 
   static Stream<BodySimulatorStateSnapshotDTO> bodyStateStream({
     required String sessionId,

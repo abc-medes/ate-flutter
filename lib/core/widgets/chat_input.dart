@@ -122,7 +122,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                     children: [
                       Center(
                         child: Text(
-                          "Image ${index + 1}",
+                          $strings.image_label(index + 1),
                           style: $styles.text.caption.copyWith(
                             color: Theme.of(context)
                                 .colorScheme
@@ -183,12 +183,13 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                         children: [
                           Center(
                             child: Text(
-                              '현재',
+                              $strings.time_now,
                               style: $styles.text.bodySmall,
                             ),
                           ),
                           for (int h = 1; h <= 10; h++)
-                            Text('${h}h ago', style: $styles.text.bodySmall),
+                            Text($strings.time_hours_ago_short(h),
+                                style: $styles.text.bodySmall),
                         ],
                       ),
                     ),
@@ -207,8 +208,8 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                         style: $styles.text.bodySmall,
                         decoration: InputDecoration(
                           hintText: widget.shouldSaveAsContext
-                              ? 'Tell me what you want to remember...'
-                              : 'How was your health day?',
+                              ? $strings.chat_hint_context
+                              : $strings.chat_hint_healthday,
                           hintStyle: $styles.text.bodySmall
                               .copyWith(color: $styles.colors.caption),
                           contentPadding: EdgeInsets.zero,
@@ -247,8 +248,8 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                           ),
                           onPressed: widget.onSaveModeToggle,
                           tooltip: widget.shouldSaveAsContext
-                              ? 'Saving as context'
-                              : 'Save as temporary chat',
+                              ? $strings.tooltip_saving_as_context
+                              : $strings.tooltip_save_temp_chat,
                         ),
                         if (!widget.shouldSaveAsContext)
                           IconButton(
@@ -259,7 +260,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                                   : $styles.colors.accent1,
                             ),
                             onPressed: _handleImageSelection,
-                            tooltip: 'Add image',
+                            tooltip: $strings.tooltip_add_image,
                           ),
                       ],
                     ),
@@ -271,7 +272,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                             : $styles.colors.accent1,
                       ),
                       onPressed: _handleSubmit,
-                      tooltip: 'Send message',
+                      tooltip: $strings.tooltip_send_message,
                     ),
                   ],
                 ),

@@ -24,7 +24,7 @@ class SettingsHeader extends StatelessWidget {
             iconColor: $styles.colors.black,
             onTap: () => context.go(RouteNames.home),
           ),
-          Text('Settings', style: $styles.text.h3),
+          Text($strings.settings_title, style: $styles.text.h3),
           const SizedBox(width: 48),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class LiveTypewriter extends StatefulWidget {
@@ -10,10 +11,9 @@ class LiveTypewriter extends StatefulWidget {
     this.linePause = const Duration(milliseconds: 600),
     this.expectedLineCount,
     this.onComplete,
+    this.textAlign = TextAlign.center,
   });
 
-  /// List you keep appending to; the widget will automatically type
-  /// new lines as they appear.
   final List<String> lines;
 
   final TextStyle style;
@@ -21,6 +21,7 @@ class LiveTypewriter extends StatefulWidget {
   final Duration linePause;
   final int? expectedLineCount;
   final VoidCallback? onComplete;
+  final TextAlign textAlign;
 
   @override
   State<LiveTypewriter> createState() => _LiveTypewriterState();
@@ -94,7 +95,7 @@ class _LiveTypewriterState extends State<LiveTypewriter> {
   Widget build(BuildContext context) {
     return Text(
       _buffer.toString(),
-      textAlign: TextAlign.center,
+      textAlign: widget.textAlign,
       style: widget.style,
     );
   }

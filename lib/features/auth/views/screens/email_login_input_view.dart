@@ -86,12 +86,12 @@ class EmailAndPasswordInputStep extends StatelessWidget {
       children: [
         CustomedTextInput(
           controller: viewState.emailController,
-          hintText: 'Email',
+          hintText: $strings.fieldEmail,
           keyboardType: TextInputType.emailAddress,
           onChanged: (_) => viewModel.onEmailChanged(),
           enabled: !viewState.isLoading,
           errorText:
-              !viewState.isEmailValid ? 'Please enter a valid email' : null,
+              !viewState.isEmailValid ? $strings.errorInvalidEmailShort : null,
           textStyle: $styles.text.bodySmall,
           hintTextStyle:
               $styles.text.bodySmall.copyWith(color: $styles.colors.greyMedium),
@@ -103,7 +103,7 @@ class EmailAndPasswordInputStep extends StatelessWidget {
         SizedBox(height: $styles.insets.sm),
         CustomedTextInput(
           controller: viewState.passwordController,
-          hintText: 'Password',
+          hintText: $strings.fieldPassword,
           obscureText: !viewState.isPasswordVisible,
           suffixIcon: IconButton(
             icon: Icon(

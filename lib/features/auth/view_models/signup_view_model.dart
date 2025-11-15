@@ -133,19 +133,7 @@ class SignupViewModel extends StateNotifier<SignupState> {
           passwordController: TextEditingController(),
           confirmPasswordController: TextEditingController(),
           otpController: TextEditingController(),
-        )) {
-    // DEV DEFAULTS: prefill signup form for development.
-    assert(() {
-      state.emailController.text = 'baikjyo@naver.com';
-      state.nameController.text = 'aaa';
-      state.passwordController.text = '12341234a';
-      state.confirmPasswordController.text = '12341234a';
-      validateEmail();
-      validatePassword();
-      validatePasswordsMatch();
-      return true;
-    }());
-  }
+        ));
 
   @override
   void dispose() {

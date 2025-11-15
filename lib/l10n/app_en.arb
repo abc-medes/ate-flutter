@@ -34,5 +34,51 @@
                         "height": { "type": "int" },
                         "weight": { "type": "int" }
                 }
+        },
+        "authSigningIn": "Signing in...",
+        "continueWithGoogle": "Continue with Google",
+        "continueWithApple": "Continue with Apple",
+        "authCreatingAccount": "Creating your account...",
+        "actionTryAgain": "Try Again",
+        "actionGoToLogin": "Go to Login",
+        "verifyYourEmail": "Verify Your Email",
+        "nextSteps": "Next steps:",
+        "resendEmail": "Didn't receive the email? Resend",
+        "verificationEmailResent": "Verification email resent",
+        "actionBackToLogin": "Back to Login",
+        "actionContinue": "Continue",
+        "fieldEmail": "Email",
+        "fieldFullName": "Full Name",
+        "fieldPassword": "Password",
+        "errorPasswordPolicy": "Password must be at least 8 characters with at least 1 number",
+        "fieldConfirmPassword": "Confirm Password",
+        "errorPasswordsDoNotMatch": "Passwords do not match",
+        "signUpWithGoogle": "Sign up with Google",
+        "signUpWithApple": "Sign up with Apple",
+        "checkYourEmail": "Check Your Email",
+        "resetEmailSentDescription": "We've sent a password reset approval link to {email}. Please check your inbox and follow the instructions to reset your password.",
+        "@resetEmailSentDescription": {
+                "description": "Password reset email sent message with email address",
+                "placeholders": { "email": { "type": "String" } }
+        },
+        "signupEmailSentDescription": "We've sent an email to {email} with a verification link. Please click the link in your email to complete your registration.",
+        "@signupEmailSentDescription": {
+                "description": "Signup verification email sent message with email address",
+                "placeholders": { "email": { "type": "String" } }
+        },
+        "signupNextStep1": "Check your email inbox for a verification link from us",
+        "signupNextStep2": "Click on the link in the email to verify your account",
+        "signupNextStep3": "Return to the app to complete your registration",
+        "errorInvalidEmailShort": "Please enter a valid email",
+        "termsTitle": "Terms & Privacy",
+        "termsDescription": "Before continuing, please review and accept our Terms of Service and Privacy Policy.",
+        "termsAcceptAndContinue": "Accept and Continue",
+        "iAgreeTo": "I agree to the ",
+        "termsOfService": "Terms of Service",
+        "privacyPolicy": "Privacy Policy",
+        "couldNotOpenUrl": "Could not open: {url}",
+        "@couldNotOpenUrl": {
+                "description": "Shown when failing to open external URL",
+                "placeholders": { "url": { "type": "String" } }
         }
 }

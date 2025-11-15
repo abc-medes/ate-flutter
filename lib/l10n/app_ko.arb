@@ -247,4 +247,14 @@
         "snackbar_processing": "메모리에 저장 중...",
         "snackbar_saved": "메모리에 저장됐습니다",
         "snackbar_failed": "저장에 실패했습니다"
+        ,
+        "recs_title": "제품 추천",
+        "recs_empty": "추천할 제품이 아직 없습니다",
+        "recs_priority": "우선순위 {value}",
+        "@recs_priority": { "placeholders": { "value": { "type": "int" } } },
+        "recs_key_benefits": "핵심 이점",
+        "recs_recommended_use": "추천 사용법",
+        "recs_notes": "메모",
+        "recs_category_fallback": "항목",
+        "recs_open_link": "링크 열기"
 }

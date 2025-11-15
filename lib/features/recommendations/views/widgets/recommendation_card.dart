@@ -25,7 +25,7 @@ class RecommendationCard extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Could not open link',
+            $strings.couldNotOpenUrl(uri.toString()),
             style: $styles.text.body.copyWith(color: $styles.colors.white),
           ),
           backgroundColor: $styles.colors.error,
@@ -77,7 +77,7 @@ class RecommendationCard extends StatelessWidget {
                       Icon(Icons.star, size: 16, color: $styles.colors.accent1),
                       SizedBox(width: $styles.insets.xxs),
                       Text(
-                        'Priority ${item.priority}',
+                        $strings.recs_priority(item.priority),
                         style: $styles.text.caption.copyWith(
                           color: $styles.colors.body,
                           fontWeight: FontWeight.w600,
@@ -116,7 +116,7 @@ class RecommendationCard extends StatelessWidget {
               SizedBox(height: $styles.insets.md),
             ],
             if (item.keyBenefits.isNotEmpty) ...[
-              Text('Key benefits', style: $styles.text.bodyBold),
+              Text($strings.recs_key_benefits, style: $styles.text.bodyBold),
               SizedBox(height: $styles.insets.xs),
               ...item.keyBenefits.map(
                 (b) => Padding(
@@ -135,7 +135,7 @@ class RecommendationCard extends StatelessWidget {
               SizedBox(height: $styles.insets.md),
             ],
             if (item.recommendedUseCases.isNotEmpty) ...[
-              Text('Recommended use', style: $styles.text.bodyBold),
+              Text($strings.recs_recommended_use, style: $styles.text.bodyBold),
               SizedBox(height: $styles.insets.xs),
               ...item.recommendedUseCases.map(
                 (u) => Padding(
@@ -181,7 +181,7 @@ class RecommendationCard extends StatelessWidget {
             if (item.additionalNotes != null &&
                 item.additionalNotes!.trim().isNotEmpty) ...[
               SizedBox(height: $styles.insets.md),
-              Text('Notes', style: $styles.text.bodyBold),
+              Text($strings.recs_notes, style: $styles.text.bodyBold),
               SizedBox(height: $styles.insets.xs),
               Text(item.additionalNotes!, style: $styles.text.body),
             ],
@@ -195,7 +195,7 @@ class RecommendationCard extends StatelessWidget {
                     icon: Icon(Icons.open_in_new,
                         size: 18, color: $styles.colors.accent1),
                     label: Text(
-                      '쿠팡에서 보기',
+                      $strings.recs_open_link,
                       style: $styles.text.bodySmall
                           .copyWith(color: $styles.colors.accent1),
                     ),
@@ -240,7 +240,7 @@ class _CategoryChip extends StatelessWidget {
           Icon(Icons.category, size: 16, color: $styles.colors.accent1),
           SizedBox(width: $styles.insets.xxs),
           Text(
-            label.isEmpty ? 'item' : label,
+            label.isEmpty ? $strings.recs_category_fallback : label,
             style: $styles.text.caption.copyWith(
               color: $styles.colors.accent1,
               fontWeight: FontWeight.w700,

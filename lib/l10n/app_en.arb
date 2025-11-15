@@ -283,7 +283,7 @@
         "field_confirm_new_password": "Confirm New Password",
         "action_update_password": "Update Password",
         "error_fix_before_continue": "Please correct the errors before continuing",
-        "success_password_updated": "Password updated"
+        "success_password_updated": "Password updated",
         "recs_title": "Product Recommendations",
         "recs_empty": "No product recommendations yet",
         "recs_priority": "Priority {value}",

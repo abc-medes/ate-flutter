@@ -12,9 +12,9 @@ class LocaleLogic {
 
   Future<void> load() async {
     Locale locale = _defaultLocal;
-    // final localeCode =
-    //     settingsLogic.currentLocale.value ?? await findSystemLocale();
-    final localeCode = 'ko';
+    final localeCode =
+        settingsLogic.currentLocale.value ?? await findSystemLocale();
+    // final localeCode = 'ko';
     locale = Locale(localeCode.split('_')[0]);
     if (kDebugMode) {
       // locale = Locale('zh'); // uncomment to test chinese
@@ -33,4 +33,24 @@ class LocaleLogic {
       _strings = await AppLocalizations.delegate.load(locale);
     }
   }
+}
+
+Future<String> findSystemLocale() async {
+  try {
+    final dispatcher = WidgetsBinding.instance.platformDispatcher;
+    final locale = dispatcher.locale;
+    final language = locale.languageCode;
+    final country = locale.countryCode;
+
+    if (language.isNotEmpty) {
+      if (country != null && country.isNotEmpty) {
+        return '${language}_$country';
+      }
+      return language;
+    }
+  } catch (e) {
+    debugPrint('Failed to detect system locale: $e');
+  }
+
+  return 'en';
 }

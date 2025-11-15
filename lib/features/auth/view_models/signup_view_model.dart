@@ -133,19 +133,7 @@ class SignupViewModel extends StateNotifier<SignupState> {
           passwordController: TextEditingController(),
           confirmPasswordController: TextEditingController(),
           otpController: TextEditingController(),
-        )) {
-    // DEV DEFAULTS: prefill signup form for development.
-    assert(() {
-      state.emailController.text = 'baikjyo@naver.com';
-      state.nameController.text = 'aaa';
-      state.passwordController.text = '12341234a';
-      state.confirmPasswordController.text = '12341234a';
-      validateEmail();
-      validatePassword();
-      validatePasswordsMatch();
-      return true;
-    }());
-  }
+        ));
 
   @override
   void dispose() {
@@ -323,10 +311,13 @@ class SignupViewModel extends StateNotifier<SignupState> {
 
       await _client.auth.onAuthStateChange.firstWhere((e) => e.session != null);
 
+      if (_isDisposed || !context.mounted) return;
       await wrapUpSignUp(context);
     } on AuthException catch (e) {
+      if (_isDisposed) return;
       state = state.copyWith(isLoading: false, error: e.message);
     } catch (e) {
+      if (_isDisposed) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -345,17 +336,21 @@ class SignupViewModel extends StateNotifier<SignupState> {
       await _authService
           .createEmptyUserHealthMetrics(_authService.currentUser!.id);
 
+      if (_isDisposed) return;
       state = state.copyWith(isLoading: false);
 
       if (context.mounted) context.go(RouteNames.onboarding);
     } on AuthException catch (e) {
+      if (_isDisposed) return;
       state = state.copyWith(
         isLoading: false,
         error: e.message,
       );
     } on PostgrestException catch (e) {
+      if (_isDisposed) return;
       state = state.copyWith(isLoading: false, error: e.message);
     } catch (e) {
+      if (_isDisposed) return;
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),

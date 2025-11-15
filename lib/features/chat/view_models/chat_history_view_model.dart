@@ -1,7 +1,7 @@
-import 'package:collection/collection.dart';
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/chat_model.dart';
+import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
 
 @immutable
@@ -86,8 +86,6 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
           results[1] as List<BodySimulatorStateSnapshotDTO>;
 
       final newEvents = _groupEventsByDate(monthlyMessages, monthlySnapshots);
-      debugPrint(
-          '[ChatHistoryViewModel] Grouped Events for $monthKey: $newEvents');
 
       final updatedEvents =
           Map<DateTime, List<dynamic>>.from(state.eventsByDate)
@@ -99,7 +97,6 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
         monthlyLoadingStatus: {...state.monthlyLoadingStatus, monthKey: false},
       );
     } catch (e, st) {
-      debugPrint('[ChatHistoryViewModel] Error onMonthChanged: $e\n$st');
       if (!mounted) return;
       state = state.copyWith(
         error: e.toString(),
@@ -112,7 +109,8 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
       String userId, DateTime firstDay, DateTime lastDay) async {
     final response = await Supabase.instance.client
         .from('chat_history')
-        .select('session_id, client_local_timestamp_iso, created_at, is_user')
+        .select(
+            'session_id, message, chat_offset, client_local_timestamp_iso, created_at, is_user')
         .eq('user_id', userId)
         .gte('client_local_timestamp_iso', firstDay.toIso8601String())
         .lte('client_local_timestamp_iso', lastDay.toIso8601String());
@@ -120,11 +118,9 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
     final messages = (response as List)
         .map((item) => ChatMessageDTO.fromJson({
               ...item,
-              'user_id': userId, // Add default user_id
+              'user_id': userId,
             }))
         .toList();
-    debugPrint(
-        '[ChatHistoryViewModel] Fetched ${messages.length} chat messages for ${DateFormat('yyyy-MM').format(firstDay)}');
     return messages;
   }
 
@@ -140,8 +136,6 @@ class ChatHistoryViewModel extends StateNotifier<ChatHistoryState> {
     final snapshots = (response as List)
         .map((item) => BodySimulatorStateSnapshotDTO.fromJson(item))
         .toList();
-    debugPrint(
-        '[ChatHistoryViewModel] Fetched ${snapshots.length} body snapshots for ${DateFormat('yyyy-MM').format(firstDay)}');
     return snapshots;
   }
 

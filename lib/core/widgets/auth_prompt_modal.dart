@@ -1,31 +1,28 @@
 import 'package:flutter/cupertino.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
 
-/// Helper class for showing authentication prompts throughout the app
 class AuthPromptHelper {
-  /// Shows a Cupertino-style dialog prompting the user to login
-  /// Returns true if the user chose to login, false otherwise
   static Future<bool> showLoginPrompt(
     BuildContext context, {
-    String title = 'Sign In',
-    String message = 'Please sign in to access all features',
+    String? title,
+    String? message,
   }) async {
     return await showCupertinoDialog<bool>(
           context: context,
           barrierDismissible: true,
           builder: (context) => CupertinoAlertDialog(
-            title: Text(title),
-            content: Text(message),
+            title: Text(title ?? $strings.auth_sign_in),
+            content: Text(message ?? $strings.auth_sign_in_request),
             actions: [
               CupertinoDialogAction(
                 isDefaultAction: false,
-                child: const Text('Not Now'),
+                child: Text($strings.auth_not_now),
                 onPressed: () => Navigator.pop(context, false),
               ),
               CupertinoDialogAction(
                 isDefaultAction: true,
-                child: const Text('Sign In'),
+                child: Text($strings.auth_sign_in),
                 onPressed: () => Navigator.pop(context, true),
               ),
             ],
@@ -44,8 +41,8 @@ class AuthPromptHelper {
     await showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
-        title: const Text('Sign In Options'),
-        message: const Text('Choose how you would like to sign in'),
+        title: Text($strings.auth_sign_in_options),
+        message: Text($strings.auth_choose_sign_in),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
@@ -55,7 +52,7 @@ class AuthPromptHelper {
               else
                 context.push(RouteNames.login);
             },
-            child: const Text('Sign in with Email'),
+            child: Text($strings.auth_sign_in_email),
           ),
           if (onGoogleLogin != null)
             CupertinoActionSheetAction(
@@ -63,7 +60,7 @@ class AuthPromptHelper {
                 Navigator.pop(context);
                 onGoogleLogin();
               },
-              child: const Text('Sign in with Google'),
+              child: Text($strings.auth_sign_in_google),
             ),
           if (onAppleLogin != null)
             CupertinoActionSheetAction(
@@ -71,13 +68,13 @@ class AuthPromptHelper {
                 Navigator.pop(context);
                 onAppleLogin();
               },
-              child: const Text('Sign in with Apple'),
+              child: Text($strings.auth_sign_in_apple),
             ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
           isDestructiveAction: true,
-          child: const Text('Cancel'),
+          child: Text($strings.action_cancel),
         ),
       ),
     );
@@ -86,24 +83,23 @@ class AuthPromptHelper {
   /// Shows a feature-locked prompt when a user tries to access a feature that requires login
   static Future<bool> showFeatureLockedPrompt(
     BuildContext context, {
-    String title = 'Sign In Required',
-    String message =
-        'This feature requires an account. Would you like to sign in?',
+    String? title,
+    String? message,
   }) async {
     final result = await showCupertinoDialog<bool>(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: Text(title),
-        content: Text(message),
+        title: Text(title ?? $strings.auth_sign_in_required),
+        content: Text(message ?? $strings.auth_feature_locked),
         actions: [
           CupertinoDialogAction(
             isDefaultAction: false,
-            child: const Text('Not Now'),
+            child: Text($strings.auth_not_now),
             onPressed: () => Navigator.pop(context, false),
           ),
           CupertinoDialogAction(
             isDefaultAction: true,
-            child: const Text('Sign In'),
+            child: Text($strings.auth_sign_in),
             onPressed: () => Navigator.pop(context, true),
           ),
         ],

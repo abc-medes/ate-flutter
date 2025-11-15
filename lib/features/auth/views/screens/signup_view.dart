@@ -38,7 +38,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
       final isCurrentlyLoading = viewState.isLoading;
 
       if (isCurrentlyLoading) {
-        LoadingScreen.show(context, message: 'Creating your account...');
+        LoadingScreen.show(context, message: $strings.authCreatingAccount);
       } else {
         LoadingScreen.dismiss(context);
       }
@@ -51,9 +51,9 @@ class _SignupViewState extends ConsumerState<SignupView> {
           message: viewState.error!,
           actions: [
             MessageAction(
-                label: 'Try Again', onPressed: () => viewModel.signUp()),
+                label: $strings.actionTryAgain, onPressed: () => viewModel.signUp()),
             MessageAction(
-                label: 'Go to Login',
+                label: $strings.actionGoToLogin,
                 onPressed: () => context.go(RouteNames.login)),
           ],
           onDismiss: () => viewModel.clearError(),
@@ -64,7 +64,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
     return Scaffold(
       backgroundColor: $styles.colors.background,
       appBar: AppPageAppBar(
-        title: 'Sign Up',
+        title: $strings.signUp,
         onBack: () => Navigator.pop(context),
       ),
       body: Column(
@@ -85,17 +85,15 @@ class _SignupViewState extends ConsumerState<SignupView> {
                               _buildDetailsStep(context, viewModel, viewState),
                             if (viewState.currentStep == SignupStep.emailSent)
                               EmailSentStep(
-                                title: 'Verify Your Email',
-                                description:
-                                    "We've sent an email to ${viewState.emailController.text} with a verification link. Please click the link in your email to complete your registration.",
-                                nextStepsTitle: 'Next steps:',
+                                title: $strings.verifyYourEmail,
+                                description: $strings.signupEmailSentDescription(viewState.emailController.text),
+                                nextStepsTitle: $strings.nextSteps,
                                 nextSteps: [
-                                  'Check your email inbox for a verification link from us',
-                                  'Click on the link in the email to verify your account',
-                                  'Return to the app to complete your registration',
+                                  $strings.signupNextStep1,
+                                  $strings.signupNextStep2,
+                                  $strings.signupNextStep3,
                                 ],
-                                resendButtonText:
-                                    "Didn't receive the email? Resend",
+                                resendButtonText: $strings.resendEmail,
                                 onResend: viewState.isLoading
                                     ? null
                                     : () async {
@@ -106,8 +104,8 @@ class _SignupViewState extends ConsumerState<SignupView> {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(
                                             SnackBar(
-                                              content: const Text(
-                                                  'Verification email resent'),
+                                              content: Text(
+                                                  $strings.verificationEmailResent),
                                               behavior:
                                                   SnackBarBehavior.floating,
                                               backgroundColor:
@@ -118,7 +116,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
                                           );
                                         } catch (_) {}
                                       },
-                                backToLoginText: 'Back to Login',
+                                backToLoginText: $strings.actionBackToLogin,
                                 onBackToLogin: () =>
                                     context.go(RouteNames.login),
                                 isLoading: viewState.isLoading,
@@ -195,9 +193,9 @@ class _SignupViewState extends ConsumerState<SignupView> {
                                   color: $styles.colors.black,
                                 ),
                                 children: [
-                                  const TextSpan(text: 'I agree to the '),
+                                  TextSpan(text: $strings.iAgreeTo),
                                   TextSpan(
-                                    text: 'Terms & Privacy',
+                                    text: $strings.termsTitle,
                                     // "seemingly clickable": accent color + underline
                                     style: $styles.text.bodySmall.copyWith(
                                       fontSize:
@@ -217,7 +215,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
                     ),
                     SizedBox(height: $styles.insets.sm),
                     AppButton(
-                      label: 'Continue',
+                      label: $strings.actionContinue,
                       isLoading: viewState.isLoading,
                       onPressed: () async {
                         switch (viewState.currentStep) {
@@ -256,13 +254,12 @@ class _SignupViewState extends ConsumerState<SignupView> {
       children: [
         CustomedTextInput(
           controller: viewState.emailController,
-          hintText: 'Email',
+          hintText: $strings.fieldEmail,
           isRequired: true,
           keyboardType: TextInputType.emailAddress,
           onChanged: (_) => viewModel.validateEmail(),
-          errorText: !viewState.isEmailValid
-              ? 'Please enter a valid email address'
-              : null,
+          errorText:
+              !viewState.isEmailValid ? $strings.errorInvalidEmailShort : null,
           textStyle: $styles.text.bodySmall,
           hintTextStyle:
               $styles.text.bodySmall.copyWith(color: $styles.colors.greyMedium),
@@ -274,7 +271,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
         SizedBox(height: $styles.insets.sm),
         CustomedTextInput(
           controller: viewState.nameController,
-          hintText: 'Full Name',
+          hintText: $strings.fieldFullName,
           isRequired: true,
           textStyle: $styles.text.bodySmall,
           hintTextStyle:
@@ -287,12 +284,12 @@ class _SignupViewState extends ConsumerState<SignupView> {
         SizedBox(height: $styles.insets.sm),
         CustomedTextInput(
           controller: viewState.passwordController,
-          hintText: 'Password',
+          hintText: $strings.fieldPassword,
           isRequired: true,
           obscureText: !viewState.isPasswordVisible,
           onChanged: (_) => viewModel.validatePassword(),
           errorText: !viewState.isPasswordValid
-              ? 'Password must be at least 8 characters with at least 1 number'
+              ? $strings.errorPasswordPolicy
               : null,
           suffixIcon: IconButton(
             icon: Icon(
@@ -314,12 +311,12 @@ class _SignupViewState extends ConsumerState<SignupView> {
         SizedBox(height: $styles.insets.sm),
         CustomedTextInput(
           controller: viewState.confirmPasswordController,
-          hintText: 'Confirm Password',
+          hintText: $strings.fieldConfirmPassword,
           isRequired: true,
           obscureText: !viewState.isConfirmPasswordVisible,
           onChanged: (_) => viewModel.validatePasswordsMatch(),
           errorText:
-              !viewState.doPasswordsMatch ? 'Passwords do not match' : null,
+              !viewState.doPasswordsMatch ? $strings.errorPasswordsDoNotMatch : null,
           suffixIcon: IconButton(
             icon: Icon(
               viewState.isConfirmPasswordVisible
@@ -355,7 +352,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
         SizedBox(height: $styles.insets.xl),
         SocialAuthButton(
           ref: ref,
-          text: 'Sign up with Google',
+          text: $strings.signUpWithGoogle,
           icon: Icons.g_mobiledata_rounded,
           iconColor: $styles.colors.black,
           onPressed: () {
@@ -366,7 +363,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
           SizedBox(height: $styles.insets.xs),
           SocialAuthButton(
             ref: ref,
-            text: 'Sign up with Apple',
+            text: $strings.signUpWithApple,
             icon: Icons.apple,
             iconColor: $styles.colors.black,
             onPressed: () {

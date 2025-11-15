@@ -14,7 +14,7 @@ class LocaleLogic {
     Locale locale = _defaultLocal;
     // final localeCode =
     //     settingsLogic.currentLocale.value ?? await findSystemLocale();
-    final localeCode = 'en';
+    final localeCode = 'ko';
     locale = Locale(localeCode.split('_')[0]);
     if (kDebugMode) {
       // locale = Locale('zh'); // uncomment to test chinese

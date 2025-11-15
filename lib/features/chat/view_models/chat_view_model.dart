@@ -1,14 +1,12 @@
 import 'dart:async';
+import 'dart:convert' as convert;
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bodido/common_libs.dart';
-import 'package:bodido/data/models/chat_model.dart';
 import 'package:bodido/core/services/chat_service.dart';
-
-final chatViewModelProvider =
-    StateNotifierProvider.autoDispose<ChatViewModel, ChatViewState>(
-  (ref) => ChatViewModel(ref),
-);
+import 'package:bodido/core/services/tracking_questions_service.dart';
+import 'package:bodido/data/models/body_simulator_model.dart';
+import 'package:bodido/data/models/chat_model.dart';
+import 'package:bodido/data/models/tracking_question_model.dart';
 
 /// ─────────────────────────────────────────
 /// STATE
@@ -19,6 +17,9 @@ class ChatViewState {
   final bool isLoading;
   final String? error;
   final String? currentSessionId;
+  final List<dynamic> timeline;
+  final Map<String, List<TrackingQuestion>> questionsByTag;
+  final Set<String> pendingQuestionTags; // NEW
 
   const ChatViewState({
     this.currentSessionMessages = const [],
@@ -26,6 +27,9 @@ class ChatViewState {
     this.isLoading = false,
     this.error,
     this.currentSessionId,
+    this.timeline = const [],
+    this.questionsByTag = const {},
+    this.pendingQuestionTags = const <String>{}, // NEW
   });
 
   ChatViewState copyWith({
@@ -35,6 +39,9 @@ class ChatViewState {
     String? error,
     bool clearError = false,
     String? currentSessionId,
+    List<dynamic>? timeline,
+    Map<String, List<TrackingQuestion>>? questionsByTag,
+    Set<String>? pendingQuestionTags,
   }) {
     return ChatViewState(
       currentSessionMessages:
@@ -43,6 +50,9 @@ class ChatViewState {
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
       currentSessionId: currentSessionId ?? this.currentSessionId,
+      timeline: timeline ?? this.timeline,
+      questionsByTag: questionsByTag ?? this.questionsByTag,
+      pendingQuestionTags: pendingQuestionTags ?? this.pendingQuestionTags,
     );
   }
 }
@@ -52,13 +62,24 @@ class ChatViewState {
 /// ─────────────────────────────────────────
 class ChatViewModel extends StateNotifier<ChatViewState> {
   final Ref ref;
-  StreamSubscription<String>? _sub;
+  final Map<String, StreamSubscription<List<TrackingQuestion>>> _tagWatchers =
+      {};
+
+  static final _trackingEventRe = RegExp(
+      r'\{[^{}]*"event"\s*:\s*"tracking_questions_(?:generating|ready)"[^{}]*\}');
+  static final _trackingReadyRe =
+      RegExp(r'\{[^{}]*"event"\s*:\s*"tracking_questions_ready"[^{}]*\}');
+  static final _trackingGeneratingRe =
+      RegExp(r'\{[^{}]*"event"\s*:\s*"tracking_questions_generating"[^{}]*\}');
 
   ChatViewModel(this.ref) : super(const ChatViewState());
 
   @override
   void dispose() {
-    _sub?.cancel();
+    for (final s in _tagWatchers.values) {
+      s.cancel();
+    }
+    _tagWatchers.clear();
     super.dispose();
   }
 
@@ -80,22 +101,12 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
   }
 
   Future<void> loadMessagesForSession(String sessionId) async {
-    if (state.messagesBySession.containsKey(sessionId)) {
-      state = state.copyWith(
-        currentSessionMessages: state.messagesBySession[sessionId]!,
-        currentSessionId: sessionId,
-        isLoading: false,
-      );
-      return;
-    }
-
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final chatService = ref.read(chatServiceProvider);
       final messages = await chatService.getChatHistory();
 
-      // Filter messages for this session
       final sessionMessages =
           messages.where((msg) => msg.sessionId == sessionId).toList();
 
@@ -116,7 +127,49 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
     }
   }
 
-  Future<void> sendMessage(ChatMessageDTO message) async {
+  Future<void> fetchQuestionsBySessionOnce(
+    String sessionId, {
+    int limit = 3,
+    String? questionTag,
+  }) async {
+    final uid = Supabase.instance.client.auth.currentUser?.id;
+    if (uid == null) return;
+
+    final pendingKey =
+        questionTag == null ? sessionId : '${sessionId}::$questionTag';
+    if (state.pendingQuestionTags.contains(pendingKey)) return;
+
+    final nextPending = <String>{...state.pendingQuestionTags, pendingKey};
+    state = state.copyWith(pendingQuestionTags: nextPending);
+
+    try {
+      final qs = await ref
+          .read(trackingQuestionsServiceProvider)
+          .listQuestionsByUserAndSession(
+            userId: uid,
+            sessionId: sessionId,
+            limit: limit,
+            questionTag: questionTag,
+          );
+
+      final questionsKey = questionTag ?? sessionId;
+      state = state.copyWith(
+        questionsByTag: {
+          ...state.questionsByTag,
+          questionsKey: qs.take(limit).toList(),
+        },
+      );
+    } catch (e) {
+      debugPrint('[ChatVM] fetchQuestionsBySessionOnce error: $e');
+    } finally {
+      final cleared = <String>{...state.pendingQuestionTags}
+        ..remove(pendingKey);
+      state = state.copyWith(pendingQuestionTags: cleared);
+    }
+  }
+
+  Future<void> sendMessage(ChatMessageDTO message,
+      {String? watchTagOnDone}) async {
     if (message.message?.trim().isEmpty == true) return;
 
     // Add user message immediately
@@ -156,12 +209,13 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
     chatService.sendPrompt(
       message,
       onChunk: (ChatMessageDTO chunkMessage) {
-        // Update the AI message with the chunk
+        if (!mounted) return;
+        final chunkText = chunkMessage.message ?? '';
+        final sanitizedChunk = chunkText.replaceAll(_trackingEventRe, '');
         final currentMessages = state.currentSessionMessages;
         if (currentMessages.isNotEmpty && !currentMessages.last.isUser) {
           final updatedAI = currentMessages.last.copyWith(
-            message: (currentMessages.last.message ?? '') +
-                (chunkMessage.message ?? ''),
+            message: (currentMessages.last.message ?? '') + sanitizedChunk,
           );
           final updatedMessages = [...currentMessages];
           updatedMessages[updatedMessages.length - 1] = updatedAI;
@@ -174,8 +228,41 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
             },
           );
         }
+
+        if (_trackingGeneratingRe.hasMatch(chunkText)) {
+          final match = _trackingGeneratingRe.allMatches(chunkText).last;
+          final obj = convert.jsonDecode(match.group(0)!);
+          final tag = obj['tag']?.toString();
+          final pendingKey =
+              tag == null ? message.sessionId : '${message.sessionId}::$tag';
+          final nextPending = <String>{
+            ...state.pendingQuestionTags,
+            pendingKey
+          };
+          state = state.copyWith(pendingQuestionTags: nextPending);
+        }
+
+        if (_trackingReadyRe.hasMatch(chunkText)) {
+          try {
+            final match = _trackingReadyRe.allMatches(chunkText).last;
+            final obj = convert.jsonDecode(match.group(0)!);
+            final tag = obj['tag']?.toString();
+            final count = obj['count']?.toString();
+            debugPrint(
+                '[ChatVM] tracking_questions_ready: tag=$tag count=$count');
+
+            fetchQuestionsBySessionOnce(
+              message.sessionId,
+              limit: 3,
+              questionTag: tag,
+            );
+          } catch (e) {
+            debugPrint(
+                '[ChatVM] failed to parse tracking_questions_ready event: $e');
+          }
+        }
       },
-      onDone: () {
+      onDone: () async {
         state = state.copyWith(isLoading: false);
       },
       onError: (String error) {
@@ -187,6 +274,42 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
     );
   }
 
+  DateTime _msgTs(ChatMessageDTO m) => m.clientLocalTimestamp ?? m.createdAt;
+
+  DateTime _snapTs(BodySimulatorStateSnapshotDTO s) => s.createdAt;
+
+  void initializeFromEvents({
+    required List<dynamic> events,
+    String? selectedSessionId,
+  }) {
+    final msgs = events.whereType<ChatMessageDTO>().toList();
+    final snaps = events.whereType<BodySimulatorStateSnapshotDTO>().toList();
+
+    final timeline = <dynamic>[...msgs, ...snaps]..sort((a, b) {
+        final ta = a is ChatMessageDTO
+            ? _msgTs(a)
+            : _snapTs(a as BodySimulatorStateSnapshotDTO);
+        final tb = b is ChatMessageDTO
+            ? _msgTs(b)
+            : _snapTs(b as BodySimulatorStateSnapshotDTO);
+        return ta.compareTo(tb);
+      });
+
+    final sessionId =
+        selectedSessionId ?? (msgs.isNotEmpty ? msgs.first.sessionId : null);
+    final sessionMsgs = sessionId == null
+        ? const <ChatMessageDTO>[]
+        : msgs.where((m) => m.sessionId == sessionId).toList();
+
+    state = state.copyWith(
+      currentSessionId: sessionId,
+      currentSessionMessages: sessionMsgs,
+      messagesBySession: sessionId == null ? {} : {sessionId: sessionMsgs},
+      isLoading: false,
+      timeline: timeline,
+    );
+  }
+
   void clearError() {
     state = state.copyWith(clearError: true);
   }
@@ -195,3 +318,7 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
 /// ─────────────────────────────────────────
 /// PROVIDER (prompt 파라미터 전달)
 /// ─────────────────────────────────────────
+final chatViewModelProvider =
+    StateNotifierProvider.autoDispose<ChatViewModel, ChatViewState>(
+  (ref) => ChatViewModel(ref),
+);

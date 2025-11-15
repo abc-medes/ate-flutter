@@ -18,6 +18,7 @@ class RouteNames {
   static const changePassword = '/settings/change-password';
   static const chatHistory = '/chat-history';
   static const String chat = '/chat-history/:sessionId';
+  static const productRecommendations = '/product-recommendations';
 
   // Cannot be instantiated
   RouteNames._();

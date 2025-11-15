@@ -314,8 +314,7 @@ class _ChatHistoryViewState extends ConsumerState<ChatHistoryView>
         ...snapshots.map(
           (snapshot) => _buildEventRow(
             icon: Icons.monitor_heart_outlined,
-            title:
-                'Body Score: ${snapshot.healthScore.overallScore.toStringAsFixed(1)}',
+            title: $strings.history_body_score_label(snapshot.healthScore.overallScore.toStringAsFixed(1)),
             isOutside: isOutside,
             iconColor: $styles.colors.accent2,
           ),

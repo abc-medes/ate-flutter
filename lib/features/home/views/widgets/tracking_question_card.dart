@@ -109,15 +109,15 @@ class TrackingQuestionCard extends StatelessWidget {
             runSpacing: 6,
             children: [
               _MetaPill(
-                label: 'System: ${question.system.name}',
+                label: $strings.meta_system(question.system.name),
                 color: isChat ? Colors.white : $styles.colors.accent2, // ADD
               ),
               _MetaPill(
-                label: 'Metric: ${question.metric}',
+                label: $strings.meta_metric(question.metric),
                 color: isChat ? Colors.white : $styles.colors.accent1, // ADD
               ),
               _MetaPill(
-                label: 'Category: ${question.category}',
+                label: $strings.meta_category(question.category),
                 color: isChat ? Colors.white : $styles.colors.accent3, // ADD
               ),
             ],

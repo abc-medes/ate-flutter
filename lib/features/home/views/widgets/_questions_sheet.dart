@@ -35,9 +35,9 @@ class QuestionsSheet extends ConsumerWidget {
                 unselectedLabelStyle: $styles.text.body.copyWith(fontSize: 16),
                 indicatorSize: TabBarIndicatorSize.tab,
                 indicatorColor: $styles.colors.accent1,
-                tabs: const [
-                  Tab(text: 'Questions', height: 48),
-                  Tab(text: 'Answered', height: 48),
+                tabs: [
+                  Tab(text: $strings.qs_tab_questions, height: 48),
+                  Tab(text: $strings.qs_tab_answered, height: 48),
                 ],
               ),
               SizedBox(height: $styles.insets.sm),
@@ -114,16 +114,16 @@ class QuestionsSheet extends ConsumerWidget {
                   }
 
                   final prompt = [
-                    'Here are my latest updates:',
+                    $strings.qs_updates_intro,
                     ...lines,
-                    'Please provide guidance and next steps.',
+                    $strings.qs_updates_request,
                   ].join('\n');
 
                   final userId = Supabase.instance.client.auth.currentUser?.id;
                   if (userId == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please sign in to start chat'),
+                      SnackBar(
+                        content: Text($strings.qs_sign_in_required),
                       ),
                     );
                     return;
@@ -207,7 +207,7 @@ class _QuestionsBottomBar extends StatelessWidget {
                       )
                     : const Icon(Icons.check),
                 label: Text(
-                  state.isSavingSelections ? 'Updating...' : 'Update status',
+                  state.isSavingSelections ? $strings.qs_update_updating : $strings.qs_update_status,
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: $styles.colors.accent1,
@@ -223,7 +223,7 @@ class _QuestionsBottomBar extends StatelessWidget {
             Expanded(
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.chat_bubble_outline),
-                label: const Text('Ask AI'),
+                label: Text($strings.qs_ask_ai),
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(
                     color: $styles.colors.accent1.withOpacity(0.4),

@@ -34,10 +34,10 @@ class TrackingQuestionsSection extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: $styles.insets.md),
             child: Center(
               child: TypewriterAnimatedText(
-                const [
-                  "Getting your check-ins",
-                  "Almost ready",
-                  "Let's begin",
+                [
+                  $strings.tq_loading_1,
+                  $strings.tq_loading_2,
+                  $strings.tq_loading_3,
                 ],
                 textStyle: $styles.text.body.copyWith(
                   color: isChat ? Colors.white : $styles.colors.accent1,
@@ -50,7 +50,7 @@ class TrackingQuestionsSection extends StatelessWidget {
             ),
           )
         else if (questions.isEmpty)
-          Text('No questions yet.', style: $styles.text.bodySmall)
+          Text($strings.tq_empty, style: $styles.text.bodySmall)
         else ...[
           for (int i = 0; i < questions.length; i++) ...[
             TrackingQuestionCard(

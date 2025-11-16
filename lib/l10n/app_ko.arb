@@ -282,7 +282,7 @@
         "field_confirm_new_password": "새 비밀번호 확인",
         "action_update_password": "비밀번호 업데이트",
         "error_fix_before_continue": "계속하기 전에 오류를 수정해 주세요",
-        "success_password_updated": "비밀번호가 업데이트되었습니다"
+        "success_password_updated": "비밀번호가 업데이트되었습니다",
         "recs_title": "제품 추천",
         "recs_empty": "추천할 제품이 아직 없습니다",
         "recs_priority": "우선순위 {value}",

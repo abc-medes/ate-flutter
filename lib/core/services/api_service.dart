@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/config/env.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/chat_model.dart';
 import 'package:bodido/data/models/tracking_question_model.dart';
@@ -12,23 +13,53 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ApiService {
   // DEV
-  static const String _baseUrl = 'http://localhost:8080/api';
-  static const String _wsUrl = 'ws://localhost:8080';
+  // static const String _baseUrl = 'http://localhost:8080/api';
+  // static const String _wsUrl = 'ws://localhost:8080';
   // PROD
-  // static String get _baseUrl => Env.apiBaseUrl;
-  // static String get _wsUrl => Env.wsBaseUrl;
+  static String get _baseUrl => Env.apiBaseUrl;
+  static String get _wsUrl => Env.wsBaseUrl;
 
   static final SupabaseClient _supabase = Supabase.instance.client;
+
+  static Future<String> _preferredLanguageCode() async {
+    final stored = settingsLogic.currentLocale.value;
+    if (stored != null && stored.isNotEmpty) {
+      return stored;
+    }
+    return await findSystemLocale();
+  }
+
+  static Future<Map<String, String>> _authHeaders(
+    String token, {
+    bool includeJson = true,
+  }) async {
+    final lang = await _preferredLanguageCode();
+    final headers = <String, String>{
+      'Authorization': 'Bearer $token',
+      'Accept-Language': lang,
+    };
+    if (includeJson) {
+      headers['Content-Type'] = 'application/json';
+    }
+    return headers;
+  }
+
+  static Future<Map<String, String>> _languageHeaders() async {
+    final lang = await _preferredLanguageCode();
+    return {
+      'Accept-Language': lang,
+    };
+  }
 
   static Stream<String> sendChatMessage(ChatMessageDTO chatMessage) async* {
     final client = http.Client();
     try {
       Future<http.StreamedResponse> _executeSendRequest(String token) async {
+        final headers = await _authHeaders(token);
         final request =
             http.Request('POST', Uri.parse('$_baseUrl/generate/chat-reply'))
               ..headers.addAll({
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer $token',
+                ...headers,
               })
               ..body = jsonEncode(chatMessage.toJson());
         return client.send(request);
@@ -38,7 +69,7 @@ class ApiService {
       if (initialSession == null) {
         throw Exception('Not authenticated: No active session.');
       }
-      String accessToken = initialSession.accessToken;
+      var accessToken = initialSession.accessToken;
 
       var streamedResponse = await _executeSendRequest(accessToken);
 
@@ -90,28 +121,32 @@ class ApiService {
         throw Exception('Not authenticated');
       }
 
-      final accessToken = session.accessToken;
+      var accessToken = session.accessToken;
 
-      final response = await http.post(
-        Uri.parse('$_baseUrl/generate/memory'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
-        body: jsonEncode({
-          'prompt': prompt,
-          'user_id': session.user.id,
-        }),
-      );
+      Future<http.Response> executeRequest(String token) async {
+        final headers = await _authHeaders(token);
+        return http.post(
+          Uri.parse('$_baseUrl/generate/memory'),
+          headers: headers,
+          body: jsonEncode({
+            'prompt': prompt,
+            'user_id': session.user.id,
+          }),
+        );
+      }
+
+      var response = await executeRequest(accessToken);
 
       if (response.statusCode == 401) {
         final newSession = await _supabase.auth.refreshSession();
         // The refreshed session is automatically stored by the Supabase client.
         // We can just retry the request.
         if (newSession.session != null) {
-          return memorizeChat(prompt); // Retry with the new session
+          accessToken = newSession.session!.accessToken;
+          response = await executeRequest(accessToken); // Retry
+        } else {
+          throw Exception('Authentication failed');
         }
-        throw Exception('Authentication failed');
       }
 
       if (response.statusCode != 200) {
@@ -130,19 +165,17 @@ class ApiService {
       if (session == null) {
         throw Exception('Not authenticated: No active session.');
       }
-      String accessToken = session.accessToken;
+      var accessToken = session.accessToken;
 
       Future<http.Response> executeRequest(String token) async {
         final localTimestamp = DateTime.now().toIso8601String();
         final uri = Uri.parse(
             '$_baseUrl/initialize/body-simulator?local_timestamp_str=$localTimestamp');
 
+        final headers = await _authHeaders(token);
         return await http.post(
           uri,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
+          headers: headers,
           body: jsonEncode({}),
         );
       }
@@ -189,16 +222,14 @@ class ApiService {
       if (session == null) {
         throw Exception('Not authenticated');
       }
-      String accessToken = session.accessToken;
+      var accessToken = session.accessToken;
 
-      Future<http.Response> executeRequest(String token) {
+      Future<http.Response> executeRequest(String token) async {
         final uri = Uri.parse('$_baseUrl/memory/process');
+        final headers = await _authHeaders(token);
         return http.post(
           uri,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
+          headers: headers,
           body: jsonEncode(chatMessage.toJson()),
         );
       }
@@ -242,16 +273,14 @@ class ApiService {
       if (session == null) {
         throw Exception('Not authenticated');
       }
-      String accessToken = session.accessToken;
+      var accessToken = session.accessToken;
 
-      Future<http.Response> executeRequest(String token) {
+      Future<http.Response> executeRequest(String token) async {
+        final headers = await _authHeaders(token);
         final uri = Uri.parse('$_baseUrl/create/tracking-questions');
         return http.post(
           uri,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
+          headers: headers,
           body: jsonEncode({
             'language': language,
             'max_questions': maxQuestions,
@@ -301,18 +330,16 @@ class ApiService {
       if (session == null) {
         throw Exception('Not authenticated');
       }
-      String accessToken = session.accessToken;
+      var accessToken = session.accessToken;
 
-      Future<http.Response> executeRequest(String token) {
+      Future<http.Response> executeRequest(String token) async {
+        final headers = await _authHeaders(token);
         final uri = Uri.parse('$_baseUrl/select/tracking-option');
         final body = request.toJson();
         if (dryRun) body['dry_run'] = true;
         return http.post(
           uri,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
+          headers: headers,
           body: jsonEncode(body),
         );
       }
@@ -365,8 +392,9 @@ class ApiService {
 
       final jwt = session.accessToken;
       final ts = DateTime.now().toIso8601String();
+      final lang = await _preferredLanguageCode();
       final wsUri = Uri.parse(
-          '$_wsUrl/ws/body-state?token=$jwt&session_id=$sessionId&local_timestamp=$ts');
+          '$_wsUrl/ws/body-state?token=$jwt&session_id=$sessionId&local_timestamp=$ts&lang=$lang');
 
       debugPrint('🌐 Attempting WebSocket connection to: $wsUri');
 
@@ -467,7 +495,8 @@ class ApiService {
 
     for (final url in candidates) {
       try {
-        final res = await http.get(url).timeout(timeout);
+        final headers = await _languageHeaders();
+        final res = await http.get(url, headers: headers).timeout(timeout);
         if (res.statusCode == 200) {
           debugPrint('✅ Backend health OK at $url');
           return true;

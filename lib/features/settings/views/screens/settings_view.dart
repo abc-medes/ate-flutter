@@ -8,6 +8,7 @@ import 'package:bodido/features/settings/views/widgets/momorized_context_section
 import 'package:bodido/features/settings/views/widgets/section_header.dart';
 import 'package:bodido/features/settings/views/widgets/setting_header.dart';
 import 'package:bodido/features/settings/views/widgets/setting_item.dart';
+import 'package:bodido/features/auth/views/widgets/_policy_viewer_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsView extends ConsumerStatefulWidget {
@@ -130,7 +131,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   PaddedDivider.medium(color: $styles.colors.caption),
 
                   // Health Context section
-                  SectionHeader(title: $strings.settings_section_health_context),
+                  SectionHeader(
+                      title: $strings.settings_section_health_context),
                   const HealthContextSection(),
 
                   PaddedDivider.medium(color: $styles.colors.caption),
@@ -171,12 +173,24 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   SettingItem(
                     title: $strings.settings_terms,
                     icon: Icons.description,
-                    onTap: () {},
+                    onTap: () {
+                      PolicyViewerSheet.show(
+                        context,
+                        title: $strings.termsOfService,
+                        assetPath: 'assets/legal/terms_en.txt',
+                      );
+                    },
                   ),
                   SettingItem(
                     title: $strings.settings_privacy,
                     icon: Icons.policy,
-                    onTap: () {},
+                    onTap: () {
+                      PolicyViewerSheet.show(
+                        context,
+                        title: $strings.privacyPolicy,
+                        assetPath: 'assets/legal/privacy_en.txt',
+                      );
+                    },
                   ),
 
                   SizedBox(height: $styles.insets.xl),

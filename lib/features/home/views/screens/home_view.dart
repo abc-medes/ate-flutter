@@ -2,6 +2,7 @@ import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/widgets/chat_input.dart';
 import 'package:bodido/core/widgets/circular_icon_button.dart';
+import 'package:bodido/core/widgets/loading_view.dart';
 import 'package:bodido/data/models/chat_model.dart';
 // removed model imports (not directly referenced here)
 import 'package:bodido/features/home/view_models/home_view_model.dart';
@@ -18,11 +19,34 @@ class HomeView extends ConsumerStatefulWidget {
 
 class _HomeViewState extends ConsumerState<HomeView> {
   Future<void> _openQuestionsSheet(BuildContext context, WidgetRef ref) async {
+    final state = ref.read(homeViewModelProvider);
+
+    if (state.isLoadingUserQuestions) {
+      LoadingScreen.show(context);
+      return;
+    }
+
+    if (state.userQuestions.isEmpty && state.answeredQuestions.isEmpty) {
+      LoadingScreen.show(context);
+      await Future.delayed(const Duration(milliseconds: 500));
+      final updatedState = ref.read(homeViewModelProvider);
+      if (updatedState.isLoadingUserQuestions) {
+        return; // Still loading, keep overlay
+      }
+      LoadingScreen.dismiss(context);
+    }
+
     ref.read(homeViewModelProvider.notifier).showQuestionsSheet(context);
   }
 
   Future<void> _openScoreSheet(BuildContext context, WidgetRef ref) async {
-    // If needed, initialize body simulator state here. Keeping it simple and opening details.
+    final state = ref.read(homeViewModelProvider);
+
+    if (state.bodySimulatorState == null || state.isLoadingInsights) {
+      LoadingScreen.show(context);
+      return;
+    }
+
     ref
         .read(homeViewModelProvider.notifier)
         .showBodySimulatorSnapshotDetails(context);
@@ -32,6 +56,18 @@ class _HomeViewState extends ConsumerState<HomeView> {
   Widget build(BuildContext context) {
     final viewModel = ref.watch(homeViewModelProvider.notifier);
     final state = ref.watch(homeViewModelProvider);
+
+    ref.listen<bool>(
+      homeViewModelProvider
+          .select((s) => s.isLoadingUserQuestions || s.isLoadingInsights),
+      (prev, isLoading) {
+        if (isLoading) {
+          LoadingScreen.show(context);
+        } else {
+          LoadingScreen.dismiss(context);
+        }
+      },
+    );
 
     return Scaffold(
       backgroundColor: $styles.colors.background,
@@ -48,7 +84,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     child: _HomeBigButton(
                       icon: Icons.insights_outlined,
                       title: $strings.home_score,
-                      subtitle: $strings.home_overall_score((state.bodySimulatorState?.healthScore.overallScore ?? 0).toStringAsFixed(1)),
+                      subtitle: $strings.home_overall_score(
+                          (state.bodySimulatorState?.healthScore.overallScore ??
+                                  0)
+                              .toStringAsFixed(1)),
                       gradientStart: $styles.colors.accent2,
                       gradientEnd: $styles.colors.accent1,
                       onTap: () => _openScoreSheet(context, ref),
@@ -61,7 +100,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       title: $strings.home_questions,
                       subtitle: state.userQuestions.isEmpty
                           ? $strings.home_no_pending_questions
-                          : $strings.home_num_pending(state.userQuestions.length),
+                          : $strings
+                              .home_num_pending(state.userQuestions.length),
                       gradientStart: $styles.colors.accent1,
                       gradientEnd: $styles.colors.accent3,
                       onTap: () => _openQuestionsSheet(context, ref),

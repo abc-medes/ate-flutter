@@ -33,7 +33,6 @@ class ChatInput extends ConsumerStatefulWidget {
 class _ChatInputState extends ConsumerState<ChatInput> {
   late TextEditingController _chatInputController;
   final FocusNode _chatFocusNode = FocusNode();
-  List<String> _selectedImages = [];
   int _selectedHour = 0;
 
   @override
@@ -60,12 +59,6 @@ class _ChatInputState extends ConsumerState<ChatInput> {
     super.dispose();
   }
 
-  void _handleImageSelection() async {
-    setState(() {
-      _selectedImages.add("image_${_selectedImages.length + 1}");
-    });
-  }
-
   void _createAndSendChatMessage() {
     final cm = ChatMessageDTO(
       userId: ref.read(userServiceProvider).userId,
@@ -82,15 +75,12 @@ class _ChatInputState extends ConsumerState<ChatInput> {
     }
 
     _chatInputController.clear();
-    setState(() {
-      _selectedImages = [];
-    });
   }
 
   void _handleSubmit() {
     if (widget.isDisabled) return;
     final text = _chatInputController.text;
-    if (text.trim().isEmpty && _selectedImages.isEmpty) return;
+    if (text.trim().isEmpty) return;
 
     _createAndSendChatMessage();
   }
@@ -101,54 +91,6 @@ class _ChatInputState extends ConsumerState<ChatInput> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Selected images preview
-        if (_selectedImages.isNotEmpty)
-          Container(
-            height: $styles.insets.offset,
-            margin: EdgeInsets.only(bottom: $styles.insets.sm),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _selectedImages.length,
-              itemBuilder: (context, index) {
-                return Container(
-                  width: $styles.insets.offset,
-                  margin: EdgeInsets.only(right: $styles.insets.xs),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular($styles.corners.md),
-                  ),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Center(
-                        child: Text(
-                          $strings.image_label(index + 1),
-                          style: $styles.text.caption.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: IconButton(
-                          icon: Icon(Icons.close, size: $styles.insets.sm),
-                          onPressed: () {
-                            setState(() {
-                              _selectedImages.removeAt(index);
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-
         Container(
           decoration: BoxDecoration(
             color: $styles.colors.background,
@@ -235,34 +177,19 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            widget.shouldSaveAsContext
-                                ? Icons.save
-                                : Icons.save_outlined,
-                            color: widget.shouldSaveAsContext
-                                ? $styles.colors.accent2
-                                : $styles.colors.accent1,
-                          ),
-                          onPressed: widget.onSaveModeToggle,
-                          tooltip: widget.shouldSaveAsContext
-                              ? $strings.tooltip_saving_as_context
-                              : $strings.tooltip_save_temp_chat,
-                        ),
-                        if (!widget.shouldSaveAsContext)
-                          IconButton(
-                            icon: Icon(
-                              Icons.image,
-                              color: widget.shouldSaveAsContext
-                                  ? $styles.colors.accent2
-                                  : $styles.colors.accent1,
-                            ),
-                            onPressed: _handleImageSelection,
-                            tooltip: $strings.tooltip_add_image,
-                          ),
-                      ],
+                    IconButton(
+                      icon: Icon(
+                        widget.shouldSaveAsContext
+                            ? Icons.save
+                            : Icons.save_outlined,
+                        color: widget.shouldSaveAsContext
+                            ? $styles.colors.accent2
+                            : $styles.colors.accent1,
+                      ),
+                      onPressed: widget.onSaveModeToggle,
+                      tooltip: widget.shouldSaveAsContext
+                          ? $strings.tooltip_saving_as_context
+                          : $strings.tooltip_save_temp_chat,
                     ),
                     IconButton(
                       icon: Icon(

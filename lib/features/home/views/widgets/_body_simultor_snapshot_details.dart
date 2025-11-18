@@ -173,19 +173,22 @@ class _BodySimulatorSnapshotDetailsState
                   ),
                 )
               else if (_bodyState != null) ...[
-                TabBar(
-                  labelColor: $styles.colors.accent1,
-                  unselectedLabelColor: $styles.colors.caption,
-                  labelStyle: $styles.text.bodyBold.copyWith(fontSize: 16),
-                  unselectedLabelStyle:
-                      $styles.text.body.copyWith(fontSize: 16),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  indicatorColor: $styles.colors.accent1,
-                  tabs: [
-                    Tab(text: $strings.tab_overview, height: 24),
-                    Tab(text: $strings.tab_highlights, height: 24),
-                    Tab(text: $strings.tab_metrics, height: 24),
-                  ],
+                Padding(
+                  padding: EdgeInsets.only(top: $styles.insets.md),
+                  child: TabBar(
+                    labelColor: $styles.colors.accent1,
+                    unselectedLabelColor: $styles.colors.caption,
+                    labelStyle: $styles.text.bodyBold.copyWith(fontSize: 16),
+                    unselectedLabelStyle:
+                        $styles.text.body.copyWith(fontSize: 16),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicatorColor: $styles.colors.accent1,
+                    tabs: [
+                      Tab(text: $strings.tab_overview, height: 24),
+                      Tab(text: $strings.tab_highlights, height: 24),
+                      Tab(text: $strings.tab_metrics, height: 24),
+                    ],
+                  ),
                 ),
                 SizedBox(height: $styles.insets.sm),
                 Expanded(
@@ -313,7 +316,12 @@ class _BodySimulatorSnapshotDetailsState
       ]);
 
   Widget _intestinesTable(IntestinesData d) => _metricTable([
-        ($strings.intestines_bacteria_diversity, d.gutBacteriaDiversity, true, '%'),
+        (
+          $strings.intestines_bacteria_diversity,
+          d.gutBacteriaDiversity,
+          true,
+          '%'
+        ),
         ($strings.intestines_inflammation, d.inflammation, false, '%'),
         ($strings.intestines_absorption_rate, d.absorptionRate, true, '%'),
         ($strings.intestines_gas_level, d.gasLevel, false, '%'),
@@ -327,7 +335,12 @@ class _BodySimulatorSnapshotDetailsState
       ]);
 
   Widget _endocrineTable(EndocrineData d) => _metricTable([
-        ($strings.endocrine_insulin_sensitivity, d.insulinSensitivity, true, '%'),
+        (
+          $strings.endocrine_insulin_sensitivity,
+          d.insulinSensitivity,
+          true,
+          '%'
+        ),
         ($strings.endocrine_thyroid_function, d.thyroidFunction, true, '%'),
         ($strings.endocrine_et_ratio, d.estrogenTestosteroneRatio, false, ''),
       ]);
@@ -345,7 +358,7 @@ extension _ReportPages on _BodySimulatorSnapshotDetailsState {
   Widget _buildOverviewPage(BodySimulatorStateSnapshotDTO dto) {
     final hs = dto.healthScore;
     return Padding(
-      padding: EdgeInsets.only(bottom: $styles.insets.lg),
+      padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -358,7 +371,8 @@ extension _ReportPages on _BodySimulatorSnapshotDetailsState {
             ],
           ),
           SizedBox(height: $styles.insets.md),
-          Text($strings.label_insights, style: $styles.text.bodyBold.copyWith(fontSize: 18)),
+          Text($strings.label_insights,
+              style: $styles.text.bodyBold.copyWith(fontSize: 18)),
           SizedBox(height: $styles.insets.xs),
           Column(
             children: widget.insights
@@ -403,6 +417,7 @@ extension _ReportPages on _BodySimulatorSnapshotDetailsState {
                     ))
                 .toList(),
           ),
+          SizedBox(height: $styles.insets.lg),
         ],
       ),
     );
@@ -410,7 +425,7 @@ extension _ReportPages on _BodySimulatorSnapshotDetailsState {
 
   Widget _buildHighlightsPage(BodyOverallScore hs) {
     return Padding(
-      padding: EdgeInsets.only(bottom: $styles.insets.lg),
+      padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -425,6 +440,7 @@ extension _ReportPages on _BodySimulatorSnapshotDetailsState {
             SizedBox(height: $styles.insets.xs),
             _analysisListView(hs.concerns, accent: $styles.colors.warning),
           ],
+          SizedBox(height: $styles.insets.lg),
         ],
       ),
     );
@@ -448,7 +464,7 @@ extension _ReportPages on _BodySimulatorSnapshotDetailsState {
     }
 
     return Padding(
-      padding: EdgeInsets.only(bottom: $styles.insets.lg),
+      padding: EdgeInsets.symmetric(horizontal: $styles.insets.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -470,6 +486,7 @@ extension _ReportPages on _BodySimulatorSnapshotDetailsState {
               s.endocrine != null ? _endocrineTable(s.endocrine!) : null),
           block($strings.organ_nervous, scores['Nervous'],
               s.nervous != null ? _nervousTable(s.nervous!) : null),
+          SizedBox(height: $styles.insets.lg),
         ],
       ),
     );

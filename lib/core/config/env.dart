@@ -7,6 +7,10 @@ class Env {
   static String get wsBaseUrl => dotenv.env['WS_BASE_URL'] ?? '';
 
   static Future<void> load() async {
-    await dotenv.load();
+    const isProd = bool.fromEnvironment('PROD', defaultValue: false);
+
+    final envFile = isProd ? '.env_prod' : '.env';
+
+    await dotenv.load(fileName: envFile);
   }
 }

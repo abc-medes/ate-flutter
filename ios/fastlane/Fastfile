@@ -1,0 +1,82 @@
+# ios/fastlane/Fastfile
+default_platform(:ios)
+
+platform :ios do
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    # Ensure Flutter dependencies are up to date
+    sh("cd .. && flutter pub get")
+    
+    # Build Flutter with production environment
+    sh("cd .. && flutter build ios --release --dart-define=PROD=true --no-codesign")
+    
+    # Build the app using Xcode with automatic signing
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      # Let Xcode handle signing automatically (since your Xcode setup works)
+      export_options: {
+        method: "app-store"
+      }
+    )
+    
+    # Upload to TestFlight
+    # upload_to_testflight(
+    #   username: "pallyjyo@gmail.com",
+    #   app_identifier: "com.redoai.bodido.app",
+    #   skip_waiting_for_build_processing: true
+    # )
+    puts "✅ Build complete! IPA: #{lane_context[SharedValues::IPA_OUTPUT_PATH]}"
+  end
+
+  desc "Build and upload to App Store"
+  lane :release do
+    # Ensure Flutter dependencies are up to date
+    sh("cd .. && flutter pub get")
+    
+    # Increment build number
+    increment_build_number(
+      build_number: ENV["BUILD_NUMBER"] || number_of_commits
+    )
+    
+    # Build Flutter with production environment
+    sh("cd .. && flutter build ios --release --dart-define=PROD=true --no-codesign")
+    
+    # Build the app using Xcode
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      export_options: {
+        method: "app-store"
+      }
+    )
+    
+    # Upload to App Store
+    upload_to_app_store(
+      skip_metadata: true,
+      skip_screenshots: true,
+      force: true
+    )
+  end
+
+  desc "Build for development (uses .env)"
+  lane :build_dev do
+    # Ensure Flutter dependencies are up to date
+    sh("cd .. && flutter pub get")
+    
+    # Build without PROD flag - will use .env
+    sh("cd .. && flutter build ios --release --no-codesign")
+    
+    # Build the app
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "development",
+      export_options: {
+        method: "development"
+      }
+    )
+  end
+end

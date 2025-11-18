@@ -76,3 +76,4 @@ intl_translation/
 *.env
 .env.*
 !.env.example
+.env_prod

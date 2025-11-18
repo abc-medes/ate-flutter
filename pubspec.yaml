@@ -103,6 +103,7 @@ flutter_native_splash:
 flutter:
   assets:
     - .env
+    - .env_prod
     - assets/organs/
     - assets/organs/lottie/
     - assets/logo/bodido_logo.png

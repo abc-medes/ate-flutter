@@ -38,7 +38,7 @@ class DebugView extends ConsumerWidget {
             onPressed: () async {
               final authService = ref.read(authServiceProvider);
               try {
-                await authService.devAccountDeleteSoft();
+                // await authService.devAccountDeleteSoft();
                 if (context.mounted) context.go(RouteNames.home);
               } catch (e) {
                 if (context.mounted) {

@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
@@ -7,8 +9,11 @@ import 'package:bodido/core/services/user_service.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/data/models/profiles/user_model.dart' as um;
+import 'package:bodido/data/repositories/user_repository.dart';
 import 'package:url_launcher/url_launcher.dart'
     show closeInAppWebView, LaunchMode;
+import 'package:crypto/crypto.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 enum AuthStatus {
   initial,
@@ -72,43 +77,46 @@ class AuthService {
     );
   }
 
-  Future<void> signInWithGoogle() async {
-    final done = _client.auth.onAuthStateChange
-        .firstWhere((e) =>
-            e.event == AuthChangeEvent.signedIn ||
-            e.event == AuthChangeEvent.userUpdated)
-        .then((_) => closeInAppWebView());
-
+  Future<void> oauthLogin(OAuthProvider provider) async {
     const redirectTo = 'bodido.app://auth/signup';
-
+    PlatformException? lastError;
     await _client.auth.signInWithOAuth(
-      OAuthProvider.google,
+      provider,
       redirectTo: redirectTo,
-      authScreenLaunchMode: LaunchMode.externalApplication,
+      authScreenLaunchMode: LaunchMode.inAppWebView,
     );
-
-    await done;
+    throw lastError ?? PlatformException(code: 'launch_failed');
   }
 
-  Future<void> signInWithApple() async {
-    final done = _client.auth.onAuthStateChange
-        .firstWhere((e) =>
-            e.event == AuthChangeEvent.signedIn ||
-            e.event == AuthChangeEvent.userUpdated)
-        .then((_) => closeInAppWebView());
-    const redirectTo = 'bodido.app://';
+  Future<AuthResponse> signInWithApple() async {
+    final rawNonce = _client.auth.generateRawNonce();
+    final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
 
-    await _client.auth.signInWithOAuth(
-      OAuthProvider.apple,
-      redirectTo: redirectTo,
-      authScreenLaunchMode: LaunchMode.platformDefault,
+    final credential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+      nonce: hashedNonce,
     );
 
-    await done;
+    final idToken = credential.identityToken;
+    if (idToken == null) {
+      throw const AuthException(
+          'Could not find ID Token from generated credential.');
+    }
+
+    return _client.auth.signInWithIdToken(
+      provider: OAuthProvider.apple,
+      idToken: idToken,
+      nonce: rawNonce,
+    );
   }
 
   Future<void> signOut() async {
     await _client.auth.signOut();
+    await userRepository.clearLocalHealthData();
+    await userRepository.clearLocalOnboardingData();
   }
 
   Future<void> changePassword({
@@ -183,10 +191,7 @@ class AuthService {
           healthData,
         );
   }
-  // ------------------------------------------------------------
 
-  // DEV ONLY: Wipes all app-side data rows for a given user id.
-  // Deletes from children first to avoid FK violations, then profile last.
   Future<void> devWipeUserData(String uid) async {
     final c = _client;
     try {
@@ -206,18 +211,7 @@ class AuthService {
     } catch (_) {}
   }
 
-  // DEV ONLY: Wipes current user’s app data; requires an authenticated session.
-  Future<void> devWipeCurrentUserData() async {
-    final uid = currentUser?.id;
-    if (uid == null) {
-      throw Exception('Not signed in');
-    }
-    await devWipeUserData(uid);
-  }
-
-  // DEV ONLY: "회원 탈퇴" (soft) – wipe app data then sign out.
-  // Note: You cannot delete the auth.users row from a client without service role.
-  Future<void> devAccountDeleteSoft() async {
+  Future<void> deleteAccount() async {
     final uid = currentUser?.id;
     if (uid == null) {
       await signOut();

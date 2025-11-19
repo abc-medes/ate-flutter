@@ -292,5 +292,12 @@
         "recs_recommended_use": "Recommended use",
         "recs_notes": "Notes",
         "recs_category_fallback": "item",
-        "recs_open_link": "Open link"
+        "recs_open_link": "Open link",
+        "settings_delete_account": "Delete Account",
+        "settings_delete_account_title": "Delete Account",
+        "settings_delete_account_content": "Are you sure you want to delete your account? This will permanently delete all your data including your profile, health metrics, chat history, and all other information. This action cannot be undone.",
+        "settings_deleting_account": "Deleting account...",
+        "settings_delete_account_error": "Error deleting account: {error}",
+        "@settings_delete_account_error": { "placeholders": { "error": { "type": "String" } } },
+        "action_delete": "DELETE"
 }

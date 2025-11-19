@@ -304,9 +304,9 @@ class SignupViewModel extends StateNotifier<SignupState> {
             email: state.emailController.text,
             password: state.passwordController.text);
       } else if (signupMethod == SignupMethod.google) {
-        await _authService.signInWithGoogle();
+        await _authService.oauthLogin(OAuthProvider.google);
       } else if (signupMethod == SignupMethod.apple) {
-        await _authService.signInWithApple();
+        await _authService.oauthLogin(OAuthProvider.google);
       }
 
       await _client.auth.onAuthStateChange.firstWhere((e) => e.session != null);

@@ -1,6 +1,7 @@
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/services/api_service.dart';
 import 'package:bodido/core/services/auth_service.dart';
+import 'package:bodido/core/services/onboarding_complete_service.dart';
 import 'package:bodido/core/services/tracking_questions_service.dart';
 import 'package:bodido/core/services/user_service.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
@@ -17,6 +18,11 @@ enum ChatHelperType { ai, alerts, waitlist, system, context }
 final homeViewModelProvider =
     StateNotifierProvider<HomeViewModel, HomeViewState>((ref) {
   final authService = ref.watch(authServiceProvider).isAuthenticated;
+  final onboardingDone = ref.watch(onboardingCompleteProvider).value ?? false;
+
+  if (!onboardingDone) {
+    return HomeViewModel(authService);
+  }
   final viewModel = HomeViewModel(authService);
 
   viewModel.fetchBodySimulatorState(ref);

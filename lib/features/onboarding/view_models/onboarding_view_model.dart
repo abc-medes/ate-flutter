@@ -18,6 +18,8 @@ class HealthOnboardingState {
   final int currentPage;
   final List<String> progressMessages;
   final bool isFinalizing;
+  final String? error;
+  final bool clearError;
 
   HealthOnboardingState({
     this.selectedHeight = 170,
@@ -29,6 +31,8 @@ class HealthOnboardingState {
     this.currentPage = 0,
     this.progressMessages = const [],
     this.isFinalizing = false,
+    this.error,
+    this.clearError = false,
   }) : selectedBirthDate = selectedBirthDate ??
             DateTime.now().subtract(const Duration(days: 365 * 30));
 
@@ -42,6 +46,8 @@ class HealthOnboardingState {
     int? currentPage,
     List<String>? progressMessages,
     bool? isFinalizing,
+    String? error,
+    bool? clearError,
   }) {
     return HealthOnboardingState(
       selectedHeight: selectedHeight ?? this.selectedHeight,
@@ -53,6 +59,8 @@ class HealthOnboardingState {
       currentPage: currentPage ?? this.currentPage,
       progressMessages: progressMessages ?? this.progressMessages,
       isFinalizing: isFinalizing ?? this.isFinalizing,
+      error: error ?? this.error,
+      clearError: clearError ?? this.clearError,
     );
   }
 }
@@ -167,7 +175,7 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
   }
 
   Future<bool> finalizeOnboarding() async {
-    state = state.copyWith(isFinalizing: true);
+    state = state.copyWith(isFinalizing: true, clearError: true);
     try {
       final healthMetrics = await _healthRepository.getExistingHealthMetrics();
       _log($strings.onboarding_log_saving_metrics);
@@ -182,10 +190,29 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
       return true;
     } catch (e) {
       print('Error finalising onboarding: $e');
+
+      // Extract user-friendly error message
+      String errorMessage = 'Failed to complete setup. Please try again.';
+      if (e.toString().contains('body simulator')) {
+        errorMessage = 'Failed to initialize body simulator. Please try again.';
+      } else if (e.toString().contains('500')) {
+        errorMessage = 'Server error occurred. Please try again later.';
+      }
+
+      state = state.copyWith(
+        isFinalizing: false,
+        error: errorMessage,
+      );
       return false;
     } finally {
-      state = state.copyWith(isFinalizing: false);
+      if (state.isFinalizing) {
+        state = state.copyWith(isFinalizing: false);
+      }
     }
+  }
+
+  void clearError() {
+    state = state.copyWith(clearError: true);
   }
 }
 

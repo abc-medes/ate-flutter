@@ -1,4 +1,5 @@
 import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/widgets/custom_message_sheet.dart';
 import 'package:bodido/core/widgets/live_typewriter.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/features/onboarding/view_models/onboarding_view_model.dart';
@@ -86,6 +87,26 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
     final state = ref.watch(healthOnboardingProvider);
     final currentPage =
         ref.watch(healthOnboardingProvider.select((s) => s.currentPage));
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (state.error != null && mounted) {
+        CustomMessageSheet.showError(
+          context: context,
+          message: state.error!,
+          actions: [
+            MessageAction(
+              label: 'Retry',
+              onPressed: () {
+                viewModel.clearError();
+                viewModel.finalizeOnboarding();
+              },
+              isPrimary: true,
+            ),
+          ],
+          onDismiss: () => viewModel.clearError(),
+        );
+      }
+    });
 
     return Scaffold(
       body: Padding(
@@ -231,59 +252,151 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
 
     final List<String> logs = state.progressMessages;
     final isWide = context.widthPx > 600;
-    final textStyle = (isWide ? $styles.text.h1 : $styles.text.h2).copyWith(
-      color: $styles.colors.accent1,
-    );
-    final double containerHeight = isWide ? 320 : 260;
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: 720),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: $styles.insets.xl,
-            vertical: $styles.insets.lg,
-          ),
-          child: SizedBox(
-            height: containerHeight,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: EdgeInsets.only(bottom: $styles.insets.xl),
-                    child: LiveTypewriter(
-                      lines: logs,
-                      charDelay: const Duration(milliseconds: 30),
-                      linePause: const Duration(milliseconds: 700),
-                      style: textStyle,
-                      textAlign: TextAlign.left,
-                    ),
-                  ),
-                ),
-                if (state.isFinalizing || state.isSaving)
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: SizedBox(
-                      height: 8,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular($styles.corners.lg),
-                        child: LinearProgressIndicator(
-                          backgroundColor: $styles.colors.offWhite,
-                          valueColor:
-                              AlwaysStoppedAnimation($styles.colors.accent1),
+    // Use smaller text to prevent overflow
+    final textStyle = (isWide ? $styles.text.h3 : $styles.text.h4).copyWith(
+      color: $styles.colors.accent1,
+      fontWeight: FontWeight.w600,
+    );
+
+    return Stack(
+      children: [
+        Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 720),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: $styles.insets.xl,
+                vertical: $styles.insets.lg,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Text content with proper spacing
+                  Flexible(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        bottom: $styles.insets.xl +
+                            40, // Extra space for loading bar
+                      ),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Fancy animated typewriter effect
+                            LiveTypewriter(
+                              lines: logs.isEmpty ? ['Initializing...'] : logs,
+                              charDelay: const Duration(milliseconds: 30),
+                              linePause: const Duration(milliseconds: 700),
+                              style: textStyle,
+                              textAlign: TextAlign.left,
+                            ),
+                            // Add "This may take a while" message if finalizing
+                            if (state.isFinalizing && logs.isNotEmpty)
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  top: $styles.insets.md,
+                                  left: $styles.insets.sm,
+                                ),
+                                child: TweenAnimationBuilder<double>(
+                                  tween: Tween(begin: 0.0, end: 1.0),
+                                  duration: const Duration(milliseconds: 800),
+                                  builder: (context, value, child) {
+                                    return Opacity(
+                                      opacity: value,
+                                      child: Text(
+                                        'This may take a moment...',
+                                        style: $styles.text.bodySmall.copyWith(
+                                          color: $styles.colors.caption,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-              ],
+
+                  // Loading indicators at the bottom
+                  if (state.isFinalizing || state.isSaving)
+                    Column(
+                      children: [
+                        // Pulsing dots animation
+                        if (state.isFinalizing)
+                          Padding(
+                            padding: EdgeInsets.only(bottom: $styles.insets.sm),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(3, (index) {
+                                return TweenAnimationBuilder<double>(
+                                  tween: Tween(begin: 0.3, end: 1.0),
+                                  duration: const Duration(milliseconds: 600),
+                                  curve: Curves.easeInOut,
+                                  onEnd: () {
+                                    if (mounted) {
+                                      setState(() {});
+                                    }
+                                  },
+                                  builder: (context, value, child) {
+                                    return Container(
+                                      margin:
+                                          EdgeInsets.symmetric(horizontal: 4),
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: $styles.colors.accent1
+                                            .withOpacity(value),
+                                        shape: BoxShape.circle,
+                                      ),
+                                    );
+                                  },
+                                );
+                              }),
+                            ),
+                          ),
+                        // Progress bar
+                        SizedBox(
+                          height: 8,
+                          width: double.infinity,
+                          child: ClipRRect(
+                            borderRadius:
+                                BorderRadius.circular($styles.corners.lg),
+                            child: TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0.0, end: 1.0),
+                              duration: const Duration(seconds: 2),
+                              curve: Curves.easeInOut,
+                              onEnd: () {
+                                if (mounted && state.isFinalizing) {
+                                  setState(() {});
+                                }
+                              },
+                              builder: (context, value, child) {
+                                return LinearProgressIndicator(
+                                  backgroundColor: $styles.colors.offWhite,
+                                  valueColor: AlwaysStoppedAnimation(
+                                    $styles.colors.accent1,
+                                  ),
+                                  value: state.isFinalizing ? null : value,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 }

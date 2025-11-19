@@ -15,6 +15,24 @@ class UserRepository {
       print('Error saving health data to local storage: $e');
     }
   }
+
+  Future<void> clearLocalHealthData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('health_metrics');
+    } catch (e) {
+      print('Error clearing health data from local storage: $e');
+    }
+  }
+
+  Future<void> clearLocalOnboardingData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('onboarding_complete');
+    } catch (e) {
+      print('Error clearing onboarding data from local storage: $e');
+    }
+  }
 }
 
 final userRepository = UserRepository();

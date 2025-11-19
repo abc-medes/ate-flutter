@@ -62,6 +62,15 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     isDestructive: true,
                   ),
 
+                  SettingItem(
+                    title: $strings.settings_delete_account,
+                    icon: Icons.delete_forever,
+                    onTap: () {
+                      _showDeleteAccountDialog(context);
+                    },
+                    isDestructive: true,
+                  ),
+
                   PaddedDivider.medium(color: $styles.colors.caption),
 
                   // AI Settings section
@@ -316,6 +325,95 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 }
               },
               child: Text($strings.action_reset,
+                  style: $styles.text.bodySmall.copyWith(
+                    color: $styles.colors.error,
+                    fontWeight: FontWeight.bold,
+                  )),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Add this method to lib/features/settings/views/screens/settings_view.dart
+// Place it after _showResetHealthDataDialog (around line 329)
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text($strings.settings_delete_account_title,
+              style: $styles.text.h3),
+          content: Text(
+            $strings.settings_delete_account_content,
+            style: $styles.text.body.copyWith(
+              color: $styles.colors.body,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text($strings.action_cancel.toUpperCase(),
+                  style: $styles.text.bodySmall.copyWith(
+                    color: $styles.colors.accent1,
+                    fontWeight: FontWeight.bold,
+                  )),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      content: Row(
+                        children: [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                $styles.colors.accent1),
+                          ),
+                          SizedBox(width: $styles.insets.md),
+                          Text($strings.settings_deleting_account,
+                              style: $styles.text.body),
+                        ],
+                      ),
+                    );
+                  },
+                );
+
+                try {
+                  final authService = ref.read(authServiceProvider);
+                  await authService.deleteAccount();
+
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    // Navigate to home after account deletion
+                    if (context.mounted) {
+                      context.go(RouteNames.home);
+                    }
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          $strings.settings_delete_account_error(e.toString()),
+                          style: $styles.text.body.copyWith(
+                            color: $styles.colors.white,
+                          ),
+                        ),
+                        backgroundColor: $styles.colors.error,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: Text($strings.action_delete,
                   style: $styles.text.bodySmall.copyWith(
                     color: $styles.colors.error,
                     fontWeight: FontWeight.bold,

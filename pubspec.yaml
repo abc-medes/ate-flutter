@@ -31,6 +31,7 @@ dependencies:
   app_links: ^6.4.0
   build_runner: ^2.4.15
   collection: ^1.19.1
+  crypto: ^3.0.7
   cupertino_icons: ^1.0.8
   extra_alignments: ^1.0.0+1
   firebase_analytics: ^12.0.1
@@ -58,6 +59,7 @@ dependencies:
   riverpod_annotation: ^2.6.1
   riverpod_generator: ^2.6.5
   shared_preferences: ^2.5.3
+  sign_in_with_apple: ^7.0.1
   sized_context: ^1.0.0+1
   supabase_flutter: ^2.8.4
   table_calendar: ^3.1.2
@@ -84,15 +86,15 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: assets/logo/bodido_logo.png        
+  image_path: assets/logo/bodi_logo.png        
 
   remove_alpha_ios: true                       
   adaptive_icon_background: "#05804C"       
-  adaptive_icon_foreground: assets/logo/bodido_logo.png
+  adaptive_icon_foreground: assets/logo/bodi_logo.png
 
 flutter_native_splash:
   color: "#FDF8e7"
-  image: assets/logo/bodido_logo.png
+  image: assets/logo/bodi_logo.png
   android: true
   ios: true
 
@@ -106,7 +108,7 @@ flutter:
     - .env_prod
     - assets/organs/
     - assets/organs/lottie/
-    - assets/logo/bodido_logo.png
+    - assets/logo/bodi_logo.png
     - assets/legal/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

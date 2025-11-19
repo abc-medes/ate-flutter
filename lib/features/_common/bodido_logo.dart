@@ -15,7 +15,7 @@ class BodidoLogo extends StatelessWidget {
       width: size,
       height: size,
       child: Image.asset(
-        'assets/logo/bodido_logo.png', // make sure the path matches pubspec.yaml
+        'assets/logo/bodi_logo.png', // make sure the path matches pubspec.yaml
         fit: BoxFit.contain,
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/services/auth_service.dart';
+import 'package:url_launcher/url_launcher.dart' show closeInAppWebView;
 
 enum LoginStep {
   emailInput,
@@ -136,11 +137,54 @@ class LoginViewModel extends StateNotifier<LoginState> {
   }
 
   Future<void> handleGoogleSignIn() async {
-    await _authService.signInWithGoogle();
+    if (_isDisposed || state.isLoading) return;
+
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _authService.oauthLogin(OAuthProvider.google);
+      await _client.auth.onAuthStateChange.firstWhere((e) => e.session != null);
+      state = state.copyWith(isLoading: false, error: null);
+    } on PlatformException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error:
+            'Unable to open Google sign‑in. Please check your network and try again.',
+      );
+      debugPrint('Google OAuth PlatformException: $e');
+    } catch (e) {
+      closeInAppWebView();
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+      debugPrint('Google OAuth unexpected error: $e');
+    }
   }
 
   Future<void> handleAppleSignIn() async {
-    await _authService.signInWithApple();
+    if (_isDisposed || state.isLoading) return;
+
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _authService.signInWithApple();
+      await _client.auth.onAuthStateChange.firstWhere((e) => e.session != null);
+      state = state.copyWith(isLoading: false, error: null);
+    } on PlatformException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error:
+            'Unable to open Apple sign‑in. Please check your network and try again.',
+      );
+      debugPrint('Apple OAuth PlatformException: $e');
+    } catch (e) {
+      closeInAppWebView();
+
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+      debugPrint('Apple OAuth unexpected error: $e');
+    }
   }
 
   void redirectToSignup(BuildContext context) {

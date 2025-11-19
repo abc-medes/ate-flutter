@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
@@ -10,6 +12,8 @@ import 'package:bodido/data/models/profiles/user_model.dart' as um;
 import 'package:bodido/data/repositories/user_repository.dart';
 import 'package:url_launcher/url_launcher.dart'
     show closeInAppWebView, LaunchMode;
+import 'package:crypto/crypto.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 enum AuthStatus {
   initial,
@@ -73,50 +77,40 @@ class AuthService {
     );
   }
 
-  Future<void> signInWithGoogle() async {
-    if (_client.auth.currentSession != null) {
-      await _client.auth.signOut();
-    }
-    final done = _client.auth.onAuthStateChange
-        .firstWhere((e) =>
-            e.event == AuthChangeEvent.signedIn ||
-            e.event == AuthChangeEvent.userUpdated)
-        .then((_) => closeInAppWebView());
-
+  Future<void> oauthLogin(OAuthProvider provider) async {
     const redirectTo = 'bodido.app://auth/signup';
-
-    final launchMode = LaunchMode.inAppWebView;
-
+    PlatformException? lastError;
     await _client.auth.signInWithOAuth(
-      OAuthProvider.google,
+      provider,
       redirectTo: redirectTo,
-      authScreenLaunchMode: launchMode,
+      authScreenLaunchMode: LaunchMode.inAppWebView,
     );
-
-    await done;
+    throw lastError ?? PlatformException(code: 'launch_failed');
   }
 
-  Future<void> signInWithApple() async {
-    if (_client.auth.currentSession != null) {
-      await _client.auth.signOut();
-    }
-    final done = _client.auth.onAuthStateChange
-        .firstWhere((e) =>
-            e.event == AuthChangeEvent.signedIn ||
-            e.event == AuthChangeEvent.userUpdated)
-        .then((_) => closeInAppWebView());
+  Future<AuthResponse> signInWithApple() async {
+    final rawNonce = _client.auth.generateRawNonce();
+    final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
 
-    const redirectTo = 'bodido.app://auth/signup';
-
-    final launchMode = LaunchMode.inAppWebView;
-
-    await _client.auth.signInWithOAuth(
-      OAuthProvider.apple,
-      redirectTo: redirectTo,
-      authScreenLaunchMode: launchMode,
+    final credential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+      nonce: hashedNonce,
     );
 
-    await done;
+    final idToken = credential.identityToken;
+    if (idToken == null) {
+      throw const AuthException(
+          'Could not find ID Token from generated credential.');
+    }
+
+    return _client.auth.signInWithIdToken(
+      provider: OAuthProvider.apple,
+      idToken: idToken,
+      nonce: rawNonce,
+    );
   }
 
   Future<void> signOut() async {

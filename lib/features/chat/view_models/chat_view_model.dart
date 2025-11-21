@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert' as convert;
 
 import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/services/api_service.dart';
 import 'package:bodido/core/services/chat_service.dart';
 import 'package:bodido/core/services/tracking_questions_service.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
@@ -134,11 +135,10 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
   }) async {
     final uid = Supabase.instance.client.auth.currentUser?.id;
     if (uid == null) return;
-
     final pendingKey =
         questionTag == null ? sessionId : '${sessionId}::$questionTag';
-    if (state.pendingQuestionTags.contains(pendingKey)) return;
 
+    if (state.pendingQuestionTags.contains(pendingKey)) return;
     final nextPending = <String>{...state.pendingQuestionTags, pendingKey};
     state = state.copyWith(pendingQuestionTags: nextPending);
 
@@ -152,16 +152,23 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
             questionTag: questionTag,
           );
 
-      final questionsKey = questionTag ?? sessionId;
+      final questionsKey =
+          questionTag == null ? sessionId : '${sessionId}::$questionTag';
+
+      final questionsList = qs.take(limit).toList();
+
+      final cleared = <String>{...state.pendingQuestionTags}
+        ..remove(pendingKey);
+
       state = state.copyWith(
         questionsByTag: {
           ...state.questionsByTag,
-          questionsKey: qs.take(limit).toList(),
+          questionsKey: questionsList,
         },
+        pendingQuestionTags: cleared,
       );
     } catch (e) {
       debugPrint('[ChatVM] fetchQuestionsBySessionOnce error: $e');
-    } finally {
       final cleared = <String>{...state.pendingQuestionTags}
         ..remove(pendingKey);
       state = state.copyWith(pendingQuestionTags: cleared);
@@ -307,6 +314,64 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
       messagesBySession: sessionId == null ? {} : {sessionId: sessionMsgs},
       isLoading: false,
       timeline: timeline,
+    );
+  }
+
+  Future<void> answerTrackingQuestion({
+    required String sessionId,
+    required TrackingQuestion question,
+    required QuestionOption option,
+  }) async {
+    final req = UserSelectionRequest(
+      questionId: question.id,
+      questionTag: question.questionTag,
+      optionId: option.id,
+      selectionKey: option.selectionKey,
+      sessionId: sessionId,
+      clientLocalTimestamp: DateTime.now(),
+    );
+
+    try {
+      await ApiService.selectTrackingOption(request: req, dryRun: false);
+      removeQuestionFromSession(
+        sessionId: sessionId,
+        questionId: question.id,
+        questionTag: question.questionTag,
+      );
+    } catch (e) {
+      debugPrint('[ChatVM] Failed to upsert tracking question: $e');
+      rethrow;
+    }
+  }
+
+  void removeQuestionFromSession({
+    required String sessionId,
+    required String questionId,
+    String? questionTag,
+  }) {
+    final key = (questionTag == null || questionTag.isEmpty)
+        ? sessionId
+        : '${sessionId}::$questionTag';
+
+    final existing = state.questionsByTag[key];
+    if (existing == null) return;
+
+    final updatedList = existing.where((q) => q.id != questionId).toList();
+    final updatedMap = {...state.questionsByTag};
+
+    if (updatedList.isEmpty) {
+      updatedMap.remove(key);
+    } else {
+      updatedMap[key] = updatedList;
+    }
+
+    final cleanedPending = state.pendingQuestionTags
+        .where((pendingKey) => pendingKey != key && pendingKey != sessionId)
+        .toSet();
+
+    state = state.copyWith(
+      questionsByTag: updatedMap,
+      pendingQuestionTags: cleanedPending,
     );
   }
 

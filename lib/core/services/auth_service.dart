@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
@@ -10,6 +9,7 @@ import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/data/models/profiles/user_model.dart' as um;
 import 'package:bodido/data/repositories/user_repository.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:url_launcher/url_launcher.dart'
     show closeInAppWebView, LaunchMode;
 import 'package:crypto/crypto.dart';
@@ -86,6 +86,33 @@ class AuthService {
       authScreenLaunchMode: LaunchMode.inAppWebView,
     );
     throw lastError ?? PlatformException(code: 'launch_failed');
+  }
+
+  Future<AuthResponse> signInWithGoogle() async {
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+      scopes: ['email', 'profile'],
+    );
+
+    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+    if (googleUser == null) {
+      throw const AuthException('Google sign-in was cancelled.');
+    }
+
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
+
+    final idToken = googleAuth.idToken;
+    if (idToken == null) {
+      throw const AuthException(
+          'Could not find ID Token from Google authentication.');
+    }
+
+    return _client.auth.signInWithIdToken(
+      provider: OAuthProvider.google,
+      idToken: idToken,
+      accessToken: googleAuth.idToken,
+    );
   }
 
   Future<AuthResponse> signInWithApple() async {

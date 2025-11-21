@@ -95,9 +95,11 @@ class QuestionsSheet extends ConsumerWidget {
                     : () async {
                         await vm.commitSelectedTrackingOptions();
                       },
-                onAskAiPressed: () {
+                onAskAiPressed: () async {
                   final selected = state.selectedOptions;
                   if (selected.isEmpty) return;
+
+                  await vm.commitSelectedTrackingOptions();
 
                   final qs = state.userQuestions;
                   final lines = <String>[];
@@ -207,7 +209,9 @@ class _QuestionsBottomBar extends StatelessWidget {
                       )
                     : const Icon(Icons.check),
                 label: Text(
-                  state.isSavingSelections ? $strings.qs_update_updating : $strings.qs_update_status,
+                  state.isSavingSelections
+                      ? $strings.qs_update_updating
+                      : $strings.qs_update_status,
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: $styles.colors.accent1,

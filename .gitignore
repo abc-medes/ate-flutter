@@ -77,3 +77,6 @@ intl_translation/
 .env.*
 !.env.example
 .env_prod
+
+android/key.properties
+*.jks

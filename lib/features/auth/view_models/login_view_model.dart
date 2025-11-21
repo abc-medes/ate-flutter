@@ -141,7 +141,7 @@ class LoginViewModel extends StateNotifier<LoginState> {
 
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      await _authService.oauthLogin(OAuthProvider.google);
+      await _authService.signInWithGoogle();
       await _client.auth.onAuthStateChange.firstWhere((e) => e.session != null);
       state = state.copyWith(isLoading: false, error: null);
     } on PlatformException catch (e) {

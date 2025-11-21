@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
-import 'package:bodido/core/services/api_service.dart';
 import 'package:bodido/core/services/user_service.dart';
 import 'package:bodido/core/widgets/chat_input.dart';
 import 'package:bodido/core/widgets/circular_icon_button.dart';
@@ -202,14 +201,71 @@ class _ChatViewState extends ConsumerState<ChatView> {
                 return SingleChildScrollView(
                   controller: _scrollController,
                   child: Column(
-                    children: List.generate(
-                      viewModel.currentSessionMessages.length,
-                      (messageIndex) {
-                        final message =
-                            viewModel.currentSessionMessages[messageIndex];
-                        return _buildMessageItem(message, messageIndex);
-                      },
-                    ),
+                    children: [
+                      // Session indicator at top of scroll view
+                      if (widget.sessionIds != null &&
+                          widget.sessionIds!.length > 1)
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: $styles.insets.md,
+                            vertical: $styles.insets.sm,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                $strings.chat_session_indicator(
+                                    _currentPageIndex + 1,
+                                    widget.sessionIds!.length),
+                                style: $styles.text.caption.copyWith(
+                                  color: $styles.colors.caption,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ...List.generate(
+                        viewModel.currentSessionMessages.length,
+                        (messageIndex) {
+                          final message =
+                              viewModel.currentSessionMessages[messageIndex];
+                          return _buildMessageItem(message, messageIndex);
+                        },
+                      ),
+                      // Guide text for horizontal scrolling
+                      if (widget.sessionIds!.length > 1)
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: $styles.insets.md,
+                            vertical: $styles.insets.sm,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.swipe_left,
+                                size: 16,
+                                color: $styles.colors.caption,
+                              ),
+                              SizedBox(width: $styles.insets.xs),
+                              Text(
+                                $strings.chat_swipe_hint,
+                                style: $styles.text.caption.copyWith(
+                                  color: $styles.colors.caption,
+                                ),
+                              ),
+                              SizedBox(width: $styles.insets.xs),
+                              Icon(
+                                Icons.swipe_right,
+                                size: 16,
+                                color: $styles.colors.caption,
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
                 );
               } else {
@@ -233,38 +289,6 @@ class _ChatViewState extends ConsumerState<ChatView> {
             },
           ),
         ),
-        // Guide text for horizontal scrolling
-        if (widget.sessionIds!.length > 1)
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(
-              horizontal: $styles.insets.md,
-              vertical: $styles.insets.sm,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.swipe_left,
-                  size: 16,
-                  color: $styles.colors.caption,
-                ),
-                SizedBox(width: $styles.insets.xs),
-                Text(
-                  $strings.chat_swipe_hint,
-                  style: $styles.text.caption.copyWith(
-                    color: $styles.colors.caption,
-                  ),
-                ),
-                SizedBox(width: $styles.insets.xs),
-                Icon(
-                  Icons.swipe_right,
-                  size: 16,
-                  color: $styles.colors.caption,
-                ),
-              ],
-            ),
-          ),
       ],
     );
   }
@@ -280,139 +304,178 @@ class _ChatViewState extends ConsumerState<ChatView> {
       ),
       child: Row(
         children: [
-          Container(
-            width: MediaQuery.of(context).size.width * 0.85,
-            padding: EdgeInsets.symmetric(
-              horizontal: $styles.insets.lg,
-              vertical: $styles.insets.md,
-            ),
-            decoration: BoxDecoration(
-              color: message.isUser
-                  ? $styles.colors.accent1
-                  : $styles.colors.accent2,
-              borderRadius: BorderRadius.circular($styles.corners.lg),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (!message.isUser &&
-                    (message.message == null || message.message!.isEmpty)) ...[
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      ),
-                      SizedBox(width: $styles.insets.xs),
-                      Text(
-                        $strings.chat_generating,
-                        style: $styles.text.caption.copyWith(
-                          color: Colors.white.withOpacity(0.85),
-                        ),
-                      ),
-                    ],
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: $styles.insets.lg,
+                vertical: $styles.insets.md,
+              ),
+              decoration: BoxDecoration(
+                color: message.isUser
+                    ? $styles.colors.accent1
+                    : $styles.colors.accent2,
+                borderRadius: BorderRadius.circular($styles.corners.lg),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
                   ),
-                ] else ...[
-                  Text(
-                    content,
-                    style: $styles.text.h3.copyWith(
-                      color: Colors.white,
-                      height: 1.4,
-                    ),
-                    textAlign: TextAlign.left,
-                  ),
-                  Builder(
-                    builder: (_) {
-                      if (message.isUser) return const SizedBox.shrink();
-
-                      final vm = ref.watch(chatViewModelProvider);
-                      final isLastMessage =
-                          index == (vm.currentSessionMessages.length - 1);
-                      if (!isLastMessage) return const SizedBox.shrink();
-
-                      final sid = message.sessionId;
-                      if (sid == null) return const SizedBox.shrink();
-
-                      final qs = vm.questionsByTag[sid] ?? const [];
-                      final isPending = vm.pendingQuestionTags.contains(sid);
-
-                      if (isPending) {
-                        return Padding(
-                          padding: EdgeInsets.only(top: $styles.insets.xs),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox(
-                                width: 16,
-                                height: 16,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                              SizedBox(width: $styles.insets.xs),
-                              Text(
-                                $strings.chat_getting_checkins,
-                                style: $styles.text.caption.copyWith(
-                                  color: Colors.white.withOpacity(0.85),
-                                ),
-                              ),
-                            ],
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!message.isUser &&
+                      (message.message == null ||
+                          message.message!.isEmpty)) ...[
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
-                        );
-                      }
-
-                      if (qs.isEmpty) return const SizedBox.shrink();
-
-                      return Padding(
-                          padding: EdgeInsets.only(top: $styles.insets.sm),
-                          child: TrackingQuestionsSection(
-                            isLoading: false,
-                            questions: qs,
-                            selectedOptions: const {},
-                            isChat: true,
-                            onOptionSelected: (q, opt) async {
-                              final uid = ref.read(userServiceProvider).userId;
-                              await ref
-                                  .read(chatViewModelProvider.notifier)
-                                  .sendMessage(
-                                    ChatMessageDTO(
-                                      userId: uid,
-                                      sessionId: sid,
-                                      message: '${q.question} - ${opt.label}',
-                                      isUser: true,
-                                      createdAt: DateTime.now(),
-                                      clientLocalTimestamp: DateTime.now(),
-                                    ),
-                                    watchTagOnDone: sid,
-                                  );
-                            },
-                          ));
-                    },
-                  ),
-                ],
-                if (message.clientLocalTimestamp != null) ...[
-                  SizedBox(height: $styles.insets.sm),
-                  Text(
-                    _formatTimestamp(message.clientLocalTimestamp!),
-                    style: $styles.text.caption.copyWith(
-                      color: Colors.white.withOpacity(0.7),
+                        ),
+                        SizedBox(width: $styles.insets.xs),
+                        Text(
+                          $strings.chat_generating,
+                          style: $styles.text.caption.copyWith(
+                            color: Colors.white.withOpacity(0.85),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                  ] else ...[
+                    Text(
+                      content,
+                      style: $styles.text.body.copyWith(
+                        color: Colors.white,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.left,
+                      softWrap: true,
+                      overflow: TextOverflow.visible,
+                    ),
+                    Builder(
+                      builder: (_) {
+                        if (message.isUser) return const SizedBox.shrink();
+
+                        final vm = ref.watch(chatViewModelProvider);
+                        final isLastMessage =
+                            index == (vm.currentSessionMessages.length - 1);
+                        if (!isLastMessage) return const SizedBox.shrink();
+
+                        final sid = message.sessionId;
+
+                        List<TrackingQuestion> qs = const [];
+                        bool isPending = false;
+
+                        for (final pendingKey in vm.pendingQuestionTags) {
+                          if (pendingKey == sid ||
+                              pendingKey.startsWith('$sid::')) {
+                            isPending = true;
+                            break;
+                          }
+                        }
+
+                        qs = vm.questionsByTag[sid] ?? const [];
+                        if (qs.isEmpty) {
+                          for (final key in vm.questionsByTag.keys) {
+                            if (key == sid || key.startsWith('$sid::')) {
+                              final foundQs = vm.questionsByTag[key];
+                              if (foundQs != null && foundQs.isNotEmpty) {
+                                qs = foundQs;
+                                break;
+                              }
+                            }
+                          }
+                        }
+
+                        if (qs.isNotEmpty) {
+                          return Padding(
+                              padding: EdgeInsets.only(top: $styles.insets.sm),
+                              child: TrackingQuestionsSection(
+                                isLoading: false,
+                                questions: qs,
+                                selectedOptions: const {},
+                                isChat: true,
+                                onOptionSelected: (q, opt) async {
+                                  final uid =
+                                      ref.read(userServiceProvider).userId;
+                                  await ref
+                                      .read(chatViewModelProvider.notifier)
+                                      .answerTrackingQuestion(
+                                        sessionId: sid,
+                                        question: q,
+                                        option: opt,
+                                      );
+                                  await ref
+                                      .read(chatViewModelProvider.notifier)
+                                      .sendMessage(
+                                        ChatMessageDTO(
+                                          userId: uid,
+                                          sessionId: sid,
+                                          message:
+                                              '${q.question} - ${opt.label}',
+                                          isUser: true,
+                                          createdAt: DateTime.now(),
+                                          clientLocalTimestamp: DateTime.now(),
+                                        ),
+                                        watchTagOnDone: sid,
+                                      );
+                                },
+                              ));
+                        }
+
+                        if (isPending) {
+                          return Padding(
+                            padding: EdgeInsets.only(top: $styles.insets.xs),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                ),
+                                SizedBox(width: $styles.insets.xs),
+                                Text(
+                                  $strings.chat_getting_checkins,
+                                  style: $styles.text.caption.copyWith(
+                                    color: Colors.white.withOpacity(0.85),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        // No questions and not pending
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ],
+                  if (message.clientLocalTimestamp != null) ...[
+                    SizedBox(height: $styles.insets.sm),
+                    Text(
+                      _formatTimestamp(message.clientLocalTimestamp!),
+                      style: $styles.text.caption.copyWith(
+                        color: Colors.white.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ],
@@ -440,7 +503,6 @@ class _ChatViewState extends ConsumerState<ChatView> {
     final mq = MediaQuery.of(context);
     final viewModel = ref.watch(chatViewModelProvider);
 
-    // Get the session date from the first message, or use current date as fallback
     DateTime sessionDate = DateTime.now();
     if (viewModel.currentSessionMessages.isNotEmpty) {
       final firstMessage = viewModel.currentSessionMessages.first;
@@ -452,52 +514,35 @@ class _ChatViewState extends ConsumerState<ChatView> {
     }
 
     return Container(
-      padding: EdgeInsets.fromLTRB($styles.insets.md, mq.padding.top,
-          $styles.insets.md, $styles.insets.md),
-      child: Column(
+      padding: EdgeInsets.fromLTRB(
+          $styles.insets.md, mq.padding.top, $styles.insets.md, 0),
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          CircularIconButton(
+            icon: Icons.arrow_back,
+            size: 48,
+            iconColor: $styles.colors.black,
+            backgroundColor: Colors.transparent,
+            onTap: () => context.go(RouteNames.chatHistory),
+          ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CircularIconButton(
-                icon: Icons.arrow_back,
-                size: 48,
-                iconColor: $styles.colors.black,
-                backgroundColor: Colors.transparent,
-                onTap: () => context.go(RouteNames.chatHistory),
-              ),
-              Row(
-                children: [
-                  Icon(Icons.calendar_month),
-                  SizedBox(width: $styles.insets.sm),
-                  Text(DateFormat.yMMMMd().format(sessionDate),
-                      style: $styles.text.bodySmall),
-                ],
-              ),
-              CircularIconButton(
-                  size: 48,
-                  icon: Icons.settings,
-                  iconColor: $styles.colors.black,
-                  backgroundColor: Colors.transparent,
-                  onTap: () => context.go(RouteNames.settings)),
+              Icon(Icons.calendar_month),
+              SizedBox(width: $styles.insets.sm),
+              Text(DateFormat.yMMMMd().format(sessionDate),
+                  style: $styles.text.bodySmall),
             ],
           ),
-          // Page indicator for multiple sessions
-          if (widget.sessionIds != null && widget.sessionIds!.length > 1) ...[
-            SizedBox(height: $styles.insets.sm),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  $strings.chat_session_indicator(
-                      _currentPageIndex + 1, widget.sessionIds!.length),
-                  style: $styles.text.caption.copyWith(
-                    color: $styles.colors.caption,
-                  ),
-                ),
-              ],
-            ),
-          ],
+          CircularIconButton(
+              size: 48,
+              icon: Icons.settings,
+              iconColor: $styles.colors.black,
+              backgroundColor: Colors.transparent,
+              onTap: () => context.go(RouteNames.settings)),
         ],
       ),
     );

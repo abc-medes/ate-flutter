@@ -106,8 +106,10 @@ class _ChatInputState extends ConsumerState<ChatInput> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: $styles.insets.sm, vertical: $styles.insets.sm),
+                padding: EdgeInsets.only(
+                    top: $styles.insets.sm,
+                    left: $styles.insets.sm,
+                    right: $styles.insets.sm),
                 child: Row(
                   children: [
                     // 시간 선택 Picker

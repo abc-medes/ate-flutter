@@ -80,3 +80,6 @@ intl_translation/
 
 android/key.properties
 *.jks
+
+# Fastlane
+ios/fastlane/AuthKey_*.p8

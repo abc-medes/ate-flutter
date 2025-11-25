@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:bodido/common_libs.dart';
+import 'package:bodido/core/config/env.dart';
 import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/services/app_lifecycle.dart';
 import 'package:bodido/core/services/user_service.dart';
@@ -91,6 +92,8 @@ class AuthService {
   Future<AuthResponse> signInWithGoogle() async {
     final GoogleSignIn googleSignIn = GoogleSignIn(
       scopes: ['email', 'profile'],
+      clientId: Env.supabaseGoogleIosClientId,
+      serverClientId: Env.supabaseGoogleClientId,
     );
 
     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
@@ -111,7 +114,7 @@ class AuthService {
     return _client.auth.signInWithIdToken(
       provider: OAuthProvider.google,
       idToken: idToken,
-      accessToken: googleAuth.idToken,
+      accessToken: googleAuth.accessToken,
     );
   }
 

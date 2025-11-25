@@ -28,6 +28,7 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
     BasicUserData.bodyType,
   ];
   bool _wrapUpTriggered = false;
+  bool _isShowingError = false;
 
   @override
   void initState() {
@@ -89,23 +90,29 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
         ref.watch(healthOnboardingProvider.select((s) => s.currentPage));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (state.error != null && mounted) {
-        CustomMessageSheet.showError(
-          context: context,
-          message: state.error!,
-          actions: [
-            MessageAction(
-              label: 'Retry',
-              onPressed: () {
-                viewModel.clearError();
-                viewModel.finalizeOnboarding();
-              },
-              isPrimary: true,
-            ),
-          ],
-          onDismiss: () => viewModel.clearError(),
-        );
+      final error = state.error;
+      if (!mounted || error == null || _isShowingError) {
+        return;
       }
+
+      _isShowingError = true;
+      final message = error;
+      viewModel.clearError();
+
+      CustomMessageSheet.showError(
+        context: context,
+        message: message,
+        actions: [
+          MessageAction(
+            label: 'Retry',
+            onPressed: () => viewModel.finalizeOnboarding(),
+            isPrimary: true,
+          ),
+        ],
+        onDismiss: () {
+          _isShowingError = false;
+        },
+      );
     });
 
     return Scaffold(

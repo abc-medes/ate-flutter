@@ -5,12 +5,12 @@ class Env {
   static String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
   static String get apiBaseUrl => dotenv.env['API_BASE_URL'] ?? '';
   static String get wsBaseUrl => dotenv.env['WS_BASE_URL'] ?? '';
+  static String get supabaseGoogleClientId =>
+      dotenv.env['SUPABASE_GOOGLE_CLIENT_ID'] ?? '';
+  static String get supabaseGoogleIosClientId =>
+      dotenv.env['SUPABASE_GOOGLE_IOS_CLIENT_ID'] ?? '';
 
   static Future<void> load() async {
-    const isProd = bool.fromEnvironment('PROD', defaultValue: false);
-
-    final envFile = isProd ? '.env_prod' : '.env';
-
-    await dotenv.load(fileName: envFile);
+    await dotenv.load(fileName: '.env');
   }
 }

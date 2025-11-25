@@ -298,5 +298,9 @@
         "settings_deleting_account": "계정을 삭제하는 중...",
         "settings_delete_account_error": "계정 삭제 오류: {error}",
         "@settings_delete_account_error": { "placeholders": { "error": { "type": "String" } } },
-        "action_delete": "삭제"
+        "action_delete": "삭제",
+        "error_check_network": "서버에 연결할 수 없습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요.",
+        "@error_check_network": {
+                "description": "백엔드 헬스 체크 실패 시 보여주는 메시지"
+        }
 }

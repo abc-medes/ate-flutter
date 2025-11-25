@@ -299,5 +299,9 @@
         "settings_deleting_account": "Deleting account...",
         "settings_delete_account_error": "Error deleting account: {error}",
         "@settings_delete_account_error": { "placeholders": { "error": { "type": "String" } } },
-        "action_delete": "DELETE"
+        "action_delete": "DELETE",
+        "error_check_network": "Can't reach the server right now. Please check your network connection and try again.",
+        "@error_check_network": {
+                "description": "Shown when the backend health check cannot be reached"
+        }
 }

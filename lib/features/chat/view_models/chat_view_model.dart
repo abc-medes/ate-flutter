@@ -270,9 +270,11 @@ class ChatViewModel extends StateNotifier<ChatViewState> {
         }
       },
       onDone: () async {
+        if (!mounted) return;
         state = state.copyWith(isLoading: false);
       },
       onError: (String error) {
+        if (!mounted) return;
         state = state.copyWith(
           error: error,
           isLoading: false,

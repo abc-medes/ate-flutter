@@ -19,7 +19,6 @@ class HealthOnboardingState {
   final List<String> progressMessages;
   final bool isFinalizing;
   final String? error;
-  final bool clearError;
 
   HealthOnboardingState({
     this.selectedHeight = 170,
@@ -32,7 +31,6 @@ class HealthOnboardingState {
     this.progressMessages = const [],
     this.isFinalizing = false,
     this.error,
-    this.clearError = false,
   }) : selectedBirthDate = selectedBirthDate ??
             DateTime.now().subtract(const Duration(days: 365 * 30));
 
@@ -47,7 +45,7 @@ class HealthOnboardingState {
     List<String>? progressMessages,
     bool? isFinalizing,
     String? error,
-    bool? clearError,
+    bool clearError = false,
   }) {
     return HealthOnboardingState(
       selectedHeight: selectedHeight ?? this.selectedHeight,
@@ -59,8 +57,7 @@ class HealthOnboardingState {
       currentPage: currentPage ?? this.currentPage,
       progressMessages: progressMessages ?? this.progressMessages,
       isFinalizing: isFinalizing ?? this.isFinalizing,
-      error: error ?? this.error,
-      clearError: clearError ?? this.clearError,
+      error: clearError ? null : (error ?? this.error),
     );
   }
 }
@@ -130,7 +127,6 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
 
     try {
       await _healthRepository.saveGender(state.selectedGender);
-      // await _userService.refreshBasicHealthData();
 
       state = state.copyWith(isSaving: false);
       return true;
@@ -177,6 +173,14 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
   Future<bool> finalizeOnboarding() async {
     state = state.copyWith(isFinalizing: true, clearError: true);
     try {
+      final isServerHealthy = await ApiService.checkServerHealth();
+      if (!isServerHealthy) {
+        state = state.copyWith(
+          isFinalizing: false,
+          error: $strings.error_check_network,
+        );
+        return false;
+      }
       final healthMetrics = await _healthRepository.getExistingHealthMetrics();
       _log($strings.onboarding_log_saving_metrics);
       await OnboardingService().saveHealthMetricsToDatabase(healthMetrics);

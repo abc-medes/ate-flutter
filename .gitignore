@@ -83,3 +83,8 @@ android/key.properties
 
 # Fastlane
 ios/fastlane/AuthKey_*.p8
+
+# iOS build artifacts
+ios/*.ipa
+ios/*.dSYM.zip
+ios/*.app.dSYM.zip

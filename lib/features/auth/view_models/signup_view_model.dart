@@ -311,8 +311,8 @@ class SignupViewModel extends StateNotifier<SignupState> {
 
       await _client.auth.onAuthStateChange.firstWhere((e) => e.session != null);
 
-      if (_isDisposed || !context.mounted) return;
       await wrapUpSignUp(context);
+      if (_isDisposed) return;
     } on AuthException catch (e) {
       if (_isDisposed) return;
       state = state.copyWith(isLoading: false, error: e.message);
@@ -328,13 +328,10 @@ class SignupViewModel extends StateNotifier<SignupState> {
     state = state.copyWith(isLoading: true);
 
     try {
-      await _authService.createProfile(
-        userId: _authService.currentUser!.id,
+      await _authService.ensureProfileAndEmptyHealthMetrics(
         email: state.emailController.text,
         name: state.nameController.text,
       );
-      await _authService
-          .createEmptyUserHealthMetrics(_authService.currentUser!.id);
 
       if (_isDisposed) return;
       state = state.copyWith(isLoading: false);

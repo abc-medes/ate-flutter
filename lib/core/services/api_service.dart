@@ -526,6 +526,22 @@ class ApiService {
     }
     return false;
   }
+
+  static Future<void> deleteAccount() async {
+    final session = _supabase.auth.currentSession;
+    if (session == null) {
+      throw Exception('Not authenticated: No active session.');
+    }
+    var accessToken = session.accessToken;
+    final headers = await _authHeaders(accessToken);
+    final response =
+        await http.delete(Uri.parse('$_baseUrl/account'), headers: headers);
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Failed to delete account: ${response.statusCode} - ${response.body}');
+    }
+    debugPrint('Account deleted successfully');
+  }
 }
 
 final apiServiceProvider = Provider<ApiService>((ref) => ApiService());

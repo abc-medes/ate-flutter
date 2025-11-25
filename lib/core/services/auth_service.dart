@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/config/env.dart';
 import 'package:bodido/core/routes/route_names.dart';
+import 'package:bodido/core/services/api_service.dart';
 import 'package:bodido/core/services/app_lifecycle.dart';
 import 'package:bodido/core/services/user_service.dart';
 import 'package:bodido/data/models/body_simulator_model.dart';
@@ -201,6 +202,40 @@ class AuthService {
     }
   }
 
+  Future<void> ensureProfileAndEmptyHealthMetrics({
+    String? email,
+    String? name,
+  }) async {
+    final uid = currentUser?.id;
+    if (uid == null) {
+      throw AuthException('Not signed in');
+    }
+
+    // 1) Ensure profile exists
+    final existingProfile =
+        await _client.from('profiles').select('id').eq('id', uid).maybeSingle();
+
+    if (existingProfile == null) {
+      await createProfile(
+        userId: uid,
+        email: email ?? currentUser!.email!,
+        name: name ?? (currentUser!.userMetadata?['name'] as String? ?? ''),
+      );
+    }
+
+    // 2) Ensure health_metrics row exists
+    final existingHealth = await _client
+        .from('health_metrics')
+        .select('id')
+        .eq('user_id', uid)
+        .limit(1)
+        .maybeSingle();
+
+    if (existingHealth == null) {
+      await createEmptyUserHealthMetrics(uid);
+    }
+  }
+
   Future<void> createEmptyUserHealthMetrics(String userId) async {
     final emptyHealthMetrics = HealthMetrics(
       userInputData: UserInputData(),
@@ -222,33 +257,20 @@ class AuthService {
         );
   }
 
-  Future<void> devWipeUserData(String uid) async {
-    final c = _client;
-    try {
-      await c.from('chat_history').delete().eq('user_id', uid);
-    } catch (_) {}
-    try {
-      await c.from('user_body_state_snapshots').delete().eq('user_id', uid);
-    } catch (_) {}
-    try {
-      await c.from('personal_insights').delete().eq('user_id', uid);
-    } catch (_) {}
-    try {
-      await c.from('health_metrics').delete().eq('user_id', uid);
-    } catch (_) {}
-    try {
-      await c.from('profiles').delete().eq('id', uid);
-    } catch (_) {}
-  }
-
   Future<void> deleteAccount() async {
     final uid = currentUser?.id;
     if (uid == null) {
-      await signOut();
-      return;
+      throw AuthException('Not signed in');
     }
-    await devWipeUserData(uid);
-    await signOut();
+
+    try {
+      await ApiService.deleteAccount();
+
+      await signOut();
+    } catch (e) {
+      debugPrint('Error deleting account: $e');
+      rethrow;
+    }
   }
 }
 

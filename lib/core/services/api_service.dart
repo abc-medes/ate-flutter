@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/config/env.dart';
@@ -12,12 +13,28 @@ import 'package:web_socket_channel/status.dart' as ws_status;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ApiService {
-  // DEV
-  // static const String _baseUrl = 'http://localhost:8080/api';
-  // static const String _wsUrl = 'ws://localhost:8080';
-  // PROD
-  static String get _baseUrl => Env.apiBaseUrl;
-  static String get _wsUrl => Env.wsBaseUrl;
+  static const bool _isProdBuild =
+      bool.fromEnvironment('PROD', defaultValue: false);
+
+  static String get _baseUrl {
+    if (_isProdBuild) {
+      return Env.apiBaseUrl;
+    }
+    if (Platform.isAndroid) {
+      return 'http://10.0.2.2:8080/api';
+    }
+    return 'http://localhost:8080/api';
+  }
+
+  static String get _wsUrl {
+    if (_isProdBuild) {
+      return Env.wsBaseUrl;
+    }
+    if (Platform.isAndroid) {
+      return 'ws://10.0.2.2:8080';
+    }
+    return 'ws://localhost:8080';
+  }
 
   static final SupabaseClient _supabase = Supabase.instance.client;
 
@@ -508,6 +525,22 @@ class ApiService {
       }
     }
     return false;
+  }
+
+  static Future<void> deleteAccount() async {
+    final session = _supabase.auth.currentSession;
+    if (session == null) {
+      throw Exception('Not authenticated: No active session.');
+    }
+    var accessToken = session.accessToken;
+    final headers = await _authHeaders(accessToken);
+    final response =
+        await http.delete(Uri.parse('$_baseUrl/account'), headers: headers);
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Failed to delete account: ${response.statusCode} - ${response.body}');
+    }
+    debugPrint('Account deleted successfully');
   }
 }
 

@@ -45,6 +45,7 @@
 				<key>CFBundleURLSchemes</key>
 				<array>
 					<string>bodido.app</string>
+					<string>com.googleusercontent.apps.653675888741-t5mqks51s6e5lg15l7ec7nh0ejvelgjv</string>
 				</array>
 			</dict>
 		</array>

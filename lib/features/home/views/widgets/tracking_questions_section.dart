@@ -50,7 +50,10 @@ class TrackingQuestionsSection extends StatelessWidget {
             ),
           )
         else if (questions.isEmpty)
-          Text($strings.tq_empty, style: $styles.text.bodySmall)
+          Padding(
+            padding: EdgeInsets.all($styles.insets.md),
+            child: Text($strings.tq_empty, style: $styles.text.bodySmall),
+          )
         else ...[
           for (int i = 0; i < questions.length; i++) ...[
             TrackingQuestionCard(

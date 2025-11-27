@@ -7,6 +7,7 @@ import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/insight_model.dart';
 import 'package:bodido/features/home/views/widgets/_animated_metric_value.dart';
 import 'package:bodido/features/home/views/widgets/insight_card.dart';
+import 'package:bodido/features/home/views/widgets/medical_disclaimer_banner.dart';
 
 class BodySimulatorSnapshotDetails extends ConsumerStatefulWidget {
   final String userId;
@@ -107,13 +108,12 @@ class _BodySimulatorSnapshotDetailsState
       child: DraggableScrollableSheet(
         expand: false,
         initialChildSize: 0.8,
-        minChildSize: 0.2,
+        minChildSize: 0.5,
         maxChildSize: 0.95,
         builder: (_, controller) => DefaultTabController(
           length: 3,
           child: Column(
             children: [
-              SizedBox(height: $styles.insets.sm),
               Center(
                 child: Container(
                   height: 4,
@@ -190,7 +190,13 @@ class _BodySimulatorSnapshotDetailsState
                     ],
                   ),
                 ),
-                SizedBox(height: $styles.insets.sm),
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: $styles.insets.md,
+                    vertical: $styles.insets.sm,
+                  ),
+                  child: const MedicalDisclaimerBanner(),
+                ),
                 Expanded(
                   child: TabBarView(
                     children: [

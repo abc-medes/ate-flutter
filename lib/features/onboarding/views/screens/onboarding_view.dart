@@ -28,6 +28,7 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
     BasicUserData.bodyType,
   ];
   bool _wrapUpTriggered = false;
+  bool _isShowingError = false;
 
   @override
   void initState() {
@@ -89,23 +90,29 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
         ref.watch(healthOnboardingProvider.select((s) => s.currentPage));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (state.error != null && mounted) {
-        CustomMessageSheet.showError(
-          context: context,
-          message: state.error!,
-          actions: [
-            MessageAction(
-              label: 'Retry',
-              onPressed: () {
-                viewModel.clearError();
-                viewModel.finalizeOnboarding();
-              },
-              isPrimary: true,
-            ),
-          ],
-          onDismiss: () => viewModel.clearError(),
-        );
+      final error = state.error;
+      if (!mounted || error == null || _isShowingError) {
+        return;
       }
+
+      _isShowingError = true;
+      final message = error;
+      viewModel.clearError();
+
+      CustomMessageSheet.showError(
+        context: context,
+        message: message,
+        actions: [
+          MessageAction(
+            label: 'Retry',
+            onPressed: () => viewModel.finalizeOnboarding(),
+            isPrimary: true,
+          ),
+        ],
+        onDismiss: () {
+          _isShowingError = false;
+        },
+      );
     });
 
     return Scaffold(
@@ -328,40 +335,6 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
                   if (state.isFinalizing || state.isSaving)
                     Column(
                       children: [
-                        // Pulsing dots animation
-                        if (state.isFinalizing)
-                          Padding(
-                            padding: EdgeInsets.only(bottom: $styles.insets.sm),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(3, (index) {
-                                return TweenAnimationBuilder<double>(
-                                  tween: Tween(begin: 0.3, end: 1.0),
-                                  duration: const Duration(milliseconds: 600),
-                                  curve: Curves.easeInOut,
-                                  onEnd: () {
-                                    if (mounted) {
-                                      setState(() {});
-                                    }
-                                  },
-                                  builder: (context, value, child) {
-                                    return Container(
-                                      margin:
-                                          EdgeInsets.symmetric(horizontal: 4),
-                                      width: 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        color: $styles.colors.accent1
-                                            .withOpacity(value),
-                                        shape: BoxShape.circle,
-                                      ),
-                                    );
-                                  },
-                                );
-                              }),
-                            ),
-                          ),
-                        // Progress bar
                         SizedBox(
                           height: 8,
                           width: double.infinity,

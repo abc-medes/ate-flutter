@@ -80,3 +80,11 @@ intl_translation/
 
 android/key.properties
 *.jks
+
+# Fastlane
+ios/fastlane/AuthKey_*.p8
+
+# iOS build artifacts
+ios/*.ipa
+ios/*.dSYM.zip
+ios/*.app.dSYM.zip

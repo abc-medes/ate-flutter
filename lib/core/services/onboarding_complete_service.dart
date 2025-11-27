@@ -16,16 +16,5 @@ final onboardingCompleteProvider = FutureProvider<bool>((ref) async {
     return savedOnboardingComplete;
   }
 
-  try {
-    final profileResponse = await client
-        .from('profiles')
-        .select('id')
-        .eq('id', currentUser.id)
-        .maybeSingle();
-
-    return profileResponse != null;
-  } catch (e) {
-    debugPrint('Error checking onboarding status: $e');
-    return false;
-  }
+  return false;
 });

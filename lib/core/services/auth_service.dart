@@ -146,8 +146,8 @@ class AuthService {
 
   Future<void> signOut() async {
     await _client.auth.signOut();
-    await userRepository.clearLocalHealthData();
     await userRepository.clearLocalOnboardingData();
+    await userRepository.clearLocalHealthData();
   }
 
   Future<void> changePassword({

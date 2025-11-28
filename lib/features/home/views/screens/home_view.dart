@@ -57,6 +57,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
     final viewModel = ref.watch(homeViewModelProvider.notifier);
     final state = ref.watch(homeViewModelProvider);
 
+    final mq = MediaQuery.of(context);
+    final double buttonHeight = mq.size.height / 5;
+
     ref.listen<bool>(
       homeViewModelProvider
           .select((s) => s.isLoadingUserQuestions || s.isLoadingInsights),
@@ -73,28 +76,38 @@ class _HomeViewState extends ConsumerState<HomeView> {
       backgroundColor: $styles.colors.background,
       body: Column(
         children: [
+          // Header stays fixed at the top
           _buildHeader(context, state, ref),
+
+          // Middle content (big buttons) becomes scrollable
           Expanded(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(
-                  $styles.insets.md, 0, $styles.insets.md, $styles.insets.md),
+                $styles.insets.md,
+                0,
+                $styles.insets.md,
+                $styles.insets.md,
+              ),
               child: Column(
                 children: [
-                  Expanded(
+                  SizedBox(
+                    height: buttonHeight,
                     child: _HomeBigButton(
                       icon: Icons.insights_outlined,
                       title: $strings.home_score,
                       subtitle: $strings.home_overall_score(
-                          (state.bodySimulatorState?.healthScore.overallScore ??
-                                  0)
-                              .toStringAsFixed(1)),
+                        (state.bodySimulatorState?.healthScore.overallScore ??
+                                0)
+                            .toStringAsFixed(1),
+                      ),
                       gradientStart: $styles.colors.accent2,
                       gradientEnd: $styles.colors.accent1,
                       onTap: () => _openScoreSheet(context, ref),
                     ),
                   ),
                   SizedBox(height: $styles.insets.md),
-                  Expanded(
+                  SizedBox(
+                    height: buttonHeight,
                     child: _HomeBigButton(
                       icon: Icons.rule_folder_outlined,
                       title: $strings.home_questions,
@@ -108,7 +121,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     ),
                   ),
                   SizedBox(height: $styles.insets.md),
-                  Expanded(
+                  SizedBox(
+                    height: buttonHeight,
                     child: _HomeBigButton(
                       icon: Icons.chat_bubble_outline,
                       title: $strings.home_chat_history,
@@ -122,6 +136,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
               ),
             ),
           ),
+
+          // Chat input stays pinned at the bottom
           ChatInput(
             shouldSaveAsContext: state.isSaveMode,
             onSaveModeToggle: () => viewModel.onSaveModeToggle(),

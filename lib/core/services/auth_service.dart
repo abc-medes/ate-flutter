@@ -79,17 +79,6 @@ class AuthService {
     );
   }
 
-  Future<void> oauthLogin(OAuthProvider provider) async {
-    const redirectTo = 'bodido.app://auth/signup';
-    PlatformException? lastError;
-    await _client.auth.signInWithOAuth(
-      provider,
-      redirectTo: redirectTo,
-      authScreenLaunchMode: LaunchMode.inAppWebView,
-    );
-    throw lastError ?? PlatformException(code: 'launch_failed');
-  }
-
   Future<AuthResponse> signInWithGoogle() async {
     final GoogleSignIn googleSignIn = GoogleSignIn(
       scopes: ['email', 'profile'],

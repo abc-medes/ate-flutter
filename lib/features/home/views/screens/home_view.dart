@@ -1,15 +1,12 @@
+import 'dart:io';
+
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/routes/route_names.dart';
-import 'package:bodido/core/widgets/chat_input.dart';
-import 'package:bodido/core/widgets/circular_icon_button.dart';
-import 'package:bodido/core/widgets/loading_view.dart';
-import 'package:bodido/data/models/chat_model.dart';
-// removed model imports (not directly referenced here)
-import 'package:bodido/features/home/view_models/home_view_model.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-// --- Main HomeView Widget ---
-// Converted to ConsumerStatefulWidget to manage FocusNode
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
 
@@ -18,282 +15,194 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView> {
-  Future<void> _openQuestionsSheet(BuildContext context, WidgetRef ref) async {
-    final state = ref.read(homeViewModelProvider);
+  String? _selectedImagePath;
+  static final ImagePicker _imagePicker = ImagePicker();
 
-    if (state.isLoadingUserQuestions) {
-      LoadingScreen.show(context);
+  /// Request photo library permission (system dialog on first use), then open gallery.
+  Future<void> _pickFromGallery() async {
+    if (!mounted) return;
+
+    // 1. Request permission — iOS shows dialog using NSPhotoLibraryUsageDescription
+    final status = await Permission.photos.request();
+    if (!mounted) return;
+
+    if (status.isDenied || status.isPermanentlyDenied) {
+      await _showPhotoPermissionDeniedDialog();
       return;
     }
 
-    if (state.userQuestions.isEmpty && state.answeredQuestions.isEmpty) {
-      LoadingScreen.show(context);
-      await Future.delayed(const Duration(milliseconds: 500));
-      final updatedState = ref.read(homeViewModelProvider);
-      if (updatedState.isLoadingUserQuestions) {
-        return; // Still loading, keep overlay
+    // 2. Permission granted or limited — open picker
+    try {
+      final file = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        imageQuality: 85,
+      );
+      if (file != null && mounted) {
+        setState(() => _selectedImagePath = file.path);
       }
-      LoadingScreen.dismiss(context);
+    } on PlatformException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.message ?? 'Could not open gallery. Try restarting the app.',
+          ),
+          backgroundColor: $styles.colors.error,
+        ),
+      );
     }
-
-    ref.read(homeViewModelProvider.notifier).showQuestionsSheet(context);
   }
 
-  Future<void> _openScoreSheet(BuildContext context, WidgetRef ref) async {
-    final state = ref.read(homeViewModelProvider);
-
-    if (state.bodySimulatorState == null || state.isLoadingInsights) {
-      LoadingScreen.show(context);
-      return;
-    }
-
-    ref
-        .read(homeViewModelProvider.notifier)
-        .showBodySimulatorSnapshotDetails(context);
+  Future<void> _showPhotoPermissionDeniedDialog() async {
+    await showCupertinoDialog<void>(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: const Text('Photo access'),
+        content: const Padding(
+          padding: EdgeInsets.only(top: 12),
+          child: Text(
+            'Photo library access is needed to select images for analysis. '
+            'You can enable it in Settings.',
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              openAppSettings();
+            },
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = ref.watch(homeViewModelProvider.notifier);
-    final state = ref.watch(homeViewModelProvider);
-
-    final mq = MediaQuery.of(context);
-    final double buttonHeight = mq.size.height / 5;
-
-    ref.listen<bool>(
-      homeViewModelProvider
-          .select((s) => s.isLoadingUserQuestions || s.isLoadingInsights),
-      (prev, isLoading) {
-        if (isLoading) {
-          LoadingScreen.show(context);
-        } else {
-          LoadingScreen.dismiss(context);
-        }
-      },
-    );
-
     return Scaffold(
       backgroundColor: $styles.colors.background,
-      body: Column(
-        children: [
-          // Header stays fixed at the top
-          _buildHeader(context, state, ref),
-
-          // Middle content (big buttons) becomes scrollable
-          Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                $styles.insets.md,
-                0,
-                $styles.insets.md,
-                $styles.insets.md,
-              ),
-              child: Column(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.all($styles.insets.md),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  SizedBox(
-                    height: buttonHeight,
-                    child: _HomeBigButton(
-                      icon: Icons.insights_outlined,
-                      title: $strings.home_score,
-                      subtitle: $strings.home_overall_score(
-                        (state.bodySimulatorState?.healthScore.overallScore ??
-                                0)
-                            .toStringAsFixed(1),
+                  Text(
+                    'Home',
+                    style: $styles.text.h3.copyWith(
+                      color: $styles.colors.black,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => context.push(RouteNames.chatHistory),
+                        child: Icon(
+                          CupertinoIcons.calendar,
+                          color: $styles.colors.black,
+                          size: 28,
+                        ),
                       ),
-                      gradientStart: $styles.colors.accent2,
-                      gradientEnd: $styles.colors.accent1,
-                      onTap: () => _openScoreSheet(context, ref),
-                    ),
-                  ),
-                  SizedBox(height: $styles.insets.md),
-                  SizedBox(
-                    height: buttonHeight,
-                    child: _HomeBigButton(
-                      icon: Icons.rule_folder_outlined,
-                      title: $strings.home_questions,
-                      subtitle: state.userQuestions.isEmpty
-                          ? $strings.home_no_pending_questions
-                          : $strings
-                              .home_num_pending(state.userQuestions.length),
-                      gradientStart: $styles.colors.accent1,
-                      gradientEnd: $styles.colors.accent3,
-                      onTap: () => _openQuestionsSheet(context, ref),
-                    ),
-                  ),
-                  SizedBox(height: $styles.insets.md),
-                  SizedBox(
-                    height: buttonHeight,
-                    child: _HomeBigButton(
-                      icon: Icons.chat_bubble_outline,
-                      title: $strings.home_chat_history,
-                      subtitle: $strings.home_chat_history_subtitle,
-                      gradientStart: $styles.colors.accent3,
-                      gradientEnd: $styles.colors.accent2,
-                      onTap: () => context.push(RouteNames.chatHistory),
-                    ),
+                      SizedBox(width: $styles.insets.xs),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => context.go(RouteNames.settings),
+                        child: Icon(
+                          CupertinoIcons.settings,
+                          color: $styles.colors.black,
+                          size: 28,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          ),
-
-          // Chat input stays pinned at the bottom
-          ChatInput(
-            shouldSaveAsContext: state.isSaveMode,
-            onSaveModeToggle: () => viewModel.onSaveModeToggle(),
-            onSubmit: (ChatMessageDTO chatMessage) {
-              if (chatMessage.message?.isNotEmpty == true) {
-                context.push(
-                  RouteNames.chat,
-                  extra: {
-                    'initialMessage': chatMessage,
-                    'sessionIds': [chatMessage.sessionId],
-                    'selectedDate': DateTime.now(),
-                  },
-                );
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(
-      BuildContext context, HomeViewState state, WidgetRef ref) {
-    final mq = MediaQuery.of(context);
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-          $styles.insets.md, mq.padding.top, $styles.insets.md, 0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular($styles.insets.lg),
-          bottomRight: Radius.circular($styles.insets.lg),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              GestureDetector(
-                onTap: () => context.push(RouteNames.chatHistory),
-                child: Row(
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.calendar_month),
-                    SizedBox(width: $styles.insets.sm),
-                    Text(DateFormat.yMMMMd().format(DateTime.now()),
-                        style: $styles.text.bodySmall),
+                    if (_selectedImagePath != null) ...[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(
+                          File(_selectedImagePath!),
+                          width: 200,
+                          height: 200,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      SizedBox(height: $styles.insets.md),
+                      CupertinoButton(
+                        onPressed: () =>
+                            setState(() => _selectedImagePath = null),
+                        child: Text(
+                          'Clear photo',
+                          style: $styles.text.body.copyWith(
+                            color: $styles.colors.error,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ] else
+                      Text(
+                        'Tap the photo button to select from gallery',
+                        style: $styles.text.body.copyWith(
+                          color: $styles.colors.caption,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                   ],
                 ),
               ),
-              Row(
-                children: [
-                  CircularIconButton(
-                      size: 48,
-                      icon: Icons.shopping_bag,
-                      iconColor: $styles.colors.black,
-                      backgroundColor: Colors.transparent,
-                      onTap: () =>
-                          context.go(RouteNames.productRecommendations)),
-                  CircularIconButton(
-                      size: 48,
-                      icon: Icons.settings,
-                      iconColor: $styles.colors.black,
-                      backgroundColor: Colors.transparent,
-                      onTap: () => context.go(RouteNames.settings)),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: $styles.insets.md),
-        ],
-      ),
-    );
-  }
-}
-
-// Big button widget used on Home to represent each section
-class _HomeBigButton extends StatelessWidget {
-  const _HomeBigButton({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.gradientStart,
-    required this.gradientEnd,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color gradientStart;
-  final Color gradientEnd;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular($styles.corners.md),
-      child: Ink(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular($styles.corners.md),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              gradientStart.withOpacity(0.24),
-              gradientEnd.withOpacity(0.14),
-            ],
-          ),
-          border: Border.all(color: gradientStart.withOpacity(0.30), width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: gradientStart.withOpacity(0.14),
-              blurRadius: 18,
-              offset: const Offset(0, 10),
             ),
           ],
-          color: $styles.colors.backgroundDark,
         ),
-        child: Padding(
-          padding: EdgeInsets.all($styles.insets.md),
-          child: Row(
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: gradientStart.withOpacity(0.20),
-                  borderRadius: BorderRadius.circular($styles.corners.md),
-                ),
-                child: Icon(icon, color: gradientStart, size: 32),
-              ),
-              SizedBox(width: $styles.insets.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(title,
-                        style: $styles.text.bodyBold.copyWith(fontSize: 20)),
-                    SizedBox(height: 4),
-                    Text(subtitle,
-                        style: $styles.text.caption
-                            .copyWith(color: $styles.colors.caption)),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right,
-                  color: $styles.colors.caption, size: 24),
-            ],
+      ),
+      floatingActionButton: _buildGalleryFAB(context),
+    );
+  }
+
+  Widget _buildGalleryFAB(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: $styles.colors.greyMedium.withOpacity(0.4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: _pickFromGallery,
+        child: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: $styles.colors.accent1,
+          ),
+          child: Icon(
+            CupertinoIcons.photo_on_rectangle,
+            color: $styles.colors.white,
+            size: 28,
           ),
         ),
       ),
     );
   }
 }
-
-// (Badge widget removed - not used)

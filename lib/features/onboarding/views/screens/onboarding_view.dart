@@ -1,6 +1,7 @@
 import 'package:bodido/common_libs.dart';
 import 'package:bodido/core/widgets/custom_message_sheet.dart';
 import 'package:bodido/core/widgets/live_typewriter.dart';
+import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/features/onboarding/view_models/onboarding_view_model.dart';
 import 'package:bodido/features/onboarding/views/widgets/birth_date_picker.dart';
@@ -27,8 +28,7 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
     BasicUserData.height,
     BasicUserData.bodyType,
   ];
-  bool _wrapUpTriggered = false;
-  bool _isShowingError = false;
+  bool _didFinalize = false;
 
   @override
   void initState() {
@@ -38,7 +38,6 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
       int currentPage = ref.read(healthOnboardingProvider).currentPage;
       if (newPage != currentPage) {
         if (newPage != _onboardingSteps.length) {
-          _wrapUpTriggered = false;
           ref.read(healthOnboardingProvider.notifier).clearProgressMessages();
         }
 
@@ -47,10 +46,34 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
           await _saveCurrentPageData(currentPage);
         }
 
-        if (newPage == _onboardingSteps.length && !_wrapUpTriggered) {
-          _wrapUpTriggered = true;
-          await _saveCurrentPageData(_onboardingSteps.length - 1);
-          ref.read(healthOnboardingProvider.notifier).finalizeOnboarding();
+        // Entered the final "redirect" page: finalize and route to home.
+        if (newPage == _onboardingSteps.length && !_didFinalize) {
+          _didFinalize = true;
+          final vm = ref.read(healthOnboardingProvider.notifier);
+          final ok = await vm.finalizeOnboarding();
+          if (!mounted) return;
+          if (ok) {
+            context.go(RouteNames.home);
+          } else {
+            final err = ref.read(healthOnboardingProvider).error ??
+                'Failed to complete setup. Please try again.';
+            CustomMessageSheet.showError(
+              context: context,
+              message: err,
+              actions: [
+                MessageAction(
+                  label: 'Retry',
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    _didFinalize = false;
+                    // stay on redirect page; listener will re-trigger finalize
+                    setState(() {});
+                  },
+                  isPrimary: true,
+                ),
+              ],
+            );
+          }
         }
       }
     });
@@ -89,31 +112,31 @@ class OnboardingViewState extends ConsumerState<OnboardingView> {
     final currentPage =
         ref.watch(healthOnboardingProvider.select((s) => s.currentPage));
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final error = state.error;
-      if (!mounted || error == null || _isShowingError) {
-        return;
-      }
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   final error = state.error;
+    //   if (!mounted || error == null || _isShowingError) {
+    //     return;
+    //   }
 
-      _isShowingError = true;
-      final message = error;
-      viewModel.clearError();
+    //   _isShowingError = true;
+    //   final message = error;
+    //   viewModel.clearError();
 
-      CustomMessageSheet.showError(
-        context: context,
-        message: message,
-        actions: [
-          MessageAction(
-            label: 'Retry',
-            onPressed: () => viewModel.finalizeOnboarding(),
-            isPrimary: true,
-          ),
-        ],
-        onDismiss: () {
-          _isShowingError = false;
-        },
-      );
-    });
+    //   CustomMessageSheet.showError(
+    //     context: context,
+    //     message: message,
+    //     actions: [
+    //       MessageAction(
+    //         label: 'Retry',
+    //         onPressed: () => viewModel.finalizeOnboarding(),
+    //         isPrimary: true,
+    //       ),
+    //     ],
+    //     onDismiss: () {
+    //       _isShowingError = false;
+    //     },
+    //   );
+    // });
 
     return Scaffold(
       body: Padding(

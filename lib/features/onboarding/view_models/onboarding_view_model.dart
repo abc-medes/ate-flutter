@@ -1,4 +1,3 @@
-import 'package:bodido/core/services/api_service.dart';
 import 'package:bodido/core/services/auth_service.dart';
 import 'package:bodido/core/services/onboarding_complete_service.dart';
 import 'package:bodido/core/services/onboarding_service.dart';
@@ -7,7 +6,6 @@ import 'package:bodido/data/repositories/health_repository.dart';
 import 'package:bodido/features/onboarding/views/widgets/body_type_pidcker.dart';
 import 'package:bodido/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:bodido/main.dart';
 
 class HealthOnboardingState {
   final int selectedHeight;
@@ -174,47 +172,27 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
   Future<bool> finalizeOnboarding() async {
     state = state.copyWith(isFinalizing: true, clearError: true);
     try {
+      _log('Saving your profile...');
+
       final authService = ref.read(authServiceProvider);
       await authService.ensureProfileAndEmptyHealthMetrics();
-      final isServerHealthy = await ApiService.checkServerHealth();
-      if (!isServerHealthy) {
-        state = state.copyWith(
-          isFinalizing: false,
-          error: $strings.error_check_network,
-        );
-        return false;
-      }
-      final healthMetrics = await _healthRepository.getExistingHealthMetrics();
-      _log($strings.onboarding_log_saving_metrics);
-      await OnboardingService().saveHealthMetricsToDatabase(healthMetrics);
-      _log($strings.onboarding_log_initializing_simulator);
-      await ApiService.initializeBodySimulatorState();
 
-      // mark onboarding complete
+      final healthMetrics = await _healthRepository.getExistingHealthMetrics();
+      _log('Uploading health metrics...');
+      await OnboardingService().saveHealthMetricsToDatabase(healthMetrics);
+
+      _log('Finishing...');
       await _healthRepository.saveOnboardingComplete();
       ref.invalidate(onboardingCompleteProvider);
 
       return true;
     } catch (e) {
-      print('Error finalising onboarding: $e');
-
-      // Extract user-friendly error message
-      String errorMessage = 'Failed to complete setup. Please try again.';
-      if (e.toString().contains('body simulator')) {
-        errorMessage = 'Failed to initialize body simulator. Please try again.';
-      } else if (e.toString().contains('500')) {
-        errorMessage = 'Server error occurred. Please try again later.';
-      }
-
       state = state.copyWith(
-        isFinalizing: false,
-        error: errorMessage,
+        error: 'Failed to complete setup. Please try again.',
       );
       return false;
     } finally {
-      if (state.isFinalizing) {
-        state = state.copyWith(isFinalizing: false);
-      }
+      state = state.copyWith(isFinalizing: false);
     }
   }
 

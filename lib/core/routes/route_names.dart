@@ -11,7 +11,7 @@ class RouteNames {
 
   // Main Routes
   static const home = '/';
-  // static const debug = '/debug';
+  static const debug = '/debug';
   // static const home = '/home';
   static const profile = '/profile';
   static const settings = '/settings';

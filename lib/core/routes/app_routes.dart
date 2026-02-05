@@ -3,17 +3,17 @@ import 'package:bodido/core/routes/router_wrapper.dart';
 import 'package:bodido/data/models/chat_model.dart';
 import 'package:bodido/features/chat/views/screens/chat_history_view.dart';
 import 'package:bodido/features/chat/views/screens/chat_view.dart';
+import 'package:bodido/features/debug/debug_view.dart';
 import 'package:bodido/features/home/views/screens/home_view.dart';
 import 'package:bodido/features/recommendations/views/screens/product_recommendations_view.dart';
 import 'package:bodido/features/settings/views/screens/change_password_view.dart';
 import 'package:bodido/features/settings/views/screens/settings_view.dart';
 
 final appRoutes = [
-  // AppRoute(
-  //   RouteNames.debug,
-  //   (_) => const DebugView(),
-  // ),
-
+  AppRoute(
+    RouteNames.debug,
+    (_) => const DebugView(),
+  ),
   AppRoute(
     RouteNames.home,
     (_) => const HomeView(),

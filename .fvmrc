@@ -1,0 +1,7 @@
+{
+  "flutter": "3.38.9",
+  "flavors": {},
+  "runPubGetOnSdkChanges": true,
+  "updateVscodeSettings": true,
+  "updateGitIgnore": true
+}

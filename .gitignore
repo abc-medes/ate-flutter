@@ -1,3 +1,5 @@
+/.fvm/
+
 # Flutter related files
 **/build/
 **/.dart_tool/

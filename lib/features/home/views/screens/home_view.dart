@@ -18,6 +18,28 @@ class _HomeViewState extends ConsumerState<HomeView> {
   String? _selectedImagePath;
   static final ImagePicker _imagePicker = ImagePicker();
 
+  /// Only request on first open of home this app launch.
+  static bool _didRequestPermissionsOnOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _requestPermissionsOnOpen());
+  }
+
+  /// When app opens (home shown), ask for health then gallery permission once per launch.
+  Future<void> _requestPermissionsOnOpen() async {
+    if (_didRequestPermissionsOnOpen || !mounted) return;
+    _didRequestPermissionsOnOpen = true;
+
+    // 1. Health (HealthKit / Health Connect) — system sheet
+    await healthPermissionService.requestAuthorization();
+    if (!mounted) return;
+
+    // 2. Gallery (photos) — system dialog
+    await Permission.photos.request();
+  }
+
   /// Request photo library permission (system dialog on first use), then open gallery.
   Future<void> _pickFromGallery() async {
     if (!mounted) return;
@@ -119,6 +141,16 @@ class _HomeViewState extends ConsumerState<HomeView> {
                         onPressed: () => context.go(RouteNames.settings),
                         child: Icon(
                           CupertinoIcons.settings,
+                          color: $styles.colors.black,
+                          size: 28,
+                        ),
+                      ),
+                      SizedBox(width: $styles.insets.xs),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => context.go(RouteNames.debug),
+                        child: Icon(
+                          CupertinoIcons.ant,
                           color: $styles.colors.black,
                           size: 28,
                         ),

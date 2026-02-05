@@ -28,6 +28,10 @@
 		<string>This app needs access to your photo library to select images for analysis.</string>
 		<key>NSCameraUsageDescription</key>
 		<string>This app needs camera access to take photos for analysis.</string>
+		<key>NSHealthShareUsageDescription</key>
+		<string>This app reads your health data (steps, heart rate, workouts, weight) to provide insights.</string>
+		<key>NSHealthUpdateUsageDescription</key>
+		<string>This app may save health data (e.g. workouts, weight) to Apple Health.</string>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>UIApplicationSupportsIndirectInputEvents</key>

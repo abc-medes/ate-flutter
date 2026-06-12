@@ -110,8 +110,7 @@ under `test/`:
 flutter test            # run the test suite
 ```
 
-CI (GitHub Actions) runs the suite on every push and pull request, with
-`flutter analyze` as an advisory step — see
+CI (GitHub Actions) runs the suite on every push and pull request — see
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ## 🧭 Conventions

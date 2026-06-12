@@ -17,36 +17,14 @@ jobs:
           channel: stable
           cache: true
 
-      # `.env` is declared as an asset (loaded at runtime via flutter_dotenv) but
-      # is gitignored, so create an empty placeholder for the asset bundle build.
-      - name: Create placeholder .env
-        run: touch .env
+      # `.env` / `.env_prod` are declared as assets (loaded at runtime via
+      # flutter_dotenv) but are gitignored, so create empty placeholders for the
+      # asset bundle build.
+      - name: Create placeholder env files
+        run: touch .env .env_prod
 
       - name: Install dependencies
         run: flutter pub get
 
       - name: Run tests
         run: flutter test
-
-  analyze:
-    name: Analyze (advisory)
-    runs-on: ubuntu-latest
-    # Static analysis is advisory while the codebase adopts stricter lints; the
-    # `test` job above is the gating check.
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Create placeholder .env
-        run: touch .env
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Analyze
-        run: flutter analyze

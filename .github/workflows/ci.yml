@@ -17,6 +17,11 @@ jobs:
           channel: stable
           cache: true
 
+      # `.env` is declared as an asset (loaded at runtime via flutter_dotenv) but
+      # is gitignored, so create an empty placeholder for the asset bundle build.
+      - name: Create placeholder .env
+        run: touch .env
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -36,6 +41,9 @@ jobs:
         with:
           channel: stable
           cache: true
+
+      - name: Create placeholder .env
+        run: touch .env
 
       - name: Install dependencies
         run: flutter pub get

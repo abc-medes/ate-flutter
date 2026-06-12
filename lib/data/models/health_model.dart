@@ -1,4 +1,5 @@
 import 'package:bodido/data/models/body_simulator_model.dart';
+import 'package:bodido/core/utils/logger.dart';
 
 /**
  * HEALTH DATA PRIORITY LEVELS
@@ -1804,7 +1805,7 @@ void demonstrateEnumBasedApproach() {
 
   // Check if a field exists
   if (userData.hasField(UserInputField.height)) {
-    print('Height is ${userData.height} cm');
+    AppLogger.debug('Height is ${userData.height} cm');
   }
 
   // Create environmental data

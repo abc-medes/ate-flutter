@@ -2,9 +2,10 @@ import 'dart:convert';
 
 import 'package:bodido/data/models/body_simulator_model.dart';
 import 'package:bodido/data/models/health_model.dart';
-import 'package:bodido/features/onboarding/views/widgets/body_type_pidcker.dart';
+import 'package:bodido/features/onboarding/views/widgets/body_type_picker.dart';
 import 'package:bodido/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bodido/core/utils/logger.dart';
 
 class HealthRepository {
   static const String _healthDataKey = 'health_metrics';
@@ -85,7 +86,7 @@ class HealthRepository {
       }
     }
 
-    print(missingFields);
+    AppLogger.debug(missingFields);
 
     return missingFields;
   }
@@ -117,7 +118,7 @@ class HealthRepository {
         return HealthMetrics.fromJson(jsonDecode(metricsString));
       }
     } catch (e) {
-      print('Error retrieving health metrics: $e');
+      AppLogger.error('Error retrieving health metrics: $e');
     }
 
     // Return empty health metrics if none exist
@@ -144,7 +145,7 @@ class HealthRepository {
 
       await saveHealthMetricsToStorage(updatedHealthMetrics);
     } catch (e) {
-      print('Error saving height and weight: $e');
+      AppLogger.error('Error saving height and weight: $e');
     }
   }
 
@@ -161,7 +162,7 @@ class HealthRepository {
 
       await saveHealthMetricsToStorage(updatedHealthMetrics);
     } catch (e) {
-      print('Error saving body type: $e');
+      AppLogger.error('Error saving body type: $e');
     }
   }
 
@@ -179,7 +180,7 @@ class HealthRepository {
 
       await saveHealthMetricsToStorage(updatedHealthMetrics);
     } catch (e) {
-      print('Error saving memorized data: $e');
+      AppLogger.error('Error saving memorized data: $e');
     }
   }
 
@@ -197,7 +198,7 @@ class HealthRepository {
 
       await saveHealthMetricsToStorage(updatedHealthMetrics);
     } catch (e) {
-      print('Error saving birth date: $e');
+      AppLogger.error('Error saving birth date: $e');
     }
   }
 
@@ -215,7 +216,7 @@ class HealthRepository {
 
       await saveHealthMetricsToStorage(updatedHealthMetrics);
     } catch (e) {
-      print('Error saving gender: $e');
+      AppLogger.error('Error saving gender: $e');
       rethrow;
     }
   }
@@ -225,7 +226,7 @@ class HealthRepository {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('health_metrics', jsonEncode(metrics.toJson()));
     } catch (e) {
-      print('Error saving health metrics: $e');
+      AppLogger.error('Error saving health metrics: $e');
     }
   }
 
@@ -237,7 +238,7 @@ class HealthRepository {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('onboarding_complete', true);
     } catch (e) {
-      print('Error saving onboarding complete: $e');
+      AppLogger.error('Error saving onboarding complete: $e');
     }
   }
 
@@ -246,7 +247,7 @@ class HealthRepository {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getBool('onboarding_complete') ?? false;
     } catch (e) {
-      print('Error checking onboarding complete: $e');
+      AppLogger.error('Error checking onboarding complete: $e');
       return false;
     }
   }

@@ -3,6 +3,7 @@ import 'package:bodido/core/services/user_service.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/data/models/profiles/_ai_settings.dart';
 import 'package:bodido/data/repositories/health_repository.dart';
+import 'package:bodido/core/utils/logger.dart';
 
 class SettingsState {
   final Map<String, dynamic>? healthContext;
@@ -57,13 +58,13 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
   Future<void> setHealthContextFromRaw(Map<String, dynamic> raw) async {
     final updated = raw['updated_value'];
 
-    print('updated: $updated');
+    AppLogger.debug('updated: $updated');
 
     final memorizedData = UserInputData.fromJson(
             Map<String, dynamic>.from(updated['user_input_data']))
         .memorizedData;
 
-    print('memorizedData: $memorizedData');
+    AppLogger.debug('memorizedData: $memorizedData');
 
     state = state.copyWith(memorizedData: memorizedData);
   }

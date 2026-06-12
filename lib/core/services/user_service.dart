@@ -5,6 +5,7 @@ import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/data/models/insight_model.dart';
 import 'package:bodido/data/models/profiles/user_model.dart' as um;
 import 'package:bodido/data/repositories/health_repository.dart';
+import 'package:bodido/core/utils/logger.dart';
 
 class UserService {
   final SupabaseClient _client = Supabase.instance.client;
@@ -149,7 +150,7 @@ class UserService {
 
       return null;
     } catch (e) {
-      print('Error getting health metrics from database: $e');
+      AppLogger.error('Error getting health metrics from database: $e');
       return null;
     }
   }

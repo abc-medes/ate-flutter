@@ -1,5 +1,6 @@
 import 'package:bodido/common_libs.dart';
 import 'dart:math' as math;
+import 'package:bodido/core/utils/logger.dart';
 
 // Track whether overlay is currently shown
 bool _isOverlayShown = false;
@@ -19,7 +20,7 @@ class LoadingScreen extends StatefulWidget {
     try {
       // If already showing, just update the message
       if (_isOverlayShown && _currentOverlayEntry != null) {
-        print('Loading screen already shown, updating message: $message');
+        AppLogger.debug('Loading screen already shown, updating message: $message');
         return;
       }
 
@@ -40,14 +41,14 @@ class LoadingScreen extends StatefulWidget {
         try {
           if (context.mounted) {
             Overlay.of(context).insert(overlayEntry);
-            print('Loading screen shown: $message');
+            AppLogger.debug('Loading screen shown: $message');
           }
         } catch (e) {
-          print('Error showing loading screen in post-frame: $e');
+          AppLogger.error('Error showing loading screen in post-frame: $e');
         }
       });
     } catch (e) {
-      print('Error preparing loading screen: $e');
+      AppLogger.error('Error preparing loading screen: $e');
     }
   }
 
@@ -56,9 +57,9 @@ class LoadingScreen extends StatefulWidget {
 
     try {
       _currentOverlayEntry?.remove();
-      print('Loading screen dismissed');
+      AppLogger.debug('Loading screen dismissed');
     } catch (e) {
-      print('Error removing loading overlay: $e');
+      AppLogger.error('Error removing loading overlay: $e');
     } finally {
       _currentOverlayEntry = null;
       _isOverlayShown = false;
@@ -93,7 +94,7 @@ class _LoadingOverlayState extends State<_LoadingOverlay> {
     try {
       widget._overlayEntry.remove();
     } catch (e) {
-      print('Failed to remove overlay: $e');
+      AppLogger.error('Failed to remove overlay: $e');
     }
   }
 

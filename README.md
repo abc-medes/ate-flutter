@@ -101,6 +101,19 @@ flutter run            # debug build on a connected device/emulator
 flutter analyze        # static analysis (flutter_lints)
 ```
 
+## 🧪 Testing
+
+Pure model logic (JSON (de)serialization, `copyWith`) is covered by unit tests
+under `test/`:
+
+```bash
+flutter test            # run the test suite
+```
+
+CI (GitHub Actions) runs the suite on every push and pull request, with
+`flutter analyze` as an advisory step — see
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
 ## 🧭 Conventions
 
 - **Feature-first**: add new functionality as a self-contained module under

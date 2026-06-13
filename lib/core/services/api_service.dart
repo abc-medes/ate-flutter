@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/status.dart' as ws_status;
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:bodido/core/utils/logger.dart';
 
 class ApiService {
   // DEV
@@ -74,7 +75,7 @@ class ApiService {
       var streamedResponse = await _executeSendRequest(accessToken);
 
       if (streamedResponse.statusCode == 401) {
-        print('API token expired or invalid, attempting refresh...');
+        AppLogger.debug('API token expired or invalid, attempting refresh...');
         final authResponse =
             await _supabase.auth.refreshSession(); // AuthResponse
 
@@ -84,7 +85,7 @@ class ApiService {
               'Authentication failed: Unable to refresh session or new token is invalid.');
         }
         accessToken = authResponse.session!.accessToken; // Use the new token
-        print('Token refreshed. Retrying request with new token...');
+        AppLogger.debug('Token refreshed. Retrying request with new token...');
         streamedResponse = await _executeSendRequest(accessToken); // Retry
       }
 
@@ -102,7 +103,7 @@ class ApiService {
       // Clean up the exception message to avoid "Exception: Exception: ..."
       if (e is Exception) {
         final errorMessage = e.toString();
-        print('Error sending message: $errorMessage');
+        AppLogger.error('Error sending message: $errorMessage');
         throw Exception(
             'Error sending message: ${errorMessage.startsWith("Exception: ") ? errorMessage.substring("Exception: ".length) : errorMessage}');
       } else {
@@ -183,7 +184,7 @@ class ApiService {
       var response = await executeRequest(accessToken);
 
       if (response.statusCode == 401) {
-        print('API token expired or invalid, attempting refresh...');
+        AppLogger.debug('API token expired or invalid, attempting refresh...');
         final authResponse = await _supabase.auth.refreshSession();
 
         if (authResponse.session == null ||
@@ -191,7 +192,7 @@ class ApiService {
           throw Exception('Authentication failed: Unable to refresh session.');
         }
         accessToken = authResponse.session!.accessToken;
-        print('Token refreshed. Retrying request with new token...');
+        AppLogger.debug('Token refreshed. Retrying request with new token...');
         response = await executeRequest(accessToken);
       }
 
@@ -201,7 +202,7 @@ class ApiService {
       }
 
       final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
-      print(
+      AppLogger.debug(
           'Body simulator initialized successfully: ${responseBody['message']}');
     } catch (e) {
       if (e is Exception) {

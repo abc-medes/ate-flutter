@@ -4,7 +4,7 @@ import 'package:bodido/core/routes/route_names.dart';
 import 'package:bodido/core/widgets/context_input.dart';
 import 'package:bodido/features/settings/view_models/settings_view_model.dart';
 import 'package:bodido/features/settings/views/widgets/health_context_section.dart';
-import 'package:bodido/features/settings/views/widgets/momorized_context_section.dart';
+import 'package:bodido/features/settings/views/widgets/memorized_context_section.dart';
 import 'package:bodido/features/settings/views/widgets/section_header.dart';
 import 'package:bodido/features/settings/views/widgets/setting_header.dart';
 import 'package:bodido/features/settings/views/widgets/setting_item.dart';

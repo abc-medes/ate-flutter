@@ -9,9 +9,10 @@ import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/data/models/insight_model.dart';
 import 'package:bodido/data/models/tracking_question_model.dart';
 import 'package:bodido/data/repositories/app_lifecycle_repository.dart';
-import 'package:bodido/features/home/views/widgets/_body_simultor_snapshot_details.dart';
+import 'package:bodido/features/home/views/widgets/_body_simulator_snapshot_details.dart';
 import 'package:bodido/features/home/views/widgets/_questions_sheet.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:bodido/core/utils/logger.dart';
 
 enum ChatHelperType { ai, alerts, waitlist, system, context }
 
@@ -169,7 +170,7 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
         isLoadingInsights: false,
       );
     } catch (e) {
-      print('Error fetching insights: $e');
+      AppLogger.error('Error fetching insights: $e');
       state = state.copyWith(isLoadingInsights: false);
     }
   }
@@ -291,7 +292,7 @@ class HomeViewModel extends StateNotifier<HomeViewState> {
         selectedOptions: {},
       );
     } catch (e) {
-      print('Error committing selections: $e');
+      AppLogger.error('Error committing selections: $e');
     } finally {
       state = state.copyWith(isSavingSelections: false);
     }

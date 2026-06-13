@@ -3,10 +3,11 @@ import 'package:bodido/core/services/onboarding_complete_service.dart';
 import 'package:bodido/core/services/onboarding_service.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/data/repositories/health_repository.dart';
-import 'package:bodido/features/onboarding/views/widgets/body_type_pidcker.dart';
+import 'package:bodido/features/onboarding/views/widgets/body_type_picker.dart';
 import 'package:bodido/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bodido/main.dart';
+import 'package:bodido/core/utils/logger.dart';
 
 class HealthOnboardingState {
   final int selectedHeight;
@@ -189,7 +190,7 @@ class HealthOnboardingViewModel extends StateNotifier<HealthOnboardingState> {
 
       return true;
     } catch (e) {
-      print('Error finalising onboarding: $e');
+      AppLogger.error('Error finalising onboarding: $e');
 
       // Extract user-friendly error message
       String errorMessage = 'Failed to complete setup. Please try again.';

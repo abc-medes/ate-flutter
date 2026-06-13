@@ -4,7 +4,7 @@ import 'package:bodido/core/widgets/live_typewriter.dart';
 import 'package:bodido/data/models/health_model.dart';
 import 'package:bodido/features/onboarding/view_models/onboarding_view_model.dart';
 import 'package:bodido/features/onboarding/views/widgets/birth_date_picker.dart';
-import 'package:bodido/features/onboarding/views/widgets/body_type_pidcker.dart';
+import 'package:bodido/features/onboarding/views/widgets/body_type_picker.dart';
 import 'package:bodido/features/onboarding/views/widgets/gender_picker.dart';
 import 'package:bodido/features/onboarding/views/widgets/height_picker.dart';
 import 'package:bodido/features/onboarding/views/widgets/page_wrapper.dart';

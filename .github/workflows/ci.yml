@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # `.env` / `.env_prod` are declared as assets (loaded at runtime via
+      # flutter_dotenv) but are gitignored, so create empty placeholders for the
+      # asset bundle build.
+      - name: Create placeholder env files
+        run: touch .env .env_prod
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test
